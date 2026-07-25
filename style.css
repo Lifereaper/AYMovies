@@ -25,7 +25,7 @@ body {
     color: #E50914; 
     margin: 0; 
     font-size: 2rem; 
-    cursor: pointer; /* Makes it clearly clickable */
+    cursor: pointer; 
 }
 
 #search-input {
@@ -288,6 +288,7 @@ body {
 .auth-toggle-text a:hover {
     text-decoration: underline;
 }
+
 /* --- TV SHOW SEASON & EPISODE DROPDOWNS --- */
 .tv-controls {
     display: flex;
@@ -300,7 +301,7 @@ body {
 .tv-dropdown {
     background-color: #141414;
     color: #fff;
-    border: 1px solid #E50914; /* Your brand red */
+    border: 1px solid #E50914; 
     padding: 10px 15px;
     border-radius: 5px;
     font-size: 1rem;
@@ -349,9 +350,12 @@ body {
     fill: currentColor;
 }
 
-/* 📱 MOBILE FIX: Split Layout (Fixed Video, Scrolling Text) */
+/* ========================================================= */
+/* 📱 CONSOLIDATED MOBILE FIXES                              */
+/* ========================================================= */
 @media (max-width: 768px) {
-    /* 1. Stop the whole screen from scrolling */
+    
+    /* 1. Split Layout (Fixed Video, Scrolling Text) */
     .modal-content {
         height: 85vh !important;
         max-height: 85vh !important;
@@ -361,15 +365,6 @@ body {
         padding-bottom: 0 !important;
     }
 
-    /* 2. Lock the video area at the top of the screen */
-    .details-hero {
-        min-height: 220px !important;
-        height: 220px !important;
-        flex-shrink: 0 !important;
-        position: relative !important;
-    }
-
-    /* 3. Turn on the scrollbar ONLY for the bottom text/button area! */
     .details-content {
         flex-grow: 1 !important;
         overflow-y: scroll !important;
@@ -378,17 +373,7 @@ body {
         max-height: none !important;
     }
 
-    /* 4. Format the button stack */
-    div:has(> #details-play-btn) {
-        position: static !important;
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 10px !important;
-        width: 100% !important;
-        margin: 15px 0 25px 0 !important; /* Space below buttons */
-    }
-
-    /* 5. Format the Episode Drop-downs */
+    /* 2. Format the Episode Drop-downs */
     #modal-tv-controls {
         flex-direction: column !important;
         gap: 10px !important;
@@ -401,7 +386,7 @@ body {
         margin: 0 !important;
     }
 
-    /* 6. Stretch all buttons across the screen */
+    /* 3. Stretch all buttons across the screen */
     #details-play-btn,
     #details-trailer-btn,
     #details-mylist-btn,
@@ -411,13 +396,7 @@ body {
         display: block !important;
     }
 
-    /* ✨ NEW: Push the Play button to the very bottom of the stack! */
-    #details-play-btn {
-        order: 10 !important;
-    }
-    /* 📱 MOBILE FIX: Bulletproof Absolute Positioning for Video Screen */
-
-    /* 1. Lock the outer window to the exact visible screen */
+    /* 4. Bulletproof Absolute Positioning for Video Screen */
     #video-modal {
         position: fixed !important;
         top: 0 !important;
@@ -429,31 +408,28 @@ body {
         z-index: 99999 !important;
     }
 
-        /* 2. Turn off Flexbox. We are using hard math coordinates now. */
-        #video-modal .modal-content {
-            display: block !important;
-            position: relative !important;
-            width: 100% !important;
-            height: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-        }
+    #video-modal .modal-content {
+        display: block !important;
+        position: relative !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
 
-    /* 3. The Video IFRAME: Cut it off EXACTLY 130px from the bottom floor */
     #video-player-frame {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        height: calc(100% - 130px) !important; /* Forces the video to leave a 130px gap */
+        height: calc(100% - 130px) !important; 
         border: none !important;
     }
 
-    /* 4. The Episode Text: Lock it perfectly inside the gap */
     #episode-indicator-text {
         position: absolute !important;
-        bottom: 90px !important; /* Sits 90px from the floor */
+        bottom: 90px !important; 
         left: 0 !important;
         width: 100% !important;
         text-align: center !important;
@@ -462,22 +438,20 @@ body {
         margin: 0 !important;
     }
 
-    /* 5. The Buttons Container: Lock it to the very bottom floor */
     div:has(> #btn-next-ep) {
         position: absolute !important;
         bottom: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        height: 80px !important; /* Lock the height */
-        padding: 10px 15px 35px 15px !important; /* 35px cushion for the bottom swipe bar */
+        height: 80px !important; 
+        padding: 10px 15px 35px 15px !important; 
         background: #111 !important;
         display: flex !important;
         gap: 10px !important;
         box-sizing: border-box !important;
-        z-index: 100000 !important; /* Forces the buttons to sit ON TOP of your WhatsApp icon */
+        z-index: 100000 !important; 
     }
 
-    /* 6. Size the buttons uniformly */
     #btn-next-ep,
     #btn-prev-ep,
     #btn-mark-finished {
@@ -485,53 +459,52 @@ body {
         flex: 1 !important;
         height: 45px !important;
     }
-}
-/* ✨ FIX MODAL CUT-OFF & REORDER TITLE/BUTTONS ✨ */
-@media (max-width: 768px) {
-    /* 1. Stop trapping content in a tiny box. Let it expand naturally! */
+
+    /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (CLEANED) ✨ */
+    /* Reset the hero container to standard block layout so it can expand */
     #details-hero {
         height: auto !important;
-        min-height: 220px !important;
-        /* Reserve 240px of blank space at the top for the video, push content below */
-        padding: 240px 20px 20px 20px !important;
-        display: flex !important;
-        flex-direction: column !important;
+        min-height: auto !important;
+        padding: 240px 20px 20px 20px !important; 
+        display: block !important; 
     }
 
-    /* 2. Lock the video frame firmly at the top inside the reserved space */
+    /* Lock the video tightly at the top */
     #modal-trailer-frame {
         height: 220px !important;
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
+        width: 100% !important;
     }
 
-    /* 3. Turn the container holding the Title and Buttons into a flex column */
+    /* Turn the content wrapper into a Flex column to reorder its children */
     div:has(> #details-title) {
         display: flex !important;
         flex-direction: column !important;
     }
 
-    /* 4. Drop the Title underneath the buttons */
+    /* Push the movie title BELOW the buttons */
     #details-title {
         order: 2 !important;
         font-size: 1.8rem !important;
         text-align: center !important;
-        margin-top: 20px !important; /* Add breathing room below the buttons */
+        margin-top: 15px !important; 
         margin-bottom: 0 !important;
     }
 
-    /* 5. Stack the buttons on top of the title */
+    /* Pull the buttons ABOVE the title */
     div:has(> #details-play-btn) {
         order: 1 !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 12px !important;
+        gap: 10px !important;
         width: 100% !important;
+        margin: 0 !important;
     }
 
-    /* 6. Ensure Play button sits at the very top of the button stack */
+    /* Ensure Play Button is the #1 button in the stack */
     #details-play-btn {
-        order: 1 !important;
+        order: -1 !important;
     }
 }
