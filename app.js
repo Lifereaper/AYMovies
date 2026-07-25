@@ -82,9 +82,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentModalData = null; 
     let modalTrailerTimeout = null; 
 
+    // ✨ NEW: Trackers for Points & Anti-Spam Timer
+    let userPoints = 0;
+    let videoStartTime = 0; 
+
     const profileIcon = document.getElementById('profile-icon');
     const avatarDropdown = document.getElementById('avatar-dropdown');
-    const customAvatars = ['👤','🔴','🔵','🟢','👾','🐧','😎','🍿','👻','👑'];
+    
+    // ✨ Expanded Emojis
+    const customAvatars = ['👤','🔴','🔵','🟢','👾','🐧','😎','🍿','👻','👑','👽','🤖','🦊','🐯','🍕','🎬','🎮','🔥','💎','🚀','🐼','🐉','🎸','🌮'];
 
     profileIcon.addEventListener('click', () => { avatarDropdown.style.display = avatarDropdown.style.display === 'flex' ? 'none' : 'flex'; });
 
@@ -96,6 +102,11 @@ document.addEventListener("DOMContentLoaded", () => {
         span.onmouseout = () => span.style.transform = "scale(1)";
         span.onclick = () => {
             profileIcon.innerText = av;
+            
+            // ✨ Sync to the hamburger menu instantly
+            const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
+            if (mobileMenuAvatar) mobileMenuAvatar.innerText = av; 
+            
             avatarDropdown.style.display = 'none';
             if (currentUserUid) saveUserData(); 
         };
@@ -192,6 +203,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 continueWatching = data.continueWatching || [];
                 alreadyWatched = data.alreadyWatched || [];
                 
+                // ✨ Load Points and sync the Mobile Menu
+                userPoints = parseInt(progressMap['_points_']) || 0;
+                const mobileMenuPoints = document.getElementById('mobile-menu-points');
+                const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
+                const mobileMenuEmail = document.getElementById('mobile-menu-email');
+
+                if (mobileMenuPoints) mobileMenuPoints.innerText = userPoints;
+                if (mobileMenuAvatar) mobileMenuAvatar.innerText = data.avatar || '👤';
+                if (mobileMenuEmail) mobileMenuEmail.innerText = window.currentUserEmail || "Registered User";
+
                 dataLoadedFromCloud = true; 
                 
                 // If we just took over, claim the device instantly
@@ -230,8 +251,6 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // 🔒 SMUGGLE THE DEVICE ID: Hide it safely inside the progress map right before saving!
         progressMap['_active_device_'] = myDeviceId;
-        
-        // ... (Keep the rest of your saveUserData function exactly the same)
         
         const payload = {
             action: "save",
@@ -287,6 +306,16 @@ document.addEventListener("DOMContentLoaded", () => {
         continueWatching = [];
         alreadyWatched = [];
         progressMap = {};
+        
+        // ✨ Sync fresh mobile menu
+        userPoints = 0;
+        const mobileMenuPoints = document.getElementById('mobile-menu-points');
+        const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
+        const mobileMenuEmail = document.getElementById('mobile-menu-email');
+        if (mobileMenuPoints) mobileMenuPoints.innerText = "0";
+        if (mobileMenuAvatar) mobileMenuAvatar.innerText = '👤';
+        if (mobileMenuEmail) mobileMenuEmail.innerText = window.currentUserEmail || "Registered User";
+
         saveUserData(); 
     }
 
@@ -336,13 +365,13 @@ document.addEventListener("DOMContentLoaded", () => {
     btnLogoutMobile.addEventListener('click', handleLogout);
 
     onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // ✨ FIX: Stop the Firebase double-trigger bug instantly!
-        if (currentUserUid === user.uid) return;
+        if (user) {
+            // ✨ FIX: Stop the Firebase double-trigger bug instantly!
+            if (currentUserUid === user.uid) return;
 
-        currentUserUid = user.uid;
-        window.currentUserEmail = user.email || "Registered User";
-        loginView.style.display = 'none';
+            currentUserUid = user.uid;
+            window.currentUserEmail = user.email || "Registered User";
+            loginView.style.display = 'none';
             loadCategoryView('home'); 
             
             fetchUserData().then(() => {
@@ -839,6 +868,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
         let streamUrl = "";
+        
+        // ✨ NEW: Start the 40-minute timer!
+        videoStartTime = Date.now(); 
 
         // 📺 WRITE TV MEMORY OBJECT TO DATABASE
         if (isTV) {
@@ -890,6 +922,7 @@ document.addEventListener("DOMContentLoaded", () => {
         launchVideoStream(currentTvState.id, true, currentTvState.season, currentTvState.episode);
     });
 
+    // ✨ NEW: THE ANTI-SPAM REWARD SYSTEM
     btnMarkFinished.addEventListener('click', () => {
         if(currentUserUid && currentTvState.id) {
             
@@ -900,7 +933,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 progressMap[currentTvState.id] = '100'; 
             }
             
-            btnMarkFinished.innerText = "✅ Saved!";
+            // ✨ THE ANTI-SPAM CHECK (40 Minutes = 1 Point = $1 BZD)
+            const elapsedMinutes = (Date.now() - videoStartTime) / 60000;
+            
+            if (elapsedMinutes >= 0.1) { 
+                // They watched for at least 40 minutes! Give them 1 point.
+                userPoints += 1;
+                progressMap['_points_'] = userPoints;
+                
+                // Update Mobile Menu UI immediately
+                const mobileMenuPoints = document.getElementById('mobile-menu-points');
+                if (mobileMenuPoints) mobileMenuPoints.innerText = userPoints;
+                
+                btnMarkFinished.innerText = "⭐ +1 BZD Earned!"; 
+            } else {
+                // They clicked it too fast. Save it, but NO points!
+                btnMarkFinished.innerText = "✔️ Saved (Watch 40m for a point!)";
+            }
             
             continueWatching = continueWatching.filter(item => item.id !== currentTvState.id);
 
@@ -918,7 +967,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             saveUserData(); 
-            setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 2000);
+            setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 3000);
             syncProgressBars();
         }
     });
@@ -1111,17 +1160,15 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.querySelector('[data-view="home"]').classList.add('active');
         });
-    }); // ✨ FIX: We closed the loop right here!
+    });
 
     // 🚨 THE SMART HEARTBEAT: Checks the live database for thieves
     async function checkSessionLock() {
-        // 🛑 NEW: Ignore check if we are kicked out OR if we have the Immunity Shield!
         if (!currentUserUid || !dataLoadedFromCloud || window.isKickedOut || window.takeoverImmunity) return;
 
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
-                // ⚡ CACHE-BUSTER: Adding Date.now() forces the browser to look at the live Google Sheet, not a memorized version!
                 body: JSON.stringify({ action: "fetch", uid: currentUserUid, cacheBust: Date.now() })
             });
             const result = await response.json();
@@ -1129,21 +1176,17 @@ document.addEventListener("DOMContentLoaded", () => {
             if (result.exists) {
                 const currentCloudDevice = (result.data.progress || {})['_active_device_'];
 
-                // If the database has a different ID, WE GOT KICKED!
                 if (currentCloudDevice && currentCloudDevice !== myDeviceId) {
-                    
-                    // 1. Lock the device so it can't fight back
-                    window.isKickedOut = true; 
-                    
-                    // 2. Instantly destroy the website HTML so the movie stops playing
+
+                    window.isKickedOut = true;
+
                     document.body.innerHTML = `
                         <div style="background:#000; color:#fff; position:fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999999; text-align:center; padding:20px; font-family:sans-serif;">
                             <h1 style="color:#e50914; margin-bottom: 15px;">🚫 SESSION TERMINATED</h1>
                             <p style="font-size: 1.1rem; line-height: 1.5;">The account owner just logged in on another device.<br>You have been kicked out.</p>
                         </div>
                     `;
-                    
-                    // 3. Log them out and force them to the login screen 4 seconds later
+
                     setTimeout(() => {
                         firebase.auth().signOut().then(() => {
                             window.location.reload();
@@ -1156,13 +1199,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Trigger 1: Check every 10 seconds (sped up from 15)
     setInterval(checkSessionLock, 10000);
-
-    // Trigger 2: Check INSTANTLY if they minimize the app and come back
     window.addEventListener('focus', checkSessionLock);
-
-    // Trigger 3: Check INSTANTLY if they tap the screen (throttled to 10s)
     window.addEventListener('click', () => {
         if (!window.lockCheckThrottled) {
             window.lockCheckThrottled = true;
@@ -1171,4 +1209,4 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-}); // ✨ FIX: This now cleanly closes the main DOMContentLoaded event!
+});
