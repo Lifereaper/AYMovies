@@ -330,37 +330,36 @@
   </svg>
 </button>
 
-<script>
-  function handleWhatsAppReport() {
-    // 📞 Your phone number digits only (no spaces, dashes, or + signs)
-    const MY_SUPPORT_NUMBER = "5016542016"; 
+    <script>
+        function handleWhatsAppReport() {
+            const MY_SUPPORT_NUMBER = "5016542016";
+            const customUserMessage = prompt("Please describe the issue you are experiencing:");
+            if (!customUserMessage || customUserMessage.trim() === "") return;
 
-    // 1. Ask the user what's wrong
-    const customUserMessage = prompt("Please describe the issue you are experiencing:");
-    if (customUserMessage === null || customUserMessage.trim() === "") return;
+            let currentUserAccountEmail = window.currentUserEmail || "Unregistered Guest Account";
+            let subjectMovieTitle = "Main Selection Screen";
+            let subjectMovieId = "N/A";
 
-    // 2. Fetch the account email caught from our modern auth listener
-    let currentUserAccountEmail = window.currentUserEmail || "Unregistered Guest Account";
-    
-    // 3. Look for active movie context variables
-    let subjectMovieTitle = "Main Selection Screen";
-    let subjectMovieId = "N/A";
-    
-    const globalMovieVar = window.currentMovieSelection || window.activeMovie || window.currentMoviePlaying;
-    if (globalMovieVar) {
-      subjectMovieTitle = globalMovieVar.title || subjectMovieTitle;
-      subjectMovieId = globalMovieVar.id || subjectMovieId;
-    }
+            const globalMovieVar = window.currentMovieSelection || window.activeMovie || window.currentMoviePlaying;
+            if (globalMovieVar) {
+                subjectMovieTitle = globalMovieVar.title || subjectMovieTitle;
+                subjectMovieId = globalMovieVar.id || subjectMovieId;
+            }
 
-    // 4. Construct message string
-    const messagePayload = `🚨 *AYMOVIES SYSTEM ALERT* 🚨\n\n*From Account:* ${currentUserAccountEmail}\n*Context/Movie:* ${subjectMovieTitle} (ID: ${subjectMovieId})\n\n*User's Message:*\n"${customUserMessage}"`;
+            const messagePayload = `🚨 *AYMOVIES SYSTEM ALERT* 🚨\n\n*From Account:* ${currentUserAccountEmail}\n*Context/Movie:* ${subjectMovieTitle} (ID: ${subjectMovieId})\n\n*User's Message:*\n"${customUserMessage}"`;
 
-    // 5. Fire deep link
-    const universalDeepLink = `https://wa.me/${MY_SUPPORT_NUMBER}?text=${encodeURIComponent(messagePayload)}`;
-    window.open(universalDeepLink, "_blank");
-  }
+            const nativeAppUrl = `whatsapp://send?phone=${MY_SUPPORT_NUMBER}&text=${encodeURIComponent(messagePayload)}`;
 
-</script>
+            // Force it to use Kodular, absolutely no browser redirects allowed!
+            if (window.AppInventor) {
+                window.AppInventor.setWebViewString(nativeAppUrl);
+            } else {
+                // If it fails to find Kodular, we just alert the user instead of crashing the app
+                alert("Opening WhatsApp...");
+                window.AppInventor.setWebViewString(nativeAppUrl); // Try forcing it anyway
+            }
+        }
+    </script>
 
     <script type="module" src="app.js"></script>
 </body>
