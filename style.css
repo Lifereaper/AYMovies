@@ -199,18 +199,31 @@ body {
         flex-direction: column !important;
     }
 
-    /* 5. Force the Buttons to stack cleanly at the top */
+    /* 5. Force the Buttons into rigid, un-collapsible blocks */
     #details-title + div {
         order: 1 !important;
-        display: flex !important;
+        display: flex !important; 
         flex-direction: column !important;
-        gap: 12px !important;
-        margin-bottom: 25px !important; 
         width: 100% !important;
+        margin: 0 0 25px 0 !important; 
     }
 
-    #details-play-btn { order: -1 !important; }
+    /* Target every single button inside that container */
+    #details-title + div button, 
+    #details-title + div a,
+    #details-play-btn {
+        position: static !important;
+        display: block !important; /* Forces them to stack like physical bricks */
+        width: 100% !important;
+        min-height: 48px !important; /* Forces the phone to acknowledge their height */
+        margin: 0 0 12px 0 !important; /* Standard margin instead of flex gap */
+        box-sizing: border-box !important;
+        transform: none !important;
+    }
 
+    #details-play-btn { 
+        order: -1 !important; 
+    }
     /* 6. Title formatting */
     #details-title {
         order: 2 !important;
