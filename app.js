@@ -750,7 +750,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     modalTrailerFrame.style.display = 'block';
                     modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=0&controls=0&showinfo=0&rel=0`;
                 }
-            }, 5000); 
+            }, 500); 
 
             detailsTrailerBtn.onclick = async () => {
                 clearTimeout(modalTrailerTimeout); 
