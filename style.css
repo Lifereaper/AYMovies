@@ -157,7 +157,39 @@ body {
     header { padding: 15px !important; }
     #search-input { width: 130px !important; padding: 8px !important; }
     .search-dropdown { width: 250px !important; right: -50px !important; }
-
+    
+   /* 🦸‍♂️ RESTORE HERO BANNER SIZING */
+    #hero-poster-bg { 
+        height: 50vh !important; 
+        padding: 20px !important; 
+    }
+    #hero-display-title { 
+        font-size: 2rem !important; 
+    }
+    #hero-display-logo { 
+        max-width: 200px !important; 
+    }
+    #hero-display-desc { 
+        font-size: 0.9rem !important; 
+        margin-bottom: 15px !important; 
+    }
+    #hero-play-btn { 
+        padding: 8px 20px !important; 
+        font-size: 1.1rem !important; 
+        width: auto !important; 
+        display: inline-block !important;
+    }
+    #hero-mute-btn { 
+        bottom: 60px !important; 
+        right: 15px !important; 
+        width: 40px !important; 
+        height: 40px !important; 
+    }
+    .hero-nav-arrow { 
+        font-size: 2.5rem !important; 
+    }
+    #hero-prev { left: 5px !important; }
+    #hero-next { right: 5px !important; }
     /* 1. Unlock the modal so the entire screen scrolls naturally */
     #video-modal { overflow-y: auto !important; }
     
