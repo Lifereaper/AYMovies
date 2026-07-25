@@ -355,24 +355,24 @@ body {
     .modal-content {
         height: 85vh !important;
         max-height: 85vh !important;
-        overflow: hidden !important; 
+        overflow: hidden !important;
         display: flex !important;
         flex-direction: column !important;
-        padding-bottom: 0 !important; 
+        padding-bottom: 0 !important;
     }
 
     /* 2. Lock the video area at the top of the screen */
     .details-hero {
         min-height: 220px !important;
         height: 220px !important;
-        flex-shrink: 0 !important; 
+        flex-shrink: 0 !important;
         position: relative !important;
     }
 
     /* 3. Turn on the scrollbar ONLY for the bottom text/button area! */
     .details-content {
         flex-grow: 1 !important;
-        overflow-y: scroll !important; 
+        overflow-y: scroll !important;
         -webkit-overflow-scrolling: touch !important;
         padding: 20px !important;
         max-height: none !important;
@@ -380,7 +380,7 @@ body {
 
     /* 4. Format the button stack */
     div:has(> #details-play-btn) {
-        position: static !important; 
+        position: static !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 10px !important;
@@ -395,7 +395,7 @@ body {
         margin-top: 10px !important;
     }
 
-    #modal-season-select, 
+    #modal-season-select,
     #modal-episode-select {
         width: 100% !important;
         margin: 0 !important;
@@ -407,16 +407,16 @@ body {
     #details-mylist-btn,
     #details-community-btn {
         width: 100% !important;
-        margin: 0 !important; 
+        margin: 0 !important;
         display: block !important;
     }
 
     /* ✨ NEW: Push the Play button to the very bottom of the stack! */
     #details-play-btn {
-        order: 10 !important; 
+        order: 10 !important;
     }
     /* 📱 MOBILE FIX: Bulletproof Absolute Positioning for Video Screen */
-    
+
     /* 1. Lock the outer window to the exact visible screen */
     #video-modal {
         position: fixed !important;
@@ -424,21 +424,21 @@ body {
         left: 0 !important;
         right: 0 !important;
         bottom: 0 !important;
-        height: 100dvh !important; 
+        height: 100dvh !important;
         background: #000 !important;
-        z-index: 99999 !important; 
+        z-index: 99999 !important;
     }
 
-    /* 2. Turn off Flexbox. We are using hard math coordinates now. */
-    #video-modal .modal-content {
-        display: block !important;
-        position: relative !important;
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-    }
+        /* 2. Turn off Flexbox. We are using hard math coordinates now. */
+        #video-modal .modal-content {
+            display: block !important;
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
 
     /* 3. The Video IFRAME: Cut it off EXACTLY 130px from the bottom floor */
     #video-player-frame {
@@ -478,21 +478,22 @@ body {
     }
 
     /* 6. Size the buttons uniformly */
-    #btn-next-ep, 
-    #btn-prev-ep, 
+    #btn-next-ep,
+    #btn-prev-ep,
     #btn-mark-finished {
         margin: 0 !important;
         flex: 1 !important;
         height: 45px !important;
     }
-    /* ✨ FIX MODAL CUT-OFF & REORDER TITLE/BUTTONS ✨ */
+}
+/* ✨ FIX MODAL CUT-OFF & REORDER TITLE/BUTTONS ✨ */
 @media (max-width: 768px) {
     /* 1. Stop trapping content in a tiny box. Let it expand naturally! */
     #details-hero {
         height: auto !important;
         min-height: 220px !important;
         /* Reserve 240px of blank space at the top for the video, push content below */
-        padding: 240px 20px 20px 20px !important; 
+        padding: 240px 20px 20px 20px !important;
         display: flex !important;
         flex-direction: column !important;
     }
@@ -531,6 +532,6 @@ body {
 
     /* 6. Ensure Play button sits at the very top of the button stack */
     #details-play-btn {
-        order: 1 !important; 
+        order: 1 !important;
     }
 }
