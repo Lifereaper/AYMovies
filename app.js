@@ -336,10 +336,13 @@ document.addEventListener("DOMContentLoaded", () => {
     btnLogoutMobile.addEventListener('click', handleLogout);
 
     onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUserUid = user.uid;
-            window.currentUserEmail = user.email || "Registered User";
-            loginView.style.display = 'none';
+    if (user) {
+        // ✨ FIX: Stop the Firebase double-trigger bug instantly!
+        if (currentUserUid === user.uid) return;
+
+        currentUserUid = user.uid;
+        window.currentUserEmail = user.email || "Registered User";
+        loginView.style.display = 'none';
             loadCategoryView('home'); 
             
             fetchUserData().then(() => {
