@@ -460,50 +460,66 @@ body {
         height: 45px !important;
     }
 
-   /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (WEBVIEW SAFE) ✨ */
+   /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (DOCUMENT FLOW) ✨ */
     #details-hero {
         height: auto !important;
         min-height: auto !important;
-        padding: 240px 20px 20px 20px !important; 
-        display: block !important; 
+        padding: 0 !important; /* Remove the old padding trick entirely */
+        display: flex !important;
+        flex-direction: column !important;
     }
 
+    /* 🧱 TURN THE VIDEO INTO A SOLID BRICK */
     #modal-trailer-frame {
-        height: 240px !important; /* Perfectly matches the padding to keep video clear */
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
+        position: relative !important; /* MAGIC: Puts video back in the normal layout flow */
+        height: 250px !important;
         width: 100% !important;
+        top: auto !important;
+        left: auto !important;
+        z-index: 10 !important;
+        flex-shrink: 0 !important;
     }
 
-    /* Target the invisible wrapper holding the text and buttons */
+    /* Target the wrapper holding the text and buttons */
     #details-hero > div:last-child {
+        position: relative !important;
         display: flex !important;
         flex-direction: column !important;
         width: 100% !important;
+        padding: 20px !important;
+        box-sizing: border-box !important;
     }
 
-    /* 📱 1. THE BUTTONS: Push them to the top, right under the video */
+    /* 📱 1. THE BUTTONS: Push them to the top, directly under the solid video */
     #details-title + div {
         order: 1 !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 12px !important;
         width: 100% !important;
-        margin: 0 0 25px 0 !important; /* ✨ Creates an invisible shield BELOW the buttons */
+        margin: 0 0 20px 0 !important; 
     }
 
-    /* 📱 2. THE TITLE: Push it below the buttons and fix the text squishing */
+    /* 📱 2. THE TITLE: Push it safely below the buttons */
     #details-title {
         order: 2 !important;
         font-size: 1.8rem !important;
         text-align: center !important;
         margin: 0 !important; 
-        line-height: 1.4 !important; /* ✨ FIXES MULTI-LINE OVERLAPPING ✨ */
-        word-wrap: break-word !important; /* Stops long words from breaking the screen */
+        line-height: 1.4 !important; 
+        word-wrap: break-word !important; 
     }
 
-    /* 📱 3. PLAY BUTTON: Guarantee it sits at the absolute top of the stack */
+    /* 📱 3. PLAY BUTTON: Guarantee it sits at the top of the button stack */
     #details-play-btn {
         order: -1 !important;
+    }
+    
+    /* 📱 4. TV DROPDOWNS: Make sure the Season/Episode boxes stack cleanly */
+    #modal-tv-controls {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+        margin-top: 0 !important;
     }
