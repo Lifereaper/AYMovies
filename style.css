@@ -460,66 +460,75 @@ body {
         height: 45px !important;
     }
 
-   /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (DOCUMENT FLOW) ✨ */
+   /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (SOLID BRICK LAYOUT) ✨ */
     #details-hero {
         height: auto !important;
         min-height: auto !important;
-        padding: 0 !important; /* Remove the old padding trick entirely */
+        padding: 0 !important; 
         display: flex !important;
         flex-direction: column !important;
     }
 
-    /* 🧱 TURN THE VIDEO INTO A SOLID BRICK */
+    /* 🧱 1. THE VIDEO BRICK */
     #modal-trailer-frame {
-        position: relative !important; /* MAGIC: Puts video back in the normal layout flow */
+        position: relative !important; 
         height: 250px !important;
         width: 100% !important;
         top: auto !important;
         left: auto !important;
         z-index: 10 !important;
-        flex-shrink: 0 !important;
+        display: block !important; 
+        background: #000 !important; 
+        flex: none !important; /* Force solid brick */
     }
 
-    /* Target the wrapper holding the text and buttons */
+    /* 🧱 2. WRAPPER FOR TITLE AND BUTTONS */
     #details-hero > div:last-child {
         position: relative !important;
         display: flex !important;
         flex-direction: column !important;
         width: 100% !important;
-        padding: 20px !important;
+        padding: 15px !important;
         box-sizing: border-box !important;
+        height: auto !important; 
     }
 
-    /* 📱 1. THE BUTTONS: Push them to the top, directly under the solid video */
+    /* 🧱 3. THE BUTTONS BRICK */
     #details-title + div {
         order: 1 !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 12px !important;
         width: 100% !important;
-        margin: 0 0 20px 0 !important; 
+        position: relative !important;
+        margin: 0 0 15px 0 !important; 
+        flex: none !important; /* Force solid brick */
     }
 
-    /* 📱 2. THE TITLE: Push it safely below the buttons */
+    /* 🧱 4. THE TITLE BRICK */
     #details-title {
         order: 2 !important;
+        position: relative !important;
         font-size: 1.8rem !important;
         text-align: center !important;
         margin: 0 !important; 
         line-height: 1.4 !important; 
         word-wrap: break-word !important; 
+        flex: none !important; /* Force solid brick */
     }
 
-    /* 📱 3. PLAY BUTTON: Guarantee it sits at the top of the button stack */
     #details-play-btn {
         order: -1 !important;
     }
-    
-    /* 📱 4. TV DROPDOWNS: Make sure the Season/Episode boxes stack cleanly */
-    #modal-tv-controls {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 12px !important;
+
+    /* 🧱 5. THE DESCRIPTION & CAST BRICK (The entire bottom section) */
+    #details-hero + div {
+        position: relative !important;
+        display: block !important;
         width: 100% !important;
-        margin-top: 0 !important;
+        height: auto !important;
+        padding: 15px 20px 40px 20px !important;
+        box-sizing: border-box !important;
+        margin-top: 5px !important;
+        clear: both !important;
     }
