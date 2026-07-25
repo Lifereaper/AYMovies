@@ -460,7 +460,7 @@ body {
         height: 45px !important;
     }
 
-    /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (WEBVIEW SAFE) ✨ */
+   /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (WEBVIEW SAFE) ✨ */
     #details-hero {
         height: auto !important;
         min-height: auto !important;
@@ -469,7 +469,7 @@ body {
     }
 
     #modal-trailer-frame {
-        height: 220px !important;
+        height: 240px !important; /* Perfectly matches the padding to keep video clear */
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
@@ -483,26 +483,27 @@ body {
         width: 100% !important;
     }
 
-    /* Push the movie title BELOW the buttons */
-    #details-title {
-        order: 2 !important;
-        font-size: 1.8rem !important;
-        text-align: center !important;
-        margin-top: 15px !important; 
-        margin-bottom: 0 !important;
-    }
-
-    /* Target the button container itself (it lives right next to the title) */
+    /* 📱 1. THE BUTTONS: Push them to the top, right under the video */
     #details-title + div {
         order: 1 !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 10px !important;
+        gap: 12px !important;
         width: 100% !important;
-        margin: 0 !important;
+        margin: 0 0 25px 0 !important; /* ✨ Creates an invisible shield BELOW the buttons */
     }
 
-    /* Push the play button to the top of the stack */
+    /* 📱 2. THE TITLE: Push it below the buttons and fix the text squishing */
+    #details-title {
+        order: 2 !important;
+        font-size: 1.8rem !important;
+        text-align: center !important;
+        margin: 0 !important; 
+        line-height: 1.4 !important; /* ✨ FIXES MULTI-LINE OVERLAPPING ✨ */
+        word-wrap: break-word !important; /* Stops long words from breaking the screen */
+    }
+
+    /* 📱 3. PLAY BUTTON: Guarantee it sits at the absolute top of the stack */
     #details-play-btn {
         order: -1 !important;
     }
