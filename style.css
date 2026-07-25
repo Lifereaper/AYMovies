@@ -224,7 +224,6 @@ body {
     .details-content { padding: 0 20px 40px 20px !important; }
     
     #modal-tv-controls {
-        display: flex !important;
         flex-direction: column !important;
         gap: 10px !important;
         width: 100% !important;
