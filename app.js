@@ -1108,15 +1108,15 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.querySelector('[data-view="home"]').classList.add('active');
         });
+    }); // ✨ FIX: We closed the loop right here!
 
-// 🚨 THE SMART HEARTBEAT: Checks the live database for thieves
+    // 🚨 THE SMART HEARTBEAT: Checks the live database for thieves
     async function checkSessionLock() {
         // 🛑 NEW: Ignore check if we are kicked out OR if we have the Immunity Shield!
         if (!currentUserUid || !dataLoadedFromCloud || window.isKickedOut || window.takeoverImmunity) return;
 
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
-                // ... (leave the rest of the function exactly as it is)
                 method: "POST",
                 // ⚡ CACHE-BUSTER: Adding Date.now() forces the browser to look at the live Google Sheet, not a memorized version!
                 body: JSON.stringify({ action: "fetch", uid: currentUserUid, cacheBust: Date.now() })
@@ -1168,5 +1168,4 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    });
-});
+}); // ✨ FIX: This now cleanly closes the main DOMContentLoaded event!
