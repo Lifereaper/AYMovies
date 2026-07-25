@@ -190,6 +190,7 @@ body {
     }
     #hero-prev { left: 5px !important; }
     #hero-next { right: 5px !important; }
+    
     /* 1. Unlock the modal so the entire screen scrolls naturally */
     #video-modal { overflow-y: auto !important; }
     
@@ -202,6 +203,7 @@ body {
         overflow: visible !important;
         padding: 0 !important;
         margin: 0 !important;
+        width: 100% !important; /* ✨ FIX: Forces it to stretch perfectly edge-to-edge */
     }
 
     /* 2. Lock the video strictly at the top */
