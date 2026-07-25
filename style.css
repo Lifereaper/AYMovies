@@ -31,11 +31,11 @@ body {
     box-sizing: border-box;
 }
 
-.brand-logo {
-    color: #E50914;
-    margin: 0;
-    font-size: 2rem;
-    cursor: pointer;
+.brand-logo { 
+    color: #E50914; 
+    margin: 0; 
+    font-size: 2rem; 
+    cursor: pointer; 
 }
 
 #search-input {
@@ -48,427 +48,110 @@ body {
     font-size: 1rem;
     width: 250px;
 }
-
-    #search-input:focus {
-        outline: 1px solid #E50914;
-        background-color: #000;
-    }
+#search-input:focus { outline: 1px solid #E50914; background-color: #000; }
 
 /* --- HERO SECTION --- */
-.hero-billboard {
-    position: relative;
-    height: 80vh;
-    background-color: #000;
-    overflow: hidden;
-}
-
-.hero-video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-    pointer-events: auto;
-}
-
-#hero-poster-bg {
-    transition: background-image 0.5s ease-in-out;
-}
-
-.vignette-bottom {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 50%;
-    background: linear-gradient(to bottom, transparent, #141414);
-    z-index: 1;
-}
-
-.hero-content {
-    position: absolute;
-    bottom: 10%;
-    left: 4%;
-    width: 50%;
-    z-index: 2;
-    pointer-events: none;
-}
-
-.hero-title {
-    font-size: 4rem;
-    margin: 0 0 15px 0;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-}
-
-.hero-buttons {
-    display: flex;
-    gap: 15px;
-    margin-top: 20px;
-    pointer-events: auto;
-}
-
-    .hero-buttons button {
-        padding: 10px 30px;
-        font-size: 1.2rem;
-        font-weight: bold;
-        border-radius: 4px;
-        cursor: pointer;
-        border: none;
-    }
-
-.play-btn {
-    background-color: white;
-    color: black;
-}
-
-.info-btn {
-    background-color: rgba(109,109,110,0.7);
-    color: white;
-}
-
-.play-btn:hover {
-    background-color: #e6e6e6;
-}
+.hero-billboard { position: relative; height: 80vh; background-color: #000; overflow: hidden; }
+.hero-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: auto; }
+#hero-poster-bg { transition: background-image 0.5s ease-in-out; }
+.vignette-bottom { position: absolute; bottom: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, transparent, #141414); z-index: 1; }
+.hero-content { position: absolute; bottom: 10%; left: 4%; width: 50%; z-index: 2; pointer-events: none; }
+.hero-title { font-size: 4rem; margin: 0 0 15px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+.hero-buttons { display: flex; gap: 15px; margin-top: 20px; pointer-events: auto; }
+.hero-buttons button { padding: 10px 30px; font-size: 1.2rem; font-weight: bold; border-radius: 4px; cursor: pointer; border: none; }
+.play-btn { background-color: white; color: black; }
+.info-btn { background-color: rgba(109,109,110,0.7); color: white; }
+.play-btn:hover { background-color: #e6e6e6; }
 
 /* --- COMPACT RESPONSIVE ROW SLIDERS --- */
-.row-wrapper {
-    position: relative;
-    margin-bottom: 20px;
-    padding: 0 4%;
-}
-
-.category-title {
-    font-size: 1.4rem;
-    margin: 20px 0 10px 0;
-}
-
-.movie-row {
-    display: flex;
-    gap: 10px;
-    padding: 10px 0 20px 0;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-}
-
-    .movie-row::-webkit-scrollbar {
-        display: none;
-    }
+.row-wrapper { position: relative; margin-bottom: 20px; padding: 0 4%; }
+.category-title { font-size: 1.4rem; margin: 20px 0 10px 0; }
+.movie-row { display: flex; gap: 10px; padding: 10px 0 20px 0; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; }
+.movie-row::-webkit-scrollbar { display: none; }
 
 /* SIZED FOR 10 CARDS PER VIEWPORT SCREENWIDTH */
-.movie-card {
-    flex: 0 0 calc((100% - 90px) / 10);
-    border-radius: 4px;
-    cursor: pointer;
-    position: relative;
-    transition: transform 0.2s;
-}
-
-    .movie-card img {
-        width: 100%;
-        border-radius: 4px;
-        display: block;
-    }
-
-    .movie-card:hover {
-        transform: scale(1.08);
-        z-index: 10;
-    }
+.movie-card { flex: 0 0 calc((100% - 90px) / 10); border-radius: 4px; cursor: pointer; position: relative; transition: transform 0.2s; }
+.movie-card img { width: 100%; border-radius: 4px; display: block; }
+.movie-card:hover { transform: scale(1.08); z-index: 10; }
 
 /* SEARCH RESULTS GRID VIEW */
-.movie-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    padding: 10px 4% 40px 4%;
-}
-
-#search-view .movie-card {
-    flex: 0 0 calc((100% - 135px) / 10);
-}
+.movie-grid { display: flex; flex-wrap: wrap; gap: 15px; padding: 10px 4% 40px 4%; }
+#search-view .movie-card { flex: 0 0 calc((100% - 135px) / 10); }
 
 /* OVERLAY EDGE NAVIGATION ARROWS */
 .slider-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-20%);
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #fff;
-    border: none;
-    font-size: 3rem;
-    padding: 20px 10px;
-    cursor: pointer;
-    z-index: 20;
-    opacity: 0;
-    transition: opacity 0.2s, background-color 0.2s;
-    height: calc(100% - 70px);
-    display: flex;
-    align-items: center;
+    position: absolute; top: 50%; transform: translateY(-20%);
+    background-color: rgba(0, 0, 0, 0.5); color: #fff; border: none;
+    font-size: 3rem; padding: 20px 10px; cursor: pointer; z-index: 20;
+    opacity: 0; transition: opacity 0.2s, background-color 0.2s;
+    height: calc(100% - 70px); display: flex; align-items: center;
 }
-
-.row-wrapper:hover .slider-arrow {
-    opacity: 1;
-}
-
-.slider-arrow:hover {
-    background-color: rgba(0, 0, 0, 0.8);
-}
-
-.left-arrow {
-    left: 0;
-    border-radius: 0 4px 4px 0;
-}
-
-.right-arrow {
-    right: 0;
-    border-radius: 4px 0 0 4px;
-}
+.row-wrapper:hover .slider-arrow { opacity: 1; }
+.slider-arrow:hover { background-color: rgba(0, 0, 0, 0.8); }
+.left-arrow { left: 0; border-radius: 0 4px 4px 0; }
+.right-arrow { right: 0; border-radius: 4px 0 0 4px; }
 
 /* --- FULLSCREEN VIDEO PLAYER POPUP --- */
-#video-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: #000;
-    z-index: 9999;
-}
-
-#video-player-frame {
-    width: 100%;
-    height: 100%;
-    border: none;
-}
+#video-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000; z-index: 9999; }
+#video-player-frame { width: 100%; height: 100%; border: none; }
 
 /* --- CONTINUE WATCHING PROGRESS BAR --- */
-.progress-track {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 5px;
-    background-color: #444;
-    border-radius: 0 0 4px 4px;
-    overflow: hidden;
-    z-index: 5;
-}
-
-.progress-fill {
-    height: 100%;
-    background-color: #E50914;
-    width: 0%;
-}
+.progress-track { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background-color: #444; border-radius: 0 0 4px 4px; overflow: hidden; z-index: 5; }
+.progress-fill { height: 100%; background-color: #E50914; width: 0%; }
 
 /* --- TV CONTROLS POPUP BAR --- */
 #player-controls-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 70px;
+    position: absolute; top: 0; left: 0; width: 100%; height: 70px;
     background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
-    display: flex;
-    align-items: center;
-    padding: 0 4%;
-    box-sizing: border-box;
-    z-index: 10000;
+    display: flex; align-items: center; padding: 0 4%; box-sizing: border-box; z-index: 10000;
 }
-
-.control-nav-btn {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid #555;
-    padding: 8px 16px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-right: 15px;
-    transition: background 0.2s;
-}
-
-    .control-nav-btn:hover {
-        background-color: rgba(255, 255, 255, 0.4);
-    }
-
-#episode-indicator-text {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #b3b3b3;
-    margin-right: 20px;
-}
+.control-nav-btn { background-color: rgba(255, 255, 255, 0.2); color: white; border: 1px solid #555; padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 4px; cursor: pointer; margin-right: 15px; transition: background 0.2s; }
+.control-nav-btn:hover { background-color: rgba(255, 255, 255, 0.4); }
+#episode-indicator-text { font-size: 1.1rem; font-weight: bold; color: #b3b3b3; margin-right: 20px; }
 
 /* Adjust close button to fit nicely inside the bar layout */
-#close-modal-btn {
-    position: static !important;
-    margin-left: auto;
-    font-size: 1.2rem;
-    font-weight: bold;
-    cursor: pointer;
-    background: rgba(229, 9, 20, 0.8);
-    padding: 10px 20px;
-    border-radius: 4px;
-}
-
-    #close-modal-btn:hover {
-        background: #ff1a26;
-    }
+#close-modal-btn { position: static !important; margin-left: auto; font-size: 1.2rem; font-weight: bold; cursor: pointer; background: rgba(229, 9, 20, 0.8); padding: 10px 20px; border-radius: 4px; }
+#close-modal-btn:hover { background: #ff1a26; }
 
 /* --- SECURE FIREBASE FORM OVERLAY GRAPHICS --- */
 #login-view {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bcca-05f7a4f1d78b/51efdf1d-ed9b-4e02-990a-9d8916b41574/US-en-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
-    background-size: cover;
-    background-position: center;
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background-size: cover; background-position: center; z-index: 99999; display: flex; align-items: center; justify-content: center;
 }
-
-.login-box {
-    background-color: rgba(0, 0, 0, 0.75);
-    padding: 60px;
-    width: 450px;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
-    .login-box h2 {
-        font-size: 2rem;
-        margin-bottom: 28px;
-        font-weight: 700;
-    }
-
-#auth-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-    #auth-form input {
-        background: #333;
-        border: none;
-        border-radius: 4px;
-        color: white;
-        height: 50px;
-        padding: 16px;
-        font-size: 1rem;
-        box-sizing: border-box;
-    }
-
-        #auth-form input:focus {
-            background: #454545;
-            outline: none;
-        }
-
-#btn-auth-submit {
-    background: #E50914;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 700;
-    height: 50px;
-    cursor: pointer;
-    margin-top: 24px;
-    transition: background 0.1s;
-}
-
-    #btn-auth-submit:hover {
-        background: #c11119;
-    }
-
-.auth-toggle-text {
-    color: #737373;
-    margin-top: 30px;
-    font-size: 1rem;
-}
-
-    .auth-toggle-text a {
-        color: white;
-        text-decoration: none;
-    }
-
-        .auth-toggle-text a:hover {
-            text-decoration: underline;
-        }
+.login-box { background-color: rgba(0, 0, 0, 0.75); padding: 60px; width: 450px; border-radius: 4px; box-sizing: border-box; }
+.login-box h2 { font-size: 2rem; margin-bottom: 28px; font-weight: 700; }
+#auth-form { display: flex; flex-direction: column; gap: 16px; }
+#auth-form input { background: #333; border: none; border-radius: 4px; color: white; height: 50px; padding: 16px; font-size: 1rem; box-sizing: border-box; }
+#auth-form input:focus { background: #454545; outline: none; }
+#btn-auth-submit { background: #E50914; color: white; border: none; border-radius: 4px; font-size: 1rem; font-weight: 700; height: 50px; cursor: pointer; margin-top: 24px; transition: background 0.1s; }
+#btn-auth-submit:hover { background: #c11119; }
+.auth-toggle-text { color: #737373; margin-top: 30px; font-size: 1rem; }
+.auth-toggle-text a { color: white; text-decoration: none; }
+.auth-toggle-text a:hover { text-decoration: underline; }
 
 /* --- TV SHOW SEASON & EPISODE DROPDOWNS --- */
-.tv-controls {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
-    padding-bottom: 15px;
-}
-
-.tv-dropdown {
-    background-color: #141414;
-    color: #fff;
-    border: 1px solid #E50914;
-    padding: 10px 15px;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    outline: none;
-    font-family: inherit;
-}
-
-    .tv-dropdown:hover {
-        background-color: #222;
-    }
-
-    .tv-dropdown option {
-        background-color: #141414;
-        color: #fff;
-    }
+.tv-controls { display: flex; justify-content: center; gap: 15px; margin-top: 15px; padding-bottom: 15px; }
+.tv-dropdown { background-color: #141414; color: #fff; border: 1px solid #E50914; padding: 10px 15px; border-radius: 5px; font-size: 1rem; cursor: pointer; outline: none; font-family: inherit; }
+.tv-dropdown:hover { background-color: #222; }
+.tv-dropdown option { background-color: #141414; color: #fff; }
 
 .whatsapp-float {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 60px;
-    height: 60px;
-    background-color: #25D366;
-    color: white;
-    border-radius: 50px;
-    text-align: center;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
-    z-index: 9999;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px;
+    background-color: #25D366; color: white; border-radius: 50px; text-align: center;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4); z-index: 9999; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease, background-color 0.2s ease;
 }
-
-    .whatsapp-float:hover {
-        background-color: #128C7E;
-        transform: scale(1.1);
-    }
-
-.whatsapp-icon {
-    width: 35px;
-    height: 35px;
-    fill: currentColor;
-}
+.whatsapp-float:hover { background-color: #128C7E; transform: scale(1.1); }
+.whatsapp-icon { width: 35px; height: 35px; fill: currentColor; }
 
 /* ========================================================= */
 /* 📱 NUCLEAR MOBILE RESET (STRIPS ALL ABSOLUTE POSITIONING) */
 /* ========================================================= */
 @media (max-width: 768px) {
     /* 1. Unlock the modal so the entire screen scrolls naturally */
-    #video-modal {
-        overflow-y: auto !important;
-    }
-
+    #video-modal { overflow-y: auto !important; }
+    
     .modal-content, #details-hero, .details-content {
         display: flex !important;
         flex-direction: column !important;
@@ -522,13 +205,11 @@ body {
         display: flex !important;
         flex-direction: column !important;
         gap: 12px !important;
-        margin-bottom: 25px !important;
+        margin-bottom: 25px !important; 
         width: 100% !important;
     }
 
-    #details-play-btn {
-        order: -1 !important;
-    }
+    #details-play-btn { order: -1 !important; }
 
     /* 6. Title formatting */
     #details-title {
@@ -540,10 +221,8 @@ body {
     }
 
     /* 7. Description & Dropdowns formatting */
-    .details-content {
-        padding: 0 20px 40px 20px !important;
-    }
-
+    .details-content { padding: 0 20px 40px 20px !important; }
+    
     #modal-tv-controls {
         display: flex !important;
         flex-direction: column !important;
