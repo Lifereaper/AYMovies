@@ -149,6 +149,15 @@ body {
 /* 📱 NUCLEAR MOBILE RESET (STRIPS ALL ABSOLUTE POSITIONING) */
 /* ========================================================= */
 @media (max-width: 768px) {
+
+    /* 🍔 RESTORE THE HAMBURGER MENU & NAVBAR SPACING */
+    .desktop-nav { display: none !important; }
+    .hide-mobile { display: none !important; }
+    .show-mobile { display: block !important; }
+    header { padding: 15px !important; }
+    #search-input { width: 130px !important; padding: 8px !important; }
+    .search-dropdown { width: 250px !important; right: -50px !important; }
+
     /* 1. Unlock the modal so the entire screen scrolls naturally */
     #video-modal { overflow-y: auto !important; }
     
@@ -202,28 +211,29 @@ body {
     /* 5. Force the Buttons into rigid, un-collapsible blocks */
     #details-title + div {
         order: 1 !important;
-        display: flex !important; 
+        display: flex !important;
         flex-direction: column !important;
         width: 100% !important;
-        margin: 0 0 25px 0 !important; 
+        margin: 0 0 25px 0 !important;
     }
 
-    /* Target every single button inside that container */
-    #details-title + div button, 
-    #details-title + div a,
+        /* Target every single button inside that container */
+        #details-title + div button,
+        #details-title + div a,
+        #details-play-btn {
+            position: static !important;
+            display: block !important; 
+            width: 100% !important;
+            min-height: 48px !important; 
+            margin: 0 0 12px 0 !important; 
+            box-sizing: border-box !important;
+            transform: none !important;
+        }
+
     #details-play-btn {
-        position: static !important;
-        display: block !important; /* Forces them to stack like physical bricks */
-        width: 100% !important;
-        min-height: 48px !important; /* Forces the phone to acknowledge their height */
-        margin: 0 0 12px 0 !important; /* Standard margin instead of flex gap */
-        box-sizing: border-box !important;
-        transform: none !important;
+        order: -1 !important;
     }
 
-    #details-play-btn { 
-        order: -1 !important; 
-    }
     /* 6. Title formatting */
     #details-title {
         order: 2 !important;
