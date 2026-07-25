@@ -7,46 +7,128 @@ html, body {
     max-width: 100vw;
     overflow-x: hidden;
 }
+
 body {
-    margin: 0; padding: 0; background-color: #141414; color: #ffffff;
+    margin: 0;
+    padding: 0;
+    background-color: #141414;
+    color: #ffffff;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 /* --- STANDARD TOP NAVIGATION --- */
 #top-nav {
-    position: fixed; top: 0; left: 0; width: 100%;
-    padding: 20px 4%; display: flex; align-items: center; gap: 40px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 4%;
+    display: flex;
+    align-items: center;
+    gap: 40px;
     z-index: 100;
     background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
     box-sizing: border-box;
 }
 
-.brand-logo { 
-    color: #E50914; 
-    margin: 0; 
-    font-size: 2rem; 
-    cursor: pointer; 
+.brand-logo {
+    color: #E50914;
+    margin: 0;
+    font-size: 2rem;
+    cursor: pointer;
 }
 
 #search-input {
-    margin-left: auto; padding: 10px 15px; border-radius: 4px;
-    border: 1px solid #333; background-color: rgba(0,0,0,0.7);
-    color: white; font-size: 1rem; width: 250px;
+    margin-left: auto;
+    padding: 10px 15px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    background-color: rgba(0,0,0,0.7);
+    color: white;
+    font-size: 1rem;
+    width: 250px;
 }
-#search-input:focus { outline: 1px solid #E50914; background-color: #000; }
+
+    #search-input:focus {
+        outline: 1px solid #E50914;
+        background-color: #000;
+    }
 
 /* --- HERO SECTION --- */
-.hero-billboard { position: relative; height: 80vh; background-color: #000; overflow: hidden; }
-.hero-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: auto; }
-#hero-poster-bg { transition: background-image 0.5s ease-in-out; }
-.vignette-bottom { position: absolute; bottom: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, transparent, #141414); z-index: 1; }
-.hero-content { position: absolute; bottom: 10%; left: 4%; width: 50%; z-index: 2; pointer-events: none; }
-.hero-title { font-size: 4rem; margin: 0 0 15px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
-.hero-buttons { display: flex; gap: 15px; margin-top: 20px; pointer-events: auto; }
-.hero-buttons button { padding: 10px 30px; font-size: 1.2rem; font-weight: bold; border-radius: 4px; cursor: pointer; border: none; }
-.play-btn { background-color: white; color: black; }
-.info-btn { background-color: rgba(109,109,110,0.7); color: white; }
-.play-btn:hover { background-color: #e6e6e6; }
+.hero-billboard {
+    position: relative;
+    height: 80vh;
+    background-color: #000;
+    overflow: hidden;
+}
+
+.hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    pointer-events: auto;
+}
+
+#hero-poster-bg {
+    transition: background-image 0.5s ease-in-out;
+}
+
+.vignette-bottom {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to bottom, transparent, #141414);
+    z-index: 1;
+}
+
+.hero-content {
+    position: absolute;
+    bottom: 10%;
+    left: 4%;
+    width: 50%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.hero-title {
+    font-size: 4rem;
+    margin: 0 0 15px 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    pointer-events: auto;
+}
+
+    .hero-buttons button {
+        padding: 10px 30px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        border-radius: 4px;
+        cursor: pointer;
+        border: none;
+    }
+
+.play-btn {
+    background-color: white;
+    color: black;
+}
+
+.info-btn {
+    background-color: rgba(109,109,110,0.7);
+    color: white;
+}
+
+.play-btn:hover {
+    background-color: #e6e6e6;
+}
 
 /* --- COMPACT RESPONSIVE ROW SLIDERS --- */
 .row-wrapper {
@@ -55,50 +137,54 @@ body {
     padding: 0 4%;
 }
 
-.category-title { 
-    font-size: 1.4rem; 
-    margin: 20px 0 10px 0; 
+.category-title {
+    font-size: 1.4rem;
+    margin: 20px 0 10px 0;
 }
 
-.movie-row { 
-    display: flex; 
-    gap: 10px; 
-    padding: 10px 0 20px 0; 
+.movie-row {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0 20px 0;
     overflow-x: auto;
-    scroll-behavior: smooth; 
-    scrollbar-width: none;   /* Firefox */
+    scroll-behavior: smooth;
+    scrollbar-width: none;
 }
-.movie-row::-webkit-scrollbar { 
-    display: none; /* Chrome, Safari, Edge */
-}
+
+    .movie-row::-webkit-scrollbar {
+        display: none;
+    }
 
 /* SIZED FOR 10 CARDS PER VIEWPORT SCREENWIDTH */
-.movie-card { 
-    flex: 0 0 calc((100% - 90px) / 10); 
-    border-radius: 4px; 
-    cursor: pointer; 
+.movie-card {
+    flex: 0 0 calc((100% - 90px) / 10);
+    border-radius: 4px;
+    cursor: pointer;
     position: relative;
-    transition: transform 0.2s; 
-}
-.movie-card img { 
-    width: 100%; 
-    border-radius: 4px; 
-    display: block; 
-}
-.movie-card:hover { 
-    transform: scale(1.08); 
-    z-index: 10;
+    transition: transform 0.2s;
 }
 
+    .movie-card img {
+        width: 100%;
+        border-radius: 4px;
+        display: block;
+    }
+
+    .movie-card:hover {
+        transform: scale(1.08);
+        z-index: 10;
+    }
+
 /* SEARCH RESULTS GRID VIEW */
-.movie-grid { 
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 15px; 
-    padding: 10px 4% 40px 4%; 
+.movie-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 10px 4% 40px 4%;
 }
+
 #search-view .movie-card {
-    flex: 0 0 calc((100% - 135px) / 10); /* Adjust layout width slightly for full-grid views */
+    flex: 0 0 calc((100% - 135px) / 10);
 }
 
 /* OVERLAY EDGE NAVIGATION ARROWS */
@@ -113,7 +199,7 @@ body {
     padding: 20px 10px;
     cursor: pointer;
     z-index: 20;
-    opacity: 0; 
+    opacity: 0;
     transition: opacity 0.2s, background-color 0.2s;
     height: calc(100% - 70px);
     display: flex;
@@ -121,22 +207,32 @@ body {
 }
 
 .row-wrapper:hover .slider-arrow {
-    opacity: 1; 
+    opacity: 1;
 }
+
 .slider-arrow:hover {
     background-color: rgba(0, 0, 0, 0.8);
 }
 
-.left-arrow { left: 0; border-radius: 0 4px 4px 0; }
-.right-arrow { right: 0; border-radius: 4px 0 0 4px; }
+.left-arrow {
+    left: 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.right-arrow {
+    right: 0;
+    border-radius: 4px 0 0 4px;
+}
 
 /* --- FULLSCREEN VIDEO PLAYER POPUP --- */
 #video-modal {
     position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background-color: #000;
-    z-index: 9999; 
+    z-index: 9999;
 }
 
 #video-player-frame {
@@ -147,12 +243,12 @@ body {
 
 /* --- CONTINUE WATCHING PROGRESS BAR --- */
 .progress-track {
-    width: 100%;
-    height: 5px;
-    background-color: #444; 
     position: absolute;
     bottom: 0;
     left: 0;
+    width: 100%;
+    height: 5px;
+    background-color: #444;
     border-radius: 0 0 4px 4px;
     overflow: hidden;
     z-index: 5;
@@ -160,14 +256,16 @@ body {
 
 .progress-fill {
     height: 100%;
-    background-color: #E50914; 
-    width: 0%; 
+    background-color: #E50914;
+    width: 0%;
 }
 
 /* --- TV CONTROLS POPUP BAR --- */
 #player-controls-bar {
     position: absolute;
-    top: 0; left: 0; width: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 70px;
     background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
     display: flex;
@@ -189,7 +287,10 @@ body {
     margin-right: 15px;
     transition: background 0.2s;
 }
-.control-nav-btn:hover { background-color: rgba(255, 255, 255, 0.4); }
+
+    .control-nav-btn:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
 
 #episode-indicator-text {
     font-size: 1.1rem;
@@ -209,17 +310,22 @@ body {
     padding: 10px 20px;
     border-radius: 4px;
 }
-#close-modal-btn:hover { background: #ff1a26; }
+
+    #close-modal-btn:hover {
+        background: #ff1a26;
+    }
 
 /* --- SECURE FIREBASE FORM OVERLAY GRAPHICS --- */
 #login-view {
     position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
-                url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bcca-05f7a4f1d78b/51efdf1d-ed9b-4e02-990a-9d8916b41574/US-en-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bcca-05f7a4f1d78b/51efdf1d-ed9b-4e02-990a-9d8916b41574/US-en-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
     background-size: cover;
     background-position: center;
-    z-index: 99999; 
+    z-index: 99999;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -233,11 +339,11 @@ body {
     box-sizing: border-box;
 }
 
-.login-box h2 {
-    font-size: 2rem;
-    margin-bottom: 28px;
-    font-weight: 700;
-}
+    .login-box h2 {
+        font-size: 2rem;
+        margin-bottom: 28px;
+        font-weight: 700;
+    }
 
 #auth-form {
     display: flex;
@@ -245,20 +351,21 @@ body {
     gap: 16px;
 }
 
-#auth-form input {
-    background: #333;
-    border: none;
-    border-radius: 4px;
-    color: white;
-    height: 50px;
-    padding: 16px;
-    font-size: 1rem;
-    box-sizing: border-box;
-}
-#auth-form input:focus {
-    background: #454545;
-    outline: none;
-}
+    #auth-form input {
+        background: #333;
+        border: none;
+        border-radius: 4px;
+        color: white;
+        height: 50px;
+        padding: 16px;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+
+        #auth-form input:focus {
+            background: #454545;
+            outline: none;
+        }
 
 #btn-auth-submit {
     background: #E50914;
@@ -272,22 +379,25 @@ body {
     margin-top: 24px;
     transition: background 0.1s;
 }
-#btn-auth-submit:hover {
-    background: #c11119;
-}
+
+    #btn-auth-submit:hover {
+        background: #c11119;
+    }
 
 .auth-toggle-text {
     color: #737373;
     margin-top: 30px;
     font-size: 1rem;
 }
-.auth-toggle-text a {
-    color: white;
-    text-decoration: none;
-}
-.auth-toggle-text a:hover {
-    text-decoration: underline;
-}
+
+    .auth-toggle-text a {
+        color: white;
+        text-decoration: none;
+    }
+
+        .auth-toggle-text a:hover {
+            text-decoration: underline;
+        }
 
 /* --- TV SHOW SEASON & EPISODE DROPDOWNS --- */
 .tv-controls {
@@ -301,7 +411,7 @@ body {
 .tv-dropdown {
     background-color: #141414;
     color: #fff;
-    border: 1px solid #E50914; 
+    border: 1px solid #E50914;
     padding: 10px 15px;
     border-radius: 5px;
     font-size: 1rem;
@@ -310,14 +420,14 @@ body {
     font-family: inherit;
 }
 
-.tv-dropdown:hover {
-    background-color: #222;
-}
+    .tv-dropdown:hover {
+        background-color: #222;
+    }
 
-.tv-dropdown option {
-    background-color: #141414;
-    color: #fff;
-}
+    .tv-dropdown option {
+        background-color: #141414;
+        color: #fff;
+    }
 
 .whatsapp-float {
     position: fixed;
@@ -339,10 +449,10 @@ body {
     transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.whatsapp-float:hover {
-    background-color: #128C7E;
-    transform: scale(1.1);
-}
+    .whatsapp-float:hover {
+        background-color: #128C7E;
+        transform: scale(1.1);
+    }
 
 .whatsapp-icon {
     width: 35px;
@@ -351,184 +461,93 @@ body {
 }
 
 /* ========================================================= */
-/* 📱 CONSOLIDATED MOBILE FIXES                              */
+/* 📱 NUCLEAR MOBILE RESET (STRIPS ALL ABSOLUTE POSITIONING) */
 /* ========================================================= */
 @media (max-width: 768px) {
-    
-    /* 1. Split Layout (Fixed Video, Scrolling Text) */
-    .modal-content {
-        height: 85vh !important;
-        max-height: 85vh !important;
-        overflow: hidden !important;
+    /* 1. Unlock the modal so the entire screen scrolls naturally */
+    #video-modal {
+        overflow-y: auto !important;
+    }
+
+    .modal-content, #details-hero, .details-content {
         display: flex !important;
         flex-direction: column !important;
-        padding-bottom: 0 !important;
-    }
-
-    .details-content {
-        flex-grow: 1 !important;
-        overflow-y: scroll !important;
-        -webkit-overflow-scrolling: touch !important;
-        padding: 20px !important;
+        position: relative !important;
+        height: auto !important;
         max-height: none !important;
-    }
-
-    /* 2. Format the Episode Drop-downs */
-    #modal-tv-controls {
-        flex-direction: column !important;
-        gap: 10px !important;
-        margin-top: 10px !important;
-    }
-
-    #modal-season-select,
-    #modal-episode-select {
-        width: 100% !important;
+        overflow: visible !important;
+        padding: 0 !important;
         margin: 0 !important;
     }
 
-    /* 3. Stretch all buttons across the screen */
-    #details-play-btn,
-    #details-trailer-btn,
-    #details-mylist-btn,
-    #details-community-btn {
+    /* 2. Lock the video strictly at the top */
+    #modal-trailer-frame {
+        position: relative !important;
         width: 100% !important;
-        margin: 0 !important;
+        height: 250px !important;
+        flex: 0 0 250px !important;
+        background: #000 !important;
         display: block !important;
     }
 
-    /* 4. Bulletproof Absolute Positioning for Video Screen */
-    #video-modal {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        height: 100dvh !important;
-        background: #000 !important;
+    /* 3. ✨ THE NUKE: Strip ALL floating behavior from text and buttons */
+    #details-hero *, .details-content * {
+        position: relative !important;
+        top: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: auto !important;
+        transform: none !important;
+        height: auto !important;
+    }
+
+    /* Keep the close 'X' button floating in the top right */
+    #close-modal-btn {
+        position: absolute !important;
+        top: 15px !important;
+        right: 15px !important;
         z-index: 99999 !important;
     }
 
-    #video-modal .modal-content {
-        display: block !important;
-        position: relative !important;
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-    }
-
-    #video-player-frame {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: calc(100% - 130px) !important; 
-        border: none !important;
-    }
-
-    #episode-indicator-text {
-        position: absolute !important;
-        bottom: 90px !important; 
-        left: 0 !important;
-        width: 100% !important;
-        text-align: center !important;
-        height: 30px !important;
-        line-height: 30px !important;
-        margin: 0 !important;
-    }
-
-    div:has(> #btn-next-ep) {
-        position: absolute !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 80px !important; 
-        padding: 10px 15px 35px 15px !important; 
-        background: #111 !important;
-        display: flex !important;
-        gap: 10px !important;
-        box-sizing: border-box !important;
-        z-index: 100000 !important; 
-    }
-
-    #btn-next-ep,
-    #btn-prev-ep,
-    #btn-mark-finished {
-        margin: 0 !important;
-        flex: 1 !important;
-        height: 45px !important;
-    }
-
-   /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (SOLID BRICK LAYOUT) ✨ */
-    #details-hero {
-        height: auto !important;
-        min-height: auto !important;
-        padding: 0 !important; 
-        display: flex !important;
-        flex-direction: column !important;
-    }
-
-    /* 🧱 1. THE VIDEO BRICK */
-    #modal-trailer-frame {
-        position: relative !important; 
-        height: 250px !important;
-        width: 100% !important;
-        top: auto !important;
-        left: auto !important;
-        z-index: 10 !important;
-        display: block !important; 
-        background: #000 !important; 
-        flex: none !important; /* Force solid brick */
-    }
-
-    /* 🧱 2. WRAPPER FOR TITLE AND BUTTONS */
+    /* 4. Wrapper Spacing */
     #details-hero > div:last-child {
-        position: relative !important;
+        padding: 20px !important;
         display: flex !important;
         flex-direction: column !important;
-        width: 100% !important;
-        padding: 15px !important;
-        box-sizing: border-box !important;
-        height: auto !important; 
     }
 
-    /* 🧱 3. THE BUTTONS BRICK */
+    /* 5. Force the Buttons to stack cleanly at the top */
     #details-title + div {
         order: 1 !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 12px !important;
+        margin-bottom: 25px !important;
         width: 100% !important;
-        position: relative !important;
-        margin: 0 0 15px 0 !important; 
-        flex: none !important; /* Force solid brick */
-    }
-
-    /* 🧱 4. THE TITLE BRICK */
-    #details-title {
-        order: 2 !important;
-        position: relative !important;
-        font-size: 1.8rem !important;
-        text-align: center !important;
-        margin: 0 !important; 
-        line-height: 1.4 !important; 
-        word-wrap: break-word !important; 
-        flex: none !important; /* Force solid brick */
     }
 
     #details-play-btn {
         order: -1 !important;
     }
 
-    /* 🧱 5. THE DESCRIPTION & CAST BRICK (The entire bottom section) */
-    #details-hero + div {
-        position: relative !important;
-        display: block !important;
-        width: 100% !important;
-        height: auto !important;
-        padding: 15px 20px 40px 20px !important;
-        box-sizing: border-box !important;
-        margin-top: 5px !important;
-        clear: both !important;
+    /* 6. Title formatting */
+    #details-title {
+        order: 2 !important;
+        font-size: 2rem !important;
+        margin-bottom: 10px !important;
+        text-align: center !important;
+        line-height: 1.3 !important;
     }
+
+    /* 7. Description & Dropdowns formatting */
+    .details-content {
+        padding: 0 20px 40px 20px !important;
+    }
+
+    #modal-tv-controls {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        width: 100% !important;
+    }
+}
