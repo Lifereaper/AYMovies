@@ -460,8 +460,7 @@ body {
         height: 45px !important;
     }
 
-    /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (CLEANED) ✨ */
-    /* Reset the hero container to standard block layout so it can expand */
+    /* 5. ✨ THE ULTIMATE MODAL MOBILE FIX (WEBVIEW SAFE) ✨ */
     #details-hero {
         height: auto !important;
         min-height: auto !important;
@@ -469,7 +468,6 @@ body {
         display: block !important; 
     }
 
-    /* Lock the video tightly at the top */
     #modal-trailer-frame {
         height: 220px !important;
         position: absolute !important;
@@ -478,10 +476,11 @@ body {
         width: 100% !important;
     }
 
-    /* Turn the content wrapper into a Flex column to reorder its children */
-    div:has(> #details-title) {
+    /* Target the invisible wrapper holding the text and buttons */
+    #details-hero > div:last-child {
         display: flex !important;
         flex-direction: column !important;
+        width: 100% !important;
     }
 
     /* Push the movie title BELOW the buttons */
@@ -493,8 +492,8 @@ body {
         margin-bottom: 0 !important;
     }
 
-    /* Pull the buttons ABOVE the title */
-    div:has(> #details-play-btn) {
+    /* Target the button container itself (it lives right next to the title) */
+    #details-title + div {
         order: 1 !important;
         display: flex !important;
         flex-direction: column !important;
@@ -503,8 +502,7 @@ body {
         margin: 0 !important;
     }
 
-    /* Ensure Play Button is the #1 button in the stack */
+    /* Push the play button to the top of the stack */
     #details-play-btn {
         order: -1 !important;
     }
-}
