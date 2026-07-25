@@ -485,4 +485,52 @@ body {
         flex: 1 !important;
         height: 45px !important;
     }
+    /* ✨ FIX MODAL CUT-OFF & REORDER TITLE/BUTTONS ✨ */
+@media (max-width: 768px) {
+    /* 1. Stop trapping content in a tiny box. Let it expand naturally! */
+    #details-hero {
+        height: auto !important;
+        min-height: 220px !important;
+        /* Reserve 240px of blank space at the top for the video, push content below */
+        padding: 240px 20px 20px 20px !important; 
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* 2. Lock the video frame firmly at the top inside the reserved space */
+    #modal-trailer-frame {
+        height: 220px !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+    }
+
+    /* 3. Turn the container holding the Title and Buttons into a flex column */
+    div:has(> #details-title) {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* 4. Drop the Title underneath the buttons */
+    #details-title {
+        order: 2 !important;
+        font-size: 1.8rem !important;
+        text-align: center !important;
+        margin-top: 20px !important; /* Add breathing room below the buttons */
+        margin-bottom: 0 !important;
+    }
+
+    /* 5. Stack the buttons on top of the title */
+    div:has(> #details-play-btn) {
+        order: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    /* 6. Ensure Play button sits at the very top of the button stack */
+    #details-play-btn {
+        order: 1 !important; 
+    }
 }
