@@ -604,13 +604,16 @@
 
             const messagePayload = `🚨 *AYMOVIES SYSTEM ALERT* 🚨\n\n*From Account:* ${currentUserAccountEmail}\n*Context/Movie:* ${subjectMovieTitle} (ID: ${subjectMovieId})\n\n*User's Message:*\n"${customUserMessage}"`;
 
+            // Official Universal Link (Works everywhere)
+            const waUrl = `https://wa.me/${MY_SUPPORT_NUMBER}?text=${encodeURIComponent(messagePayload)}`;
             const nativeAppUrl = `whatsapp://send?phone=${MY_SUPPORT_NUMBER}&text=${encodeURIComponent(messagePayload)}`;
 
-            if (window.AppInventor) {
+            // Check if running inside Kodular/AppInventor wrapper
+            if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString(nativeAppUrl);
             } else {
-                alert("Opening WhatsApp...");
-                window.AppInventor.setWebViewString(nativeAppUrl);
+                // Fallback for browsers or standard WebViews
+                window.location.href = waUrl;
             }
         }
     </script>
