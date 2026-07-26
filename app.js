@@ -1760,31 +1760,25 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 🗑️ ACCOUNT DELETION LOGIC
-    const btnDeleteAccountMobile = document.getElementById('btn-delete-account-mobile');
-    const deleteAccountModal = document.getElementById('delete-account-modal');
-    const deleteCancelBtn = document.getElementById('delete-cancel-btn');
-    const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
-
-    if (btnDeleteAccountMobile) {
-        btnDeleteAccountMobile.addEventListener('click', () => {
-            mobileMenu.style.right = '-100%'; // Close menu
-            deleteAccountModal.style.display = 'flex';
-        });
-    }
-    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', () => { deleteAccountModal.style.display = 'none'; });
-    
     if (deleteConfirmBtn) {
         deleteConfirmBtn.addEventListener('click', async () => {
             const user = auth.currentUser;
             if (user) {
                 try {
                     deleteConfirmBtn.innerText = "Deleting...";
+                    
+                    // 1. Tell Google Sheets to delete the user's row
+                    await fetch(GOOGLE_SHEET_URL, {
+                        method: "POST",
+                        body: JSON.stringify({ action: "deleteAccount", uid: user.uid })
+                    });
+
+                    // 2. Tell Firebase to permanently delete the login credentials
                     await deleteUser(user);
+                    
                     deleteAccountModal.style.display = 'none';
                     window.location.reload(); 
                 } catch (error) {
-                    // Firebase requires a "recent login" to allow account deletion for security reasons
                     alert("For security reasons, please Log Out and log back in before deleting your account.");
                     deleteAccountModal.style.display = 'none';
                     deleteConfirmBtn.innerText = "Yes, Delete";
@@ -1792,4 +1786,3 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-});
