@@ -164,17 +164,19 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isNaN(amount) || amount < 5.00) {
                 payoutStatusMsg.style.color = '#E50914';
                 payoutStatusMsg.innerText = '⚠️ Minimum payout request is $5.00 BZD.';
+                setTimeout(() => { payoutStatusMsg.innerText = ''; }, 3000); // 🧹 Auto-clears!
                 return;
             }
 
             if (amount > window.userTotalPoints) {
                 payoutStatusMsg.style.color = '#E50914';
                 payoutStatusMsg.innerText = '⚠️ Insufficient balance!';
+                setTimeout(() => { payoutStatusMsg.innerText = ''; }, 3000); // 🧹 Auto-clears!
                 return;
             }
 
             payoutStatusMsg.style.color = '#ffd700';
-            payoutStatusMsg.innerText = '⏳ Submitting request to Google Sheet...';
+            payoutStatusMsg.innerText = '⏳ Submitting request...';
 
             try {
                 const response = await fetch(GOOGLE_SHEET_URL, {
@@ -196,15 +198,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     saveUserData();
 
                     payoutStatusMsg.style.color = '#46d369';
-                    payoutStatusMsg.innerText = `✅ Request submitted! $${amount.toFixed(2)} BZD sent to processing.`;
+                    payoutStatusMsg.innerText = `✅ Request submitted! $${amount.toFixed(2)} BZD sent.`;
                     payoutForm.reset();
+
+                    // ⏱️ Clears message after 3 seconds & re-fetches status tracker box
+                    setTimeout(async () => {
+                        await fetchUserData();
+                        payoutStatusMsg.innerText = ''; // 🧹 Erases temporary text completely
+                    }, 3000);
+
                 } else {
                     payoutStatusMsg.style.color = '#E50914';
                     payoutStatusMsg.innerText = '❌ Failed to process request. Try again later.';
+                    setTimeout(() => { payoutStatusMsg.innerText = ''; }, 3000);
                 }
             } catch (err) {
                 payoutStatusMsg.style.color = '#E50914';
                 payoutStatusMsg.innerText = '❌ Network error during submission.';
+                setTimeout(() => { payoutStatusMsg.innerText = ''; }, 3000);
             }
         });
     }
