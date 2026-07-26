@@ -345,6 +345,12 @@
         </div>
 
         <div style="display: flex; gap: 10px; align-items: center;">
+            <!-- 🌐 DESKTOP LANGUAGE TOGGLE -->
+            <select id="lang-select" style="background: #000; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
+                <option value="en">🇺🇸 EN</option>
+                <option value="es">🇲🇽 ES</option>
+            </select>
+
             <div style="position: relative;">
                 <input type="text" id="search-input" placeholder="Search..." style="padding: 8px 15px; border-radius: 20px; border: 1px solid #444; background: #000; color: white; outline: none;">
                 <div id="search-dropdown" class="search-dropdown" style="display: none;"></div>
@@ -360,16 +366,25 @@
     </header>
 
     <!-- 📱 MOBILE MENU -->
-    <div id="mobile-menu" style="position: fixed; top: 0; right: -100%; width: 250px; height: 100vh; background: rgba(20,20,20,0.95); backdrop-filter: blur(10px); z-index: 2000; transition: right 0.3s ease; padding: 30px 20px; box-shadow: -5px 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 25px;">
+    <div id="mobile-menu" style="position: fixed; top: 0; right: -100%; width: 250px; height: 100vh; background: rgba(20,20,20,0.95); backdrop-filter: blur(10px); z-index: 2000; transition: right 0.3s ease; padding: 30px 20px; box-shadow: -5px 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 20px;">
         <button id="close-mobile-menu" style="align-self: flex-end; background: transparent; border: none; color: white; font-size: 35px; cursor: pointer;">&times;</button>
 
         <!-- ✨ Profile Header & Points Display -->
-        <div style="display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; padding-bottom: 20px; margin-top: -10px;">
+        <div style="display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; padding-bottom: 15px; margin-top: -10px;">
             <div id="mobile-menu-avatar" style="font-size: 2.5rem;">👤</div>
             <div style="display: flex; flex-direction: column;">
                 <span id="mobile-menu-email" style="color: #aaa; font-size: 0.8rem; word-break: break-all;">user@email.com</span>
                 <span style="color: #ffd700; font-weight: bold; font-size: 1.1rem; margin-top: 5px;">⭐ <span id="mobile-menu-points">0</span> BZD</span>
             </div>
+        </div>
+
+        <!-- 🌐 MOBILE LANGUAGE TOGGLE -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #333;">
+            <span style="color: #aaa; font-size: 1rem; font-weight: bold;">🌐 Language:</span>
+            <select id="lang-select-mobile" style="background: #000; color: #fff; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
+                <option value="en">🇺🇸 English</option>
+                <option value="es">🇲🇽 Español</option>
+            </select>
         </div>
 
         <span class="nav-link active" data-view="home" style="font-size: 1.2rem;">Home</span>
@@ -560,7 +575,7 @@
         
         <div style="text-align: center; color: white; margin-top: 15px; display: flex; justify-content: center; align-items: center; flex-direction: column;">
             
-            <!-- 📡 MULTI-SERVER SELECTOR DROPDOWN -->
+            <!-- 📡 MULTI-SERVER SELECTOR DROPDOWN (3 VERIFIED SERVERS) -->
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: rgba(30, 30, 30, 0.8); padding: 8px 16px; border-radius: 8px; border: 1px solid #333;">
                 <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.95rem;">📡 Server:</label>
                 <select id="server-select" style="background: #111; color: #fff; border: 1px solid #ffd700; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none; font-size: 0.9rem;">
@@ -586,6 +601,7 @@
         </svg>
     </button>
 
+    <!-- 📱 KODULAR SUPPORTED WHATSAPP SCRIPT -->
     <script>
         function handleWhatsAppReport() {
             const MY_SUPPORT_NUMBER = "5016542016";
@@ -604,16 +620,15 @@
 
             const messagePayload = `🚨 *AYMOVIES SYSTEM ALERT* 🚨\n\n*From Account:* ${currentUserAccountEmail}\n*Context/Movie:* ${subjectMovieTitle} (ID: ${subjectMovieId})\n\n*User's Message:*\n"${customUserMessage}"`;
 
-            // Official Universal Link (Works everywhere)
             const waUrl = `https://wa.me/${MY_SUPPORT_NUMBER}?text=${encodeURIComponent(messagePayload)}`;
             const nativeAppUrl = `whatsapp://send?phone=${MY_SUPPORT_NUMBER}&text=${encodeURIComponent(messagePayload)}`;
 
-            // Check if running inside Kodular/AppInventor wrapper
+            // 📱 IN KODULAR APP: Passes link to ActivityStarter block
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString(nativeAppUrl);
             } else {
-                // Fallback for browsers or standard WebViews
-                window.location.href = waUrl;
+                // 🌐 IN BROWSER: Opens WhatsApp web link directly
+                window.open(waUrl, '_blank');
             }
         }
     </script>
