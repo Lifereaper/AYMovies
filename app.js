@@ -83,6 +83,49 @@ document.addEventListener("DOMContentLoaded", () => {
     window.watchTimerInterval = null;
     window.rewardClaimedForSession = false;
 
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
+
+    // 🔔 CUSTOM ALERT LOGIC FOR COMMUNITY SHARE
+    function showCustomAlert(message) {
+        const alertModal = document.getElementById('custom-alert-modal');
+        const alertMsg = document.getElementById('alert-message');
+        const alertOkBtn = document.getElementById('alert-ok-btn');
+
+        if (!alertModal) return alert(message);
+
+        alertMsg.innerText = message;
+        alertModal.style.display = "flex";
+
+        alertOkBtn.onclick = () => {
+            alertModal.style.display = "none";
+        };
+    }
+
+    async function shareMovieToCommunity(movieObj) {
+        if (!currentUserUid || !movieObj) return;
+        const payload = {
+            action: "addCommunity",
+            uid: currentUserUid,
+            movieData: {
+                id: movieObj.id,
+                title: movieObj.title || movieObj.name,
+                poster_path: movieObj.poster_path
+            }
+        };
+
+        try {
+            const response = await fetch(GOOGLE_SHEET_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                showCustomAlert(`"${movieObj.title || movieObj.name}" was shared directly to the Community Watch list!`);
+                await fetchUserData();
+                renderPersonalizedRows();
+            }
+        } catch (e) { }
+    }
+
     // 💰 REWARDS DRAWER LOGIC
     const rewardsDrawer = document.getElementById('rewards-drawer');
     const closeRewardsBtn = document.getElementById('close-rewards-btn');
@@ -389,8 +432,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const heroNext = document.getElementById('hero-next');
     const heroDotsContainer = document.getElementById('hero-dots');
 
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
-
     async function fetchUserData() {
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
@@ -575,6 +616,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const myListRow = document.getElementById('my-list-row');
         const cwContainer = document.getElementById('continue-watching-container');
         const cwRow = document.getElementById('continue-watching-row');
+        const communityContainer = document.getElementById('community-container');
+        const communityRow = document.getElementById('community-row');
 
         if (myList.length > 0) {
             myListContainer.style.display = 'block';
@@ -585,6 +628,26 @@ document.addEventListener("DOMContentLoaded", () => {
             cwContainer.style.display = 'block';
             populateRow(continueWatching, cwRow, false);
         } else { cwContainer.style.display = 'none'; }
+
+        if (globalCommunityMovies.length > 0 && communityContainer && communityRow) {
+            communityContainer.style.display = 'block';
+            communityRow.innerHTML = '';
+            globalCommunityMovies.forEach(item => {
+                const movieId = item.id || item.movieId || item[0];
+                const movieTitle = item.title || item.movieTitle || item.name || item[1];
+                const moviePoster = item.poster_path || item.posterPath || item[2];
+                if (!movieId || !moviePoster) return;
+
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.setAttribute('data-id', movieId.toString());
+                card.innerHTML = `<img src="${IMAGE_BASE_URL}${moviePoster}"><div class="card-info"><div class="card-title">${movieTitle}</div><div class="card-meta"><span style="color:#e50914;">👥 Shared Party</span></div></div>`;
+                card.addEventListener('click', () => openDetailsModal(movieId, false));
+                communityRow.appendChild(card);
+            });
+        } else if (communityContainer) {
+            communityContainer.style.display = 'none';
+        }
 
         syncProgressBars();
     }
@@ -600,6 +663,20 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('details-desc').innerText = data.overview || "No description available.";
             document.getElementById('details-rating').innerText = `⭐ ${parseFloat(data.vote_average).toFixed(1)} Rating`;
             document.getElementById('details-hero').style.backgroundImage = `url('${HERO_IMAGE_BASE_URL}${data.backdrop_path || data.poster_path}')`;
+
+            // ✅ Inject Community Share button to details modal
+            const detailsBtnGroup = document.getElementById('details-btn-group');
+            const oldShareBtn = document.getElementById('details-community-btn');
+            if(oldShareBtn) oldShareBtn.remove();
+            
+            const communityShareBtn = document.createElement('button');
+            communityShareBtn.id = "details-community-btn";
+            communityShareBtn.style.cssText = "padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(229, 9, 20, 0.2); color: #fff; border: 1px solid #E50914; border-radius: 5px; cursor: pointer; transition: 0.2s;";
+            communityShareBtn.innerText = "👥 Share to Community";
+            communityShareBtn.onmouseover = () => communityShareBtn.style.background = "#E50914";
+            communityShareBtn.onmouseout = () => communityShareBtn.style.background = "rgba(229, 9, 20, 0.2)";
+            communityShareBtn.onclick = () => shareMovieToCommunity(currentModalData);
+            detailsBtnGroup.appendChild(communityShareBtn);
 
             detailsPlayBtn.onclick = () => {
                 detailsModal.style.display = 'none';
