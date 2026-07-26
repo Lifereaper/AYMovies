@@ -1760,6 +1760,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // 🗑️ ACCOUNT DELETION LOGIC
+    const btnDeleteAccountMobile = document.getElementById('btn-delete-account-mobile');
+    const deleteAccountModal = document.getElementById('delete-account-modal');
+    const deleteCancelBtn = document.getElementById('delete-cancel-btn');
+    const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
+
+    if (btnDeleteAccountMobile) {
+        btnDeleteAccountMobile.addEventListener('click', () => {
+            mobileMenu.style.right = '-100%'; // Close menu
+            deleteAccountModal.style.display = 'flex';
+        });
+    }
+    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', () => { deleteAccountModal.style.display = 'none'; });
+    
     if (deleteConfirmBtn) {
         deleteConfirmBtn.addEventListener('click', async () => {
             const user = auth.currentUser;
@@ -1786,4 +1800,5 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
 });
