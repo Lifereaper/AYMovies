@@ -17,7 +17,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = initializeFirestore(firebaseApp, {
     experimentalForceLongPolling: true
-}); 
+});
 
 let wakeLock = null;
 async function requestWakeLock() {
@@ -31,22 +31,22 @@ function releaseWakeLock() {
     if (wakeLock !== null) wakeLock.release().then(() => wakeLock = null);
 }
 
-window.scrollRow = function(rowId, direction) {
+window.scrollRow = function (rowId, direction) {
     const row = document.getElementById(rowId);
     if (!row) return;
-    const scrollAmount = row.clientWidth * 0.8; 
+    const scrollAmount = row.clientWidth * 0.8;
     const maxScroll = row.scrollWidth - row.clientWidth;
-    if (direction === 'left') { 
-        if (row.scrollLeft <= 0) row.scrollTo({ left: maxScroll, behavior: 'smooth' }); 
-        else row.scrollBy({ left: -scrollAmount, behavior: 'smooth' }); 
-    } else { 
-        if (row.scrollLeft >= maxScroll - 10) row.scrollTo({ left: 0, behavior: 'smooth' }); 
-        else row.scrollBy({ left: scrollAmount, behavior: 'smooth' }); 
+    if (direction === 'left') {
+        if (row.scrollLeft <= 0) row.scrollTo({ left: maxScroll, behavior: 'smooth' });
+        else row.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else {
+        if (row.scrollLeft >= maxScroll - 10) row.scrollTo({ left: 0, behavior: 'smooth' });
+        else row.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-    
+
     const loginView = document.getElementById('login-view');
     const authForm = document.getElementById('auth-form');
     const authEmailInput = document.getElementById('auth-email');
@@ -54,22 +54,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const authErrorMsg = document.getElementById('auth-error-message');
     const btnLogout = document.getElementById('btn-logout');
 
-    const API_KEY = 'e00fa51658be1fc32120d60778c38fc2'; 
+    const API_KEY = 'e00fa51658be1fc32120d60778c38fc2';
     const BASE_URL = 'https://api.themoviedb.org/3';
     const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w300';
     const HERO_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/original';
-    
+
     let searchTimeout = null;
     let trendingMoviesList = [];
     let currentHeroIndex = 0;
     let rotationIntervalId = null;
     let currentTvState = { id: null, season: 1, episode: 1, isTV: false };
-    
+
     let currentUserUid = null;
     let continueWatching = [];
     let alreadyWatched = [];
     let myList = [];
-    let progressMap = {}; 
+    let progressMap = {};
     let globalCommunityMovies = [];
     let dataLoadedFromCloud = false;
     // 🔒 NETFLIX ANTI-SHARING: Generate a secret permanent ID for this specific phone/browser
@@ -78,19 +78,19 @@ document.addEventListener("DOMContentLoaded", () => {
         myDeviceId = 'device_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('ay_device_id', myDeviceId);
     }
-    
-    let currentModalData = null; 
-    let modalTrailerTimeout = null; 
 
-    // ✨ NEW: Trackers for Points & Anti-Spam Timer
+    let currentModalData = null;
+    let modalTrailerTimeout = null;
+
+    // ✨ Trackers for Points & Anti-Spam Timer
     let userPoints = 0;
-    let videoStartTime = 0; 
+    let videoStartTime = 0;
 
     const profileIcon = document.getElementById('profile-icon');
     const avatarDropdown = document.getElementById('avatar-dropdown');
-    
+
     // ✨ Expanded Emojis
-    const customAvatars = ['👤','🔴','🔵','🟢','👾','🐧','😎','🍿','👻','👑','👽','🤖','🦊','🐯','🍕','🎬','🎮','🔥','💎','🚀','🐼','🐉','🎸','🌮'];
+    const customAvatars = ['👤', '🔴', '🔵', '🟢', '👾', '🐧', '😎', '🍿', '👻', '👑', '👽', '🤖', '🦊', '🐯', '🍕', '🎬', '🎮', '🔥', '💎', '🚀', '🐼', '🐉', '🎸', '🌮'];
 
     profileIcon.addEventListener('click', () => { avatarDropdown.style.display = avatarDropdown.style.display === 'flex' ? 'none' : 'flex'; });
 
@@ -102,13 +102,13 @@ document.addEventListener("DOMContentLoaded", () => {
         span.onmouseout = () => span.style.transform = "scale(1)";
         span.onclick = () => {
             profileIcon.innerText = av;
-            
+
             // ✨ Sync to the hamburger menu instantly
             const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
-            if (mobileMenuAvatar) mobileMenuAvatar.innerText = av; 
-            
+            if (mobileMenuAvatar) mobileMenuAvatar.innerText = av;
+
             avatarDropdown.style.display = 'none';
-            if (currentUserUid) saveUserData(); 
+            if (currentUserUid) saveUserData();
         };
         avatarDropdown.appendChild(span);
     });
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const homeView = document.getElementById('home-view');
     const searchInput = document.getElementById('search-input');
     const searchDropdown = document.getElementById('search-dropdown');
-    
+
     const videoModal = document.getElementById('video-modal');
     const videoPlayerFrame = document.getElementById('video-player-frame');
     const closeModalBtn = document.getElementById('close-modal-btn');
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnNextEp = document.getElementById('btn-next-ep');
     const btnMarkFinished = document.getElementById('btn-mark-finished');
     const episodeIndicatorText = document.getElementById('episode-indicator-text');
-    
+
     const heroDisplayTitle = document.getElementById('hero-display-title');
     const heroDisplayLogo = document.getElementById('hero-display-logo');
     const heroDisplayDesc = document.getElementById('hero-display-desc');
@@ -158,22 +158,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (response.ok && result.exists) {
                 const data = result.data;
-                
-                // 1. Load the progress map FIRST so we can check for the smuggled lock
-                progressMap = data.progress || {}; 
 
-                // 🚨 THE LOCK CHECK: Look for the hidden device ID
+                progressMap = data.progress || {};
+
                 const cloudDeviceId = progressMap['_active_device_'];
 
-                // 🚨 THE LOCK CHECK: Look for the hidden device ID
                 if (cloudDeviceId && cloudDeviceId !== myDeviceId) {
                     const takeOver = confirm("🚫 ACCOUNT IN USE\n\nThis account is currently active on another device.\n\nDo you want to log out the other device and take over?");
-                    
+
                     if (!takeOver) {
-                        // 1. Lock the device so it cannot perform auto-saves
                         window.isKickedOut = true;
 
-                        // 2. Create a high z-index overlay (Black Screen of Death)
                         const overlay = document.createElement('div');
                         overlay.id = 'access-denied-overlay';
                         overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999999; text-align:center; padding:20px; font-family:sans-serif;';
@@ -183,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         `;
                         document.body.appendChild(overlay);
 
-                        // 3. Log out cleanly and reload
                         setTimeout(() => {
                             firebase.auth().signOut().then(() => {
                                 window.location.reload();
@@ -192,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             });
                         }, 2000);
 
-                        return; // Stop execution so no personal data finishes loading
+                        return; 
                     }
                     console.log("✅ Taking over account...");
                 }
@@ -202,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 myList = data.myList || [];
                 continueWatching = data.continueWatching || [];
                 alreadyWatched = data.alreadyWatched || [];
-                
+
                 // ✨ Load Points and sync the Mobile Menu
                 userPoints = parseInt(progressMap['_points_']) || 0;
                 const mobileMenuPoints = document.getElementById('mobile-menu-points');
@@ -213,45 +207,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (mobileMenuAvatar) mobileMenuAvatar.innerText = data.avatar || '👤';
                 if (mobileMenuEmail) mobileMenuEmail.innerText = window.currentUserEmail || "Registered User";
 
-                dataLoadedFromCloud = true; 
-                
-                // If we just took over, claim the device instantly
+                dataLoadedFromCloud = true;
+
                 if (cloudDeviceId !== myDeviceId) {
                     console.log("🛡️ Immunity Shield ON: Waiting for Google Sheets to update...");
-                    window.takeoverImmunity = true; // Turn on the shield
-                    saveUserData(); 
-                    
-                    // Turn the shield off after 20 seconds
-                    setTimeout(() => { window.takeoverImmunity = false; }, 20000); 
+                    window.takeoverImmunity = true; 
+                    saveUserData();
+
+                    setTimeout(() => { window.takeoverImmunity = false; }, 20000);
                 }
-                
+
             } else if (response.ok && !result.exists) {
                 console.log("⚠️ Genuine new user. Initializing fresh save slot...");
                 initializeFreshProfile();
-                dataLoadedFromCloud = true; 
-                saveUserData(); 
+                dataLoadedFromCloud = true;
+                saveUserData();
             }
 
             globalCommunityMovies = result.communityList || [];
 
-        } catch (e) { 
-            console.error("❌ Network glitch! Google Sheet didn't answer in time."); 
+        } catch (e) {
+            console.error("❌ Network glitch! Google Sheet didn't answer in time.");
         }
     }
 
     async function saveUserData() {
-        // 🛑 NEW: If this device got kicked out, completely block it from auto-saving and stealing the account back!
-        if (window.isKickedOut) return; 
+        if (window.isKickedOut) return;
 
         if (!currentUserUid || !dataLoadedFromCloud) {
             return;
         }
 
         console.log("☁️ Pushing data to Google Sheet...");
-        
-        // 🔒 SMUGGLE THE DEVICE ID: Hide it safely inside the progress map right before saving!
+
         progressMap['_active_device_'] = myDeviceId;
-        
+
         const payload = {
             action: "save",
             uid: currentUserUid,
@@ -271,11 +261,11 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         } catch (e) { console.error("❌ Save execution error:", e); }
     }
-    
+
     async function shareMovieToCommunity(movieObj) {
         if (!currentUserUid || !movieObj) return;
         console.log("👥 Attempting block push injection to communal listing sheet...");
-        
+
         const payload = {
             action: "addCommunity",
             uid: currentUserUid,
@@ -306,8 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
         continueWatching = [];
         alreadyWatched = [];
         progressMap = {};
-        
-        // ✨ Sync fresh mobile menu
+
         userPoints = 0;
         const mobileMenuPoints = document.getElementById('mobile-menu-points');
         const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
@@ -316,7 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (mobileMenuAvatar) mobileMenuAvatar.innerText = '👤';
         if (mobileMenuEmail) mobileMenuEmail.innerText = window.currentUserEmail || "Registered User";
 
-        saveUserData(); 
+        saveUserData();
     }
 
     function shiftHero(direction) {
@@ -324,7 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (direction === 'next') currentHeroIndex = (currentHeroIndex + 1) % trendingMoviesList.length;
         else currentHeroIndex = (currentHeroIndex - 1 + trendingMoviesList.length) % trendingMoviesList.length;
         updateHeroBillboard(trendingMoviesList[currentHeroIndex]);
-        startHeroRotationLoop(); 
+        startHeroRotationLoop();
     }
     heroPrev.addEventListener('click', () => shiftHero('prev'));
     heroNext.addEventListener('click', () => shiftHero('next'));
@@ -359,21 +348,20 @@ document.addEventListener("DOMContentLoaded", () => {
     closeActorBtn.addEventListener('click', () => { actorModal.style.display = 'none'; });
     mobileMenuBtn.addEventListener('click', () => { mobileMenu.style.right = '0'; });
     closeMobileMenu.addEventListener('click', () => { mobileMenu.style.right = '-100%'; });
-    
+
     function handleLogout() { mobileMenu.style.right = '-100%'; signOut(auth); }
     btnLogout.addEventListener('click', handleLogout);
     btnLogoutMobile.addEventListener('click', handleLogout);
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // ✨ FIX: Stop the Firebase double-trigger bug instantly!
             if (currentUserUid === user.uid) return;
 
             currentUserUid = user.uid;
             window.currentUserEmail = user.email || "Registered User";
             loginView.style.display = 'none';
-            loadCategoryView('home'); 
-            
+            loadCategoryView('home');
+
             fetchUserData().then(() => {
                 renderPersonalizedRows();
                 syncProgressBars();
@@ -386,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
             myList = [];
             progressMap = {};
             loginView.style.display = 'flex';
-            if (rotationIntervalId) clearInterval(rotationIntervalId); 
+            if (rotationIntervalId) clearInterval(rotationIntervalId);
         }
     });
 
@@ -396,21 +384,21 @@ document.addEventListener("DOMContentLoaded", () => {
         authErrorMsg.innerText = "Checking credentials...";
         try {
             await signInWithEmailAndPassword(auth, authEmailInput.value, authPasswordInput.value);
-            authErrorMsg.innerText = ""; 
+            authErrorMsg.innerText = "";
         } catch (error) {
-            authErrorMsg.style.color = "#E50914"; 
+            authErrorMsg.style.color = "#E50914";
             authErrorMsg.innerText = "Incorrect email or password.";
         }
     });
 
     async function triggerSurprise() {
-        mobileMenu.style.right = '-100%'; 
+        mobileMenu.style.right = '-100%';
         try {
             const res = await fetch(`${BASE_URL}/trending/all/week?api_key=${API_KEY}`);
             const data = await res.json();
             const randomItem = data.results[Math.floor(Math.random() * data.results.length)];
             openDetailsModal(randomItem.id, randomItem.media_type === 'tv');
-        } catch(e) { console.error("Surprise failed."); }
+        } catch (e) { console.error("Surprise failed."); }
     }
     document.getElementById('btn-surprise').addEventListener('click', triggerSurprise);
     btnSurpriseMobile.addEventListener('click', triggerSurprise);
@@ -421,7 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             const view = e.target.getAttribute('data-view');
             document.querySelectorAll(`[data-view="${view}"]`).forEach(l => l.classList.add('active'));
-            mobileMenu.style.right = '-100%'; 
+            mobileMenu.style.right = '-100%';
             loadCategoryView(view);
         });
     });
@@ -429,16 +417,15 @@ document.addEventListener("DOMContentLoaded", () => {
     function syncProgressBars() {
         if (!currentUserUid) return;
         const cards = document.querySelectorAll('.movie-card, .top-10-wrapper');
-        
+
         cards.forEach(card => {
             const id = card.getAttribute('data-id');
             const isCommunityCard = card.getAttribute('data-community-item') === 'true';
             const wasAddedByMe = card.getAttribute('data-added-by-me') === 'true';
-            
-            let rawProgress = progressMap[id]; 
+
+            let rawProgress = progressMap[id];
             let savedProgress = null;
 
-            // 📺 Extract the correct progress percentage whether it's a legacy string or a Smart TV memory object
             if (rawProgress) {
                 if (typeof rawProgress === 'object') {
                     savedProgress = rawProgress.percent;
@@ -446,22 +433,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     savedProgress = rawProgress;
                 }
             }
-            
+
             if (isCommunityCard && !wasAddedByMe) {
                 savedProgress = null;
             }
-            
+
             let track = card.querySelector('.progress-track');
-            
+
             if (savedProgress) {
                 if (!track) {
                     track = document.createElement('div');
                     track.className = 'progress-track';
-                    
+
                     if (card.classList.contains('top-10-wrapper')) {
-                        track.style.position = 'absolute'; 
-                        track.style.bottom = '0'; 
-                        track.style.left = '0'; 
+                        track.style.position = 'absolute';
+                        track.style.bottom = '0';
+                        track.style.left = '0';
                         track.style.width = '140px';
                         track.style.zIndex = '10';
                         track.style.borderBottomLeftRadius = '5px';
@@ -482,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderSkeletons(container, count = 10, isTop10 = false) {
         if (!container) return;
         container.innerHTML = '';
-        for(let i=0; i<count; i++){
+        for (let i = 0; i < count; i++) {
             const div = document.createElement('div');
             div.className = isTop10 ? 'skeleton-top10' : 'skeleton-card';
             container.appendChild(div);
@@ -490,7 +477,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function loadCategoryView(viewType) {
-        renderPersonalizedRows(); 
+        renderPersonalizedRows();
 
         const top10Container = document.getElementById('top-10-container');
         const top10Row = document.getElementById('top-10-row');
@@ -508,13 +495,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             if (viewType === 'home') {
-                top10Container.style.display = 'block'; 
+                top10Container.style.display = 'block';
                 renderSkeletons(top10Row, 10, true);
                 title1.innerText = "🔥 Trending Now";
                 title2.innerText = "💥 Action Movies";
                 title3.innerText = "😂 Comedy Movies";
                 title4.innerText = "📺 Trending Series";
-                
+
                 const tData = await (await fetch(`${BASE_URL}/trending/all/day?api_key=${API_KEY}`)).json();
                 populateTop10Row(tData.results.slice(0, 10), top10Row);
                 populateRow(tData.results, row1, false);
@@ -530,7 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 populateRow(sData.results, row4, true);
 
             } else {
-                top10Container.style.display = 'none'; 
+                top10Container.style.display = 'none';
                 if (viewType === 'tv') {
                     title1.innerText = "📺 Top TV Shows";
                     title2.innerText = "🦸‍♂️ Action TV";
@@ -563,7 +550,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         } catch (error) { console.error("Error loading category view:", error); }
-        syncProgressBars(); 
+        syncProgressBars();
     }
 
     function renderHeroDots() {
@@ -582,7 +569,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setupHero(results, isTV = false) {
         if (results && results.length > 0) {
-            trendingMoviesList = results.map(item => ({...item, isTV: isTV}));
+            trendingMoviesList = results.map(item => ({ ...item, isTV: isTV }));
             currentHeroIndex = 0;
             updateHeroBillboard(trendingMoviesList[0]);
             startHeroRotationLoop();
@@ -598,7 +585,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const awRow = document.getElementById('already-watched-row');
         const recContainer = document.getElementById('recommended-container');
         const recRow = document.getElementById('recommended-row');
-        
+
         const communityContainer = document.getElementById('community-container');
         const communityRow = document.getElementById('community-row');
 
@@ -609,22 +596,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (globalCommunityMovies.length > 0 && communityContainer && communityRow) {
             communityContainer.style.display = 'block';
-            communityRow.innerHTML = ''; 
-            
+            communityRow.innerHTML = '';
+
             globalCommunityMovies.forEach(item => {
                 const movieId = item.id || item.movieId || item[0];
                 const movieTitle = item.title || item.movieTitle || item.name || item[1];
                 const moviePoster = item.poster_path || item.posterPath || item[2];
                 const addedByUser = item.addedBy || item.uid || item[3];
 
-                if (!movieId || !moviePoster) return; 
+                if (!movieId || !moviePoster) return;
 
                 const card = document.createElement('div');
                 card.className = 'movie-card';
                 card.setAttribute('data-id', movieId.toString());
                 card.setAttribute('data-community-item', 'true');
                 card.setAttribute('data-added-by-me', (addedByUser === currentUserUid).toString());
-                
+
                 card.innerHTML = `
                     <img src="${IMAGE_BASE_URL}${moviePoster}" alt="${movieTitle}">
                     <div class="card-info">
@@ -632,11 +619,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="card-meta"><span style="color:#e50914; font-weight:bold;">👥 Shared Party</span></div>
                     </div>
                 `;
-                
+
                 card.addEventListener('click', () => {
                     openDetailsModal(movieId, false);
                 });
-                
+
                 communityRow.appendChild(card);
             });
             syncProgressBars();
@@ -653,7 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = await res.json();
                 if (data.results && data.results.length > 0) {
                     recContainer.style.display = 'block';
-                    const formattedRecs = data.results.map(item => ({...item, media_type: lastWatched.media_type}));
+                    const formattedRecs = data.results.map(item => ({ ...item, media_type: lastWatched.media_type }));
                     populateRow(formattedRecs, recRow, lastWatched.media_type === 'tv');
                 } else { recContainer.style.display = 'none'; }
             } catch (e) { recContainer.style.display = 'none'; }
@@ -661,33 +648,32 @@ document.addEventListener("DOMContentLoaded", () => {
             cwContainer.style.display = 'none';
             recContainer.style.display = 'none';
         }
-        
+
         if (alreadyWatched.length > 0) {
             awContainer.style.display = 'block';
             populateRow(alreadyWatched, awRow, false);
         } else { awContainer.style.display = 'none'; }
-        
-        syncProgressBars(); 
+
+        syncProgressBars();
     }
 
     function toggleMyList(data) {
         if (!data || !currentUserUid) return;
         const index = myList.findIndex(item => item.id === data.id);
-        if (index > -1) { myList.splice(index, 1); } 
+        if (index > -1) { myList.splice(index, 1); }
         else {
             myList.unshift({ id: data.id, title: data.title || data.name, poster_path: data.poster_path, media_type: data.media_type, release_date: data.release_date || data.first_air_date, vote_average: data.vote_average });
         }
-        saveUserData(); 
+        saveUserData();
         renderPersonalizedRows();
     }
 
     function addToContinueWatching(data) {
         if (!data || !currentUserUid) return;
-        
-        // 📺 Support extracting status from both string and memory object forms
+
         const rawP = progressMap[data.id];
         const isFinished = (rawP && typeof rawP === 'object') ? (rawP.percent === '100') : (rawP === '100');
-        
+
         if (isFinished) {
             alreadyWatched = alreadyWatched.filter(item => item.id !== data.id);
             alreadyWatched.unshift({ id: data.id, title: data.title || data.name, poster_path: data.poster_path, media_type: data.media_type, release_date: data.release_date || data.first_air_date, vote_average: data.vote_average });
@@ -699,8 +685,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (continueWatching.length > 10) continueWatching.pop();
             alreadyWatched = alreadyWatched.filter(item => item.id !== data.id);
         }
-        
-        saveUserData(); 
+
+        saveUserData();
         renderPersonalizedRows();
     }
 
@@ -712,9 +698,9 @@ document.addEventListener("DOMContentLoaded", () => {
             actorBioEl.innerText = data.biography || "No biography available.";
             actorPhotoEl.src = data.profile_path ? `${IMAGE_BASE_URL}${data.profile_path}` : 'https://via.placeholder.com/200x300?text=No+Image';
             const sortedMovies = data.combined_credits.cast.sort((a, b) => b.popularity - a.popularity);
-            populateRow(sortedMovies, actorMoviesRow, false); 
+            populateRow(sortedMovies, actorMoviesRow, false);
             actorModal.style.display = 'block';
-        } catch(e) { console.error("Failed to load actor."); }
+        } catch (e) { console.error("Failed to load actor."); }
     }
 
     async function openDetailsModal(id, isTV) {
@@ -729,12 +715,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
 
             data.media_type = type;
-            currentModalData = data; 
+            currentModalData = data;
 
             document.getElementById('details-title').innerText = data.title || data.name;
             document.getElementById('details-desc').innerText = data.overview || "No description available.";
             document.getElementById('details-rating').innerText = `⭐ ${parseFloat(data.vote_average).toFixed(1)} Rating`;
-            
+
             const releaseDate = data.release_date || data.first_air_date;
             document.getElementById('details-year').innerText = releaseDate ? releaseDate.substring(0, 4) : "N/A";
             document.getElementById('details-hero').style.backgroundImage = `url('${HERO_IMAGE_BASE_URL}${data.backdrop_path || data.poster_path}')`;
@@ -748,13 +734,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     span.style.cssText = "cursor: pointer; color: #fff; text-decoration: underline; margin-right: 5px; transition: color 0.2s;";
                     span.onmouseover = () => span.style.color = "#E50914";
                     span.onmouseout = () => span.style.color = "#fff";
-                    span.onclick = () => openActorModal(c.id); 
+                    span.onclick = () => openActorModal(c.id);
                     castContainer.appendChild(span);
                 });
             } else { castContainer.innerText = "Cast information unavailable."; }
 
             if (data.similar && data.similar.results && data.similar.results.length > 0) {
-                const formattedSimilar = data.similar.results.map(item => ({...item, media_type: type}));
+                const formattedSimilar = data.similar.results.map(item => ({ ...item, media_type: type }));
                 populateRow(formattedSimilar, modalSimilarRow, isTV);
             } else { modalSimilarRow.innerHTML = "<p style='color: #aaa;'>No similar shows found.</p>"; }
 
@@ -764,7 +750,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             detailsMylistBtn.onclick = () => {
                 toggleMyList(currentModalData);
-                isInList = !isInList; 
+                isInList = !isInList;
                 detailsMylistBtn.innerText = isInList ? "✔️ In My List" : "➕ My List";
                 detailsMylistBtn.style.backgroundColor = isInList ? "#46d369" : "rgba(109, 109, 110, 0.7)";
             };
@@ -779,10 +765,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     modalTrailerFrame.style.display = 'block';
                     modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=0&controls=0&showinfo=0&rel=0`;
                 }
-            }, 500); 
+            }, 500);
 
             detailsTrailerBtn.onclick = async () => {
-                clearTimeout(modalTrailerTimeout); 
+                clearTimeout(modalTrailerTimeout);
                 const trailerKey = await fetchMovieTrailer(id, isTV);
                 if (trailerKey) {
                     modalTrailerFrame.style.display = 'block';
@@ -794,7 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isTV) {
                 modalTvControls.style.display = 'flex';
                 modalSeasonSelect.innerHTML = '';
-                
+
                 const tvMemory = progressMap[id] && typeof progressMap[id] === 'object' ? progressMap[id] : null;
                 const resumeSeason = tvMemory ? tvMemory.lastSeason : 1;
                 const resumeEpisode = tvMemory ? tvMemory.lastEpisode : 1;
@@ -813,29 +799,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (validSeasons.length > 0) {
                     await populateModalEpisodes(id, modalSeasonSelect.value);
                 }
-                
+
                 if (modalEpisodeSelect.children.length >= resumeEpisode) {
                     modalEpisodeSelect.value = resumeEpisode;
                 }
 
-                modalSeasonSelect.onchange = async (e) => { 
-                    await populateModalEpisodes(id, e.target.value); 
+                modalSeasonSelect.onchange = async (e) => {
+                    await populateModalEpisodes(id, e.target.value);
                 };
 
-                detailsPlayBtn.onclick = () => {
+                // ✨ PLAY BUTTON FIXED: Intercepts event to prevent home routing
+                detailsPlayBtn.onclick = (e) => {
+                    if (e) e.preventDefault();
                     clearTimeout(modalTrailerTimeout);
                     detailsModal.style.display = 'none';
-                    modalTrailerFrame.src = ""; 
-                    addToContinueWatching(currentModalData); 
+                    modalTrailerFrame.src = "";
+                    addToContinueWatching(currentModalData);
                     launchVideoStream(id, true, modalSeasonSelect.value, modalEpisodeSelect.value);
                 };
             } else {
                 modalTvControls.style.display = 'none';
-                detailsPlayBtn.onclick = () => {
+                
+                // ✨ PLAY BUTTON FIXED: Intercepts event to prevent home routing
+                detailsPlayBtn.onclick = (e) => {
+                    if (e) e.preventDefault();
                     clearTimeout(modalTrailerTimeout);
                     detailsModal.style.display = 'none';
-                    modalTrailerFrame.src = ""; 
-                    addToContinueWatching(currentModalData); 
+                    modalTrailerFrame.src = "";
+                    addToContinueWatching(currentModalData);
                     launchVideoStream(id, false);
                 };
             }
@@ -859,39 +850,39 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (e) { console.error("Failed to load episodes."); }
     }
 
-    closeDetailsBtn.addEventListener('click', () => { 
+    closeDetailsBtn.addEventListener('click', () => {
         clearTimeout(modalTrailerTimeout);
-        detailsModal.style.display = 'none'; 
-        modalTrailerFrame.src = ""; 
+        detailsModal.style.display = 'none';
+        modalTrailerFrame.src = "";
     });
 
     function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
         let streamUrl = "";
-        
-        // ✨ NEW: Start the 40-minute timer!
-        videoStartTime = Date.now(); 
+
+        // ✨ Start the 40-minute timer!
+        videoStartTime = Date.now();
 
         // 📺 WRITE TV MEMORY OBJECT TO DATABASE
         if (isTV) {
             if (!progressMap[id] || typeof progressMap[id] !== 'object') {
                 progressMap[id] = {};
             }
-            progressMap[id].percent = '10'; 
+            progressMap[id].percent = '10';
             progressMap[id].lastSeason = parseInt(season);
             progressMap[id].lastEpisode = parseInt(episode);
-            saveUserData(); 
+            saveUserData();
         } else {
             let savedP = progressMap[id];
             if (!savedP || typeof savedP === 'object') {
                 progressMap[id] = '10';
-                saveUserData(); 
+                saveUserData();
             }
         }
 
-        requestWakeLock(); 
+        requestWakeLock();
 
-        try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch(e) {}
+        try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch (e) { }
 
         if (isTV) {
             btnPrevEp.style.display = currentTvState.episode > 1 ? 'inline-block' : 'none';
@@ -905,68 +896,64 @@ document.addEventListener("DOMContentLoaded", () => {
             streamUrl = `https://vidsrc.me/embed/movie?tmdb=${id}`;
         }
 
-        btnMarkFinished.innerText = "✔️ Mark Finished"; 
+        btnMarkFinished.innerText = "✔️ Mark Finished";
         videoPlayerFrame.src = streamUrl;
         videoModal.style.display = 'block';
     }
 
     btnNextEp.addEventListener('click', () => {
         if (!currentTvState.isTV) return;
-        currentTvState.episode += 1; 
+        currentTvState.episode += 1;
         launchVideoStream(currentTvState.id, true, currentTvState.season, currentTvState.episode);
     });
 
     btnPrevEp.addEventListener('click', () => {
         if (!currentTvState.isTV || currentTvState.episode <= 1) return;
-        currentTvState.episode -= 1; 
+        currentTvState.episode -= 1;
         launchVideoStream(currentTvState.id, true, currentTvState.season, currentTvState.episode);
     });
 
-    // ✨ NEW: THE ANTI-SPAM REWARD SYSTEM
+    // ✨ THE ANTI-SPAM REWARD SYSTEM (40 Minutes = 1 Point = $1 BZD)
     btnMarkFinished.addEventListener('click', () => {
-        if(currentUserUid && currentTvState.id) {
-            
-            // 📺 Properly flag completion inside the nested memory object if necessary
+        if (currentUserUid && currentTvState.id) {
+
             if (currentTvState.isTV && typeof progressMap[currentTvState.id] === 'object') {
                 progressMap[currentTvState.id].percent = '100';
             } else {
-                progressMap[currentTvState.id] = '100'; 
+                progressMap[currentTvState.id] = '100';
             }
-            
-            // ✨ THE ANTI-SPAM CHECK (40 Minutes = 1 Point = $1 BZD)
+
+            // ✨ THE ANTI-SPAM CHECK (Restored to 40 Minutes)
             const elapsedMinutes = (Date.now() - videoStartTime) / 60000;
-            
-            if (elapsedMinutes >= 0.1) { 
-                // They watched for at least 40 minutes! Give them 1 point.
+
+            if (elapsedMinutes >= 40) {
                 userPoints += 1;
                 progressMap['_points_'] = userPoints;
-                
-                // Update Mobile Menu UI immediately
+
                 const mobileMenuPoints = document.getElementById('mobile-menu-points');
                 if (mobileMenuPoints) mobileMenuPoints.innerText = userPoints;
-                
-                btnMarkFinished.innerText = "⭐ +1 BZD Earned!"; 
+
+                btnMarkFinished.innerText = "⭐ +1 BZD Earned!";
             } else {
-                // They clicked it too fast. Save it, but NO points!
                 btnMarkFinished.innerText = "✔️ Saved (Watch 40m for a point!)";
             }
-            
+
             continueWatching = continueWatching.filter(item => item.id !== currentTvState.id);
 
             if (currentModalData) {
                 alreadyWatched = alreadyWatched.filter(item => item.id !== currentModalData.id);
                 alreadyWatched.unshift({
-                    id: currentModalData.id, 
-                    title: currentModalData.title || currentModalData.name, 
-                    poster_path: currentModalData.poster_path, 
-                    media_type: currentModalData.media_type, 
-                    release_date: currentModalData.release_date || currentModalData.first_air_date, 
+                    id: currentModalData.id,
+                    title: currentModalData.title || currentModalData.name,
+                    poster_path: currentModalData.poster_path,
+                    media_type: currentModalData.media_type,
+                    release_date: currentModalData.release_date || currentModalData.first_air_date,
                     vote_average: currentModalData.vote_average
                 });
                 if (alreadyWatched.length > 15) alreadyWatched.pop();
             }
 
-            saveUserData(); 
+            saveUserData();
             setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 3000);
             syncProgressBars();
         }
@@ -974,10 +961,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     closeModalBtn.addEventListener('click', () => {
         videoModal.style.display = 'none';
-        videoPlayerFrame.src = ""; 
-        releaseWakeLock(); 
-        renderPersonalizedRows(); 
-        try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); } catch(e){}
+        videoPlayerFrame.src = "";
+        releaseWakeLock();
+        renderPersonalizedRows();
+        try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); } catch (e) { }
     });
 
     heroMuteBtn.addEventListener('click', () => {
@@ -1003,12 +990,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (trendingMoviesList.length === 0) return;
             currentHeroIndex = (currentHeroIndex + 1) % trendingMoviesList.length;
             await updateHeroBillboard(trendingMoviesList[currentHeroIndex]);
-        }, 30000); 
+        }, 30000);
     }
 
     async function updateHeroBillboard(featuredMovie) {
         if (!featuredMovie) return;
-        renderHeroDots(); 
+        renderHeroDots();
         const type = featuredMovie.isTV ? 'tv' : 'movie';
         try {
             const imgRes = await fetch(`${BASE_URL}/${type}/${featuredMovie.id}/images?api_key=${API_KEY}`);
@@ -1033,7 +1020,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         heroDisplayDesc.innerText = featuredMovie.overview || "No description available at this moment.";
         heroPosterBg.style.backgroundImage = `url('${HERO_IMAGE_BASE_URL}${featuredMovie.backdrop_path}')`;
-        heroPlayBtn.onclick = () => { openDetailsModal(featuredMovie.id, featuredMovie.isTV); };
+        
+        // ✨ HERO PLAY BUTTON FIXED
+        heroPlayBtn.onclick = (e) => { 
+            if (e) e.preventDefault();
+            openDetailsModal(featuredMovie.id, featuredMovie.isTV); 
+        };
 
         const trailerKey = await fetchMovieTrailer(featuredMovie.id, featuredMovie.isTV);
         if (trailerKey) {
@@ -1051,14 +1043,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function populateTop10Row(movies, container) {
         if (!container) return;
-        container.innerHTML = ''; 
+        container.innerHTML = '';
         movies.forEach((item, index) => {
             if (!item.poster_path) return;
             const isTV = item.media_type === 'tv';
             const card = document.createElement('div');
             card.className = 'top-10-wrapper';
-            card.setAttribute('data-id', item.id); 
-            
+            card.setAttribute('data-id', item.id);
+
             card.innerHTML = `
                 <span class="top-10-number">${index + 1}</span>
                 <img src="${IMAGE_BASE_URL}${item.poster_path}" alt="${item.title || item.name}" class="top-10-poster">
@@ -1066,19 +1058,19 @@ document.addEventListener("DOMContentLoaded", () => {
             card.addEventListener('click', () => openDetailsModal(item.id, isTV));
             container.appendChild(card);
         });
-        syncProgressBars(); 
+        syncProgressBars();
     }
 
     function populateRow(movies, container, isTV = false) {
         if (!container) return;
-        container.innerHTML = ''; 
+        container.innerHTML = '';
         movies.forEach(item => {
             if (!item.poster_path) return;
             const isTvItem = item.media_type === 'tv' || isTV;
             const card = createMovieCard(item, isTvItem);
             container.appendChild(card);
         });
-        syncProgressBars(); 
+        syncProgressBars();
     }
 
     async function fetchLiveSearch(query) {
@@ -1089,11 +1081,11 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${query}`);
             const data = await response.json();
-            
-            searchDropdown.innerHTML = ''; 
-            const validResults = data.results.filter(i => i.poster_path).slice(0, 8); 
-            
-            if(validResults.length === 0) {
+
+            searchDropdown.innerHTML = '';
+            const validResults = data.results.filter(i => i.poster_path).slice(0, 8);
+
+            if (validResults.length === 0) {
                 searchDropdown.innerHTML = '<div style="padding: 10px; color: #aaa; text-align: center;">No results found</div>';
             } else {
                 validResults.forEach(item => {
@@ -1134,8 +1126,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function createMovieCard(item, isTV = false) {
         const card = document.createElement('div');
         card.className = 'movie-card';
-        card.setAttribute('data-id', item.id); 
-        
+        card.setAttribute('data-id', item.id);
+
         const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
         const rating = parseFloat(item.vote_average || 0).toFixed(1);
         card.innerHTML = `
@@ -1145,11 +1137,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="card-meta"><span>${year}</span> <span>⭐ ${rating}</span></div>
             </div>
         `;
-        
+
         card.addEventListener('click', () => {
             openDetailsModal(item.id, isTV);
         });
-        
+
         return card;
     }
 
