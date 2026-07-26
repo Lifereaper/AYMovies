@@ -88,23 +88,30 @@ document.addEventListener("DOMContentLoaded", () => {
     window.watchTimerInterval = null;
     window.rewardClaimedForSession = false;
 
-    // 📡 MULTI-SERVER STREAM URL GENERATOR
+   // 📡 MULTI-SERVER STREAM URL GENERATOR (UPDATED & WORKING EMBEDS)
     function getServerStreamUrl(serverKey, id, isTV = false, season = 1, episode = 1) {
         switch (serverKey) {
-            case 'autoembed':
+            case 'vidsrc2':
+                // Server 2: VidSrc.cc (Alternative VidSrc mirror)
                 return isTV 
-                    ? `https://player.autoembed.cc/embed/tv/${id}/${season}/${episode}`
-                    : `https://player.autoembed.cc/embed/movie/${id}`;
-            case 'embedsu':
+                    ? `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`
+                    : `https://vidsrc.cc/v2/embed/movie/${id}`;
+                    
+            case 'vidlink':
+                // Server 3: VidLink (Very reliable, dark UI player)
                 return isTV 
-                    ? `https://embed.su/embed/tv/${id}/${season}/${episode}`
-                    : `https://embed.su/embed/movie/${id}`;
-            case 'superembed':
+                    ? `https://vidlink.pro/tv/${id}/${season}/${episode}`
+                    : `https://vidlink.pro/movie/${id}`;
+                    
+            case 'vidsrcpro':
+                // Server 4: VidSrc.pro
                 return isTV 
-                    ? `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1&s=${season}&e=${episode}`
-                    : `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1`;
+                    ? `https://vidsrc.pro/embed/tv/${id}/${season}/${episode}`
+                    : `https://vidsrc.pro/embed/movie/${id}`;
+                    
             case 'vidsrc':
             default:
+                // Server 1: VidSrc Primary
                 return isTV 
                     ? `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
                     : `https://vidsrc.me/embed/movie?tmdb=${id}`;
