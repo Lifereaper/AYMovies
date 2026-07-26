@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let progressMap = {};
     let globalCommunityMovies = [];
     let dataLoadedFromCloud = false;
-    
+
     let myDeviceId = localStorage.getItem('ay_device_id');
     if (!myDeviceId) {
         myDeviceId = 'device_' + Math.random().toString(36).substr(2, 9);
@@ -87,6 +87,29 @@ document.addEventListener("DOMContentLoaded", () => {
     window.activeVideoStartTime = 0;
     window.watchTimerInterval = null;
     window.rewardClaimedForSession = false;
+
+    // 📡 MULTI-SERVER STREAM URL GENERATOR
+    function getServerStreamUrl(serverKey, id, isTV = false, season = 1, episode = 1) {
+        switch (serverKey) {
+            case 'autoembed':
+                return isTV 
+                    ? `https://player.autoembed.cc/embed/tv/${id}/${season}/${episode}`
+                    : `https://player.autoembed.cc/embed/movie/${id}`;
+            case 'embedsu':
+                return isTV 
+                    ? `https://embed.su/embed/tv/${id}/${season}/${episode}`
+                    : `https://embed.su/embed/movie/${id}`;
+            case 'superembed':
+                return isTV 
+                    ? `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1&s=${season}&e=${episode}`
+                    : `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1`;
+            case 'vidsrc':
+            default:
+                return isTV 
+                    ? `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
+                    : `https://vidsrc.me/embed/movie?tmdb=${id}`;
+        }
+    }
 
     // ✨ FLOATING REWARD TOAST POPUP (CENTERED, PAUSE & RESUME)
     function showRewardToast(title, message) {
@@ -113,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             document.body.appendChild(toast);
         }
-        
+
         toast.innerHTML = `
             <div style="font-size: 1.6rem; font-weight: bold; color: #ffd700; margin-bottom: 8px;">${title}</div>
             <div style="font-size: 1.1rem; color: #ffffff;">${message}</div>
@@ -128,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 player.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                 player.contentWindow.postMessage('pause', '*');
                 player.contentWindow.postMessage({ method: 'pause' }, '*');
-            } catch(e) {}
+            } catch (e) { }
         }
 
         // Auto-dismiss popup after 5 seconds & Resume Video
@@ -137,14 +160,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 toast.style.opacity = '0';
                 setTimeout(() => { toast.style.display = 'none'; }, 500);
             }
-            
+
             // ▶️ ATTEMPT TO RESUME THE VIDEO PLAYER
             if (player && player.contentWindow) {
                 try {
                     player.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                     player.contentWindow.postMessage('play', '*');
                     player.contentWindow.postMessage({ method: 'play' }, '*');
-                } catch(e) {}
+                } catch (e) { }
             }
         }, 5000);
     }
@@ -189,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnNextEp = document.getElementById('btn-next-ep');
     const btnMarkFinished = document.getElementById('btn-mark-finished');
     const episodeIndicatorText = document.getElementById('episode-indicator-text');
+    const serverSelect = document.getElementById('server-select');
 
     const heroDisplayTitle = document.getElementById('hero-display-title');
     const heroDisplayLogo = document.getElementById('hero-display-logo');
@@ -441,7 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
             const randomItem = data.results[Math.floor(Math.random() * data.results.length)];
             openDetailsModal(randomItem.id, randomItem.media_type === 'tv');
-        } catch (e) {}
+        } catch (e) { }
     }
     document.getElementById('btn-surprise').addEventListener('click', triggerSurprise);
     btnSurpriseMobile.addEventListener('click', triggerSurprise);
@@ -559,6 +583,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 const sData = await (await fetch(`${BASE_URL}/trending/tv/day?api_key=${API_KEY}`)).json();
                 populateRow(sData.results, row4, true);
 
+            } else if (viewType === 'animations') {
+                // 🎨 ANIMATIONS CATEGORY (GENRE 16)
+                top10Container.style.display = 'none';
+                title1.innerText = "🍿 Top Animated Movies";
+                title2.innerText = "🎌 Anime & Animated Series";
+                title3.innerText = "🧸 Family Animation";
+                title4.innerText = "🔥 Trending Animated Releases";
+
+                const animMovData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16&sort_by=popularity.desc`)).json();
+                populateRow(animMovData.results, row1, false);
+                setupHero(animMovData.results.slice(0, 5));
+
+                const animTvData = await (await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=16&sort_by=popularity.desc`)).json();
+                populateRow(animTvData.results, row2, true);
+
+                const familyAnimData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16,10751&sort_by=popularity.desc`)).json();
+                populateRow(familyAnimData.results, row3, false);
+
+                const trendingAnimData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16&sort_by=vote_count.desc`)).json();
+                populateRow(trendingAnimData.results, row4, false);
+
             } else {
                 top10Container.style.display = 'none';
                 if (viewType === 'tv') {
@@ -592,7 +637,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     populateRow(hData.results, row4, false);
                 }
             }
-        } catch (error) {}
+        } catch (error) { }
         syncProgressBars();
     }
 
@@ -740,7 +785,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const sortedMovies = data.combined_credits.cast.sort((a, b) => b.popularity - a.popularity);
             populateRow(sortedMovies, actorMoviesRow, false);
             actorModal.style.display = 'block';
-        } catch (e) {}
+        } catch (e) { }
     }
 
     async function openDetailsModal(id, isTV) {
@@ -840,7 +885,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     clearTimeout(modalTrailerTimeout);
                     detailsModal.style.display = 'none';
                     modalTrailerFrame.src = "";
-                    try { addToContinueWatching(currentModalData); } catch(err){}
+                    try { addToContinueWatching(currentModalData); } catch (err) { }
                     launchVideoStream(id, true, modalSeasonSelect.value, modalEpisodeSelect.value);
                 };
             } else {
@@ -851,7 +896,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     clearTimeout(modalTrailerTimeout);
                     detailsModal.style.display = 'none';
                     modalTrailerFrame.src = "";
-                    try { addToContinueWatching(currentModalData); } catch(err){}
+                    try { addToContinueWatching(currentModalData); } catch (err) { }
                     launchVideoStream(id, false);
                 };
             }
@@ -872,7 +917,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 option.innerText = `Ep ${e.episode_number}: ${e.name}`;
                 modalEpisodeSelect.appendChild(option);
             });
-        } catch (e) {}
+        } catch (e) { }
     }
 
     closeDetailsBtn.addEventListener('click', () => {
@@ -884,7 +929,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         try {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
-            let streamUrl = "";
 
             // Reset watch time & session reward state
             window.activeVideoStartTime = Date.now();
@@ -916,17 +960,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 btnPrevEp.style.display = currentTvState.episode > 1 ? 'inline-block' : 'none';
                 btnNextEp.style.display = 'inline-block';
                 episodeIndicatorText.innerText = `Playing: Season ${season}, Episode ${episode}`;
-                streamUrl = `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`;
             } else {
                 btnPrevEp.style.display = 'none';
                 btnNextEp.style.display = 'none';
                 episodeIndicatorText.innerText = "Feature Film";
-                streamUrl = `https://vidsrc.me/embed/movie?tmdb=${id}`;
             }
 
             btnMarkFinished.innerText = "✔️ Mark Finished";
-            
-            // 🛡️ REMOVED SANDBOX (Kodular SupportMultipleWindows handles popups natively)
+
+            // 📡 Read selected server from dropdown
+            const activeServer = serverSelect ? serverSelect.value : 'vidsrc';
+            const streamUrl = getServerStreamUrl(activeServer, id, isTV, season, episode);
+
             videoPlayerFrame.removeAttribute('sandbox');
             videoPlayerFrame.src = streamUrl;
             videoModal.style.display = 'block';
@@ -1009,6 +1054,25 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (fatalError) {
             console.error("Launch Video Stream crashed:", fatalError);
         }
+    }
+
+    // 🔄 SWITCH SERVER ON THE FLY WITHOUT RESETTING WATCH TIMER
+    if (serverSelect) {
+        serverSelect.addEventListener('change', (e) => {
+            if (currentTvState.id) {
+                const newServerKey = e.target.value;
+                const newStreamUrl = getServerStreamUrl(
+                    newServerKey,
+                    currentTvState.id,
+                    currentTvState.isTV,
+                    currentTvState.season,
+                    currentTvState.episode
+                );
+
+                videoPlayerFrame.removeAttribute('sandbox');
+                videoPlayerFrame.src = newStreamUrl;
+            }
+        });
     }
 
     btnNextEp.addEventListener('click', () => {
@@ -1274,7 +1338,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
             searchDropdown.style.display = 'block';
-        } catch (error) {}
+        } catch (error) { }
     }
 
     searchInput.addEventListener('input', (e) => {
@@ -1350,7 +1414,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }, 4000);
                 }
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     setInterval(checkSessionLock, 10000);
