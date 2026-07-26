@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AYMovies - Stream Free Movies & TV</title>
-    
+
     <meta property="og:title" content="AYMovies">
     <meta property="og:description" content="Watch the latest trending movies and TV shows. Build your list, auto-play trailers, and stream in HD.">
     <meta property="og:image" content="https://placehold.co/1200x630/E50914/white?text=AY">
@@ -14,53 +14,307 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><text x='50%' y='50%' font-family='Arial' font-size='45' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>AY</text></svg>">
     <link rel="stylesheet" href="style.css?v=19">
     <style>
-        .nav-link { color: #aaa; text-decoration: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .nav-link:hover, .nav-link.active { color: white; }
-        
-        .top-10-wrapper { position: relative; min-width: 200px; cursor: pointer; transition: transform 0.3s; margin-left: 20px; display: flex; align-items: flex-end; }
-        .top-10-wrapper:hover { transform: scale(1.1); z-index: 20; }
-        .top-10-number { font-size: 10rem; font-weight: 900; color: black; -webkit-text-stroke: 4px #555; position: absolute; left: -30px; bottom: -25px; z-index: 1; line-height: 0.8; letter-spacing: -5px; }
-        .top-10-poster { position: relative; z-index: 2; width: 140px; border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.9); }
-        
-        .movie-card { position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; border-radius: 5px; }
-        .movie-card:hover { transform: scale(1.15); z-index: 20; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
-        .movie-card img { width: 100%; border-radius: 5px; display: block; }
-        .card-info { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%); padding: 30px 10px 10px 10px; opacity: 0; transition: opacity 0.3s ease; color: white; pointer-events: none; border-radius: 0 0 5px 5px; z-index: 5; }
-        .movie-card:hover .card-info { opacity: 1; }
-        .card-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; text-shadow: 1px 1px 2px black; }
-        .card-meta { font-size: 0.75rem; color: #46d369; font-weight: bold; display: flex; justify-content: space-between; text-shadow: 1px 1px 2px black; }
-        
+        .nav-link {
+            color: #aaa;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .nav-link:hover, .nav-link.active {
+                color: white;
+            }
+
+        .top-10-wrapper {
+            position: relative;
+            min-width: 200px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin-left: 20px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+            .top-10-wrapper:hover {
+                transform: scale(1.1);
+                z-index: 20;
+            }
+
+        .top-10-number {
+            font-size: 10rem;
+            font-weight: 900;
+            color: black;
+            -webkit-text-stroke: 4px #555;
+            position: absolute;
+            left: -30px;
+            bottom: -25px;
+            z-index: 1;
+            line-height: 0.8;
+            letter-spacing: -5px;
+        }
+
+        .top-10-poster {
+            position: relative;
+            z-index: 2;
+            width: 140px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.9);
+        }
+
+        .movie-card {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+            .movie-card:hover {
+                transform: scale(1.15);
+                z-index: 20;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+            }
+
+            .movie-card img {
+                width: 100%;
+                border-radius: 5px;
+                display: block;
+            }
+
+        .card-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
+            padding: 30px 10px 10px 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            color: white;
+            pointer-events: none;
+            border-radius: 0 0 5px 5px;
+            z-index: 5;
+        }
+
+        .movie-card:hover .card-info {
+            opacity: 1;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .card-meta {
+            font-size: 0.75rem;
+            color: #46d369;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            text-shadow: 1px 1px 2px black;
+        }
+
         /* ✨ GLOBAL PROGRESS BAR STYLES */
-        .progress-track { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.3); z-index: 10; pointer-events: none; }
-        .progress-fill { height: 100%; background: #E50914; transition: width 0.3s ease, background 0.3s ease; }
+        .progress-track {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            z-index: 10;
+            pointer-events: none;
+        }
 
-        .row-wrapper { position: relative; }
-        .row-arrow { position: absolute; top: 0; height: 100%; width: 50px; background: rgba(0,0,0,0.6); color: white; border: none; font-size: 2.5rem; cursor: pointer; z-index: 15; opacity: 0; transition: opacity 0.3s, background 0.3s; display: flex; align-items: center; justify-content: center; padding-bottom: 15px; }
-        .row-arrow:hover { background: rgba(0,0,0,0.9); font-size: 3rem; }
-        .left-arrow { left: 0; border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
-        .right-arrow { right: 0; border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
-        .row-wrapper:hover .row-arrow { opacity: 1; }
-        @media (hover: none) { .row-arrow { display: none !important; } }
+        .progress-fill {
+            height: 100%;
+            background: #E50914;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
 
-        .hero-nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: transparent; color: rgba(255,255,255,0.5); border: none; font-size: 4rem; cursor: pointer; z-index: 10; transition: color 0.2s; }
-        .hero-nav-arrow:hover { color: white; }
-        #hero-prev { left: 20px; }
-        #hero-next { right: 20px; }
-        #hero-dots { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
-        .hero-dot { width: 10px; height: 10px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: 0.3s; }
-        .hero-dot.active { background: white; transform: scale(1.3); }
+        .row-wrapper {
+            position: relative;
+        }
 
-        .skeleton-card { width: 150px; height: 225px; border-radius: 5px; flex-shrink: 0; background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-        .skeleton-top10 { width: 140px; height: 210px; margin-left: 50px; border-radius: 5px; flex-shrink: 0; background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .row-arrow {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            font-size: 2.5rem;
+            cursor: pointer;
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 0.3s, background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 15px;
+        }
 
-        .search-dropdown { position: absolute; top: 40px; right: 0; width: 300px; max-height: 400px; background: #141414; border: 1px solid #333; border-radius: 5px; overflow-y: auto; z-index: 3000; box-shadow: 0 10px 20px rgba(0,0,0,0.9); }
-        .search-item { display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; transition: background 0.2s; align-items: center; }
-        .search-item:hover { background: #333; }
-        .search-item img { width: 40px; height: 60px; object-fit: cover; border-radius: 3px; }
-        .search-item-info { display: flex; flex-direction: column; }
-        .search-item-title { color: white; font-size: 0.9rem; font-weight: bold; }
-        .search-item-meta { color: #aaa; font-size: 0.8rem; }
+            .row-arrow:hover {
+                background: rgba(0,0,0,0.9);
+                font-size: 3rem;
+            }
+
+        .left-arrow {
+            left: 0;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        .right-arrow {
+            right: 0;
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+
+        .row-wrapper:hover .row-arrow {
+            opacity: 1;
+        }
+
+        @media (hover: none) {
+            .row-arrow {
+                display: none !important;
+            }
+        }
+
+        .hero-nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            color: rgba(255,255,255,0.5);
+            border: none;
+            font-size: 4rem;
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.2s;
+        }
+
+            .hero-nav-arrow:hover {
+                color: white;
+            }
+
+        #hero-prev {
+            left: 20px;
+        }
+
+        #hero-next {
+            right: 20px;
+        }
+
+        #hero-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .hero-dot {
+            width: 10px;
+            height: 10px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+            .hero-dot.active {
+                background: white;
+                transform: scale(1.3);
+            }
+
+        .skeleton-card {
+            width: 150px;
+            height: 225px;
+            border-radius: 5px;
+            flex-shrink: 0;
+            background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        .skeleton-top10 {
+            width: 140px;
+            height: 210px;
+            margin-left: 50px;
+            border-radius: 5px;
+            flex-shrink: 0;
+            background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 40px;
+            right: 0;
+            width: 300px;
+            max-height: 400px;
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 5px;
+            overflow-y: auto;
+            z-index: 3000;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.9);
+        }
+
+        .search-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #222;
+            transition: background 0.2s;
+            align-items: center;
+        }
+
+            .search-item:hover {
+                background: #333;
+            }
+
+            .search-item img {
+                width: 40px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 3px;
+            }
+
+        .search-item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-item-title {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .search-item-meta {
+            color: #aaa;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -301,9 +555,24 @@
     <!-- 🎥 VIDEO PLAYER MODAL -->
     <div id="video-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10001;">
         <span id="close-modal-btn" style="position: absolute; top: 15px; right: 30px; color: white; font-size: 40px; cursor: pointer; z-index: 10;">&times;</span>
+        
         <iframe id="video-player-frame" style="width: 100%; height: 75%; border: none; margin-top: 60px;" allowfullscreen></iframe>
+        
         <div style="text-align: center; color: white; margin-top: 15px; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+            
+            <!-- 📡 MULTI-SERVER SELECTOR DROPDOWN -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: rgba(30, 30, 30, 0.8); padding: 8px 16px; border-radius: 8px; border: 1px solid #333;">
+                <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.95rem;">📡 Server:</label>
+                <select id="server-select" style="background: #111; color: #fff; border: 1px solid #ffd700; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none; font-size: 0.9rem;">
+                    <option value="vidsrc">Server 1 (VidSrc Primary)</option>
+                    <option value="autoembed">Server 2 (AutoEmbed)</option>
+                    <option value="embedsu">Server 3 (Embed.su)</option>
+                    <option value="superembed">Server 4 (SuperEmbed)</option>
+                </select>
+            </div>
+
             <h3 id="episode-indicator-text" style="font-size: 1.5rem; margin-bottom: 10px;">Feature Film</h3>
+            
             <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
                 <button id="btn-prev-ep" style="display: none; padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">⏮ Prev Ep</button>
                 <button id="btn-next-ep" style="display: none; padding: 10px 20px; background: #E50914; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1rem;">Up Next ⏭</button>
