@@ -286,3 +286,48 @@ body {
         width: 100% !important;
     }
 }
+/* 🖼️ MINI-PLAYER MODE (OPTION C) */
+#video-modal.mini-mode {
+    width: 340px !important;
+    height: 210px !important;
+    top: auto !important;
+    left: auto !important;
+    bottom: 25px !important;
+    right: 25px !important;
+    border-radius: 12px !important;
+    border: 2px solid #E50914 !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.95) !important;
+    overflow: hidden !important;
+    transition: all 0.3s ease !important;
+}
+
+#video-modal.mini-mode #video-player-frame {
+    height: 100% !important;
+    margin-top: 0 !important;
+}
+
+#video-modal.mini-mode .video-modal-controls {
+    display: none !important; /* Hide heavy control bar when floating */
+}
+
+/* 🎯 EMOJI REACTION BUTTONS (OPTION D) */
+.emoji-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #444;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.emoji-btn:hover, .emoji-btn.user-reacted {
+    background: rgba(229, 9, 20, 0.2);
+    border-color: #E50914;
+    transform: scale(1.08);
+}
