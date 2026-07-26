@@ -82,9 +82,72 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentModalData = null;
     let modalTrailerTimeout = null;
 
-    // ✨ SAFER GLOBAL TRACKERS FOR POINTS
-    window.userTotalPoints = 0;
+    // ✨ GLOBAL TRACKERS FOR POINTS & TIMERS
+    window.userTotalPoints = 0.00;
     window.activeVideoStartTime = 0;
+    window.watchTimerInterval = null;
+    window.rewardClaimedForSession = false;
+
+    // ✨ FLOATING REWARD TOAST POPUP (CENTERED, PAUSE & RESUME)
+    function showRewardToast(title, message) {
+        let toast = document.getElementById('reward-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'reward-toast';
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(20, 20, 20, 0.95);
+                border: 2px solid #ffd700;
+                box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+                color: white;
+                padding: 24px 40px;
+                border-radius: 8px;
+                z-index: 10002;
+                text-align: center;
+                font-family: Arial, sans-serif;
+                pointer-events: none;
+                transition: opacity 0.5s ease-in-out;
+            `;
+            document.body.appendChild(toast);
+        }
+        
+        toast.innerHTML = `
+            <div style="font-size: 1.6rem; font-weight: bold; color: #ffd700; margin-bottom: 8px;">${title}</div>
+            <div style="font-size: 1.1rem; color: #ffffff;">${message}</div>
+        `;
+        toast.style.opacity = '1';
+        toast.style.display = 'block';
+
+        // ⏸️ ATTEMPT TO PAUSE THE VIDEO PLAYER
+        const player = document.getElementById('video-player-frame');
+        if (player && player.contentWindow) {
+            try {
+                player.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                player.contentWindow.postMessage('pause', '*');
+                player.contentWindow.postMessage({ method: 'pause' }, '*');
+            } catch(e) {}
+        }
+
+        // Auto-dismiss popup after 5 seconds & Resume Video
+        setTimeout(() => {
+            if (toast) {
+                toast.style.opacity = '0';
+                setTimeout(() => { toast.style.display = 'none'; }, 500);
+            }
+            
+            // ▶️ ATTEMPT TO RESUME THE VIDEO PLAYER
+            if (player && player.contentWindow) {
+                try {
+                    player.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                    player.contentWindow.postMessage('play', '*');
+                    player.contentWindow.postMessage({ method: 'play' }, '*');
+                } catch(e) {}
+            }
+        }, 5000);
+    }
 
     const profileIcon = document.getElementById('profile-icon');
     const avatarDropdown = document.getElementById('avatar-dropdown');
@@ -188,13 +251,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 continueWatching = data.continueWatching || [];
                 alreadyWatched = data.alreadyWatched || [];
 
-                // Load Points
-                window.userTotalPoints = parseInt(progressMap['_points_']) || 0;
+                // Load Points cleanly formatted
+                window.userTotalPoints = parseFloat(progressMap['_points_']) || 0.00;
                 const mobileMenuPoints = document.getElementById('mobile-menu-points');
                 const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
                 const mobileMenuEmail = document.getElementById('mobile-menu-email');
 
-                if (mobileMenuPoints) mobileMenuPoints.innerText = window.userTotalPoints;
+                if (mobileMenuPoints) mobileMenuPoints.innerText = window.userTotalPoints.toFixed(2);
                 if (mobileMenuAvatar) mobileMenuAvatar.innerText = data.avatar || '👤';
                 if (mobileMenuEmail) mobileMenuEmail.innerText = window.currentUserEmail || "Registered User";
 
@@ -277,11 +340,11 @@ document.addEventListener("DOMContentLoaded", () => {
         alreadyWatched = [];
         progressMap = {};
 
-        window.userTotalPoints = 0;
+        window.userTotalPoints = 0.00;
         const mobileMenuPoints = document.getElementById('mobile-menu-points');
         const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
         const mobileMenuEmail = document.getElementById('mobile-menu-email');
-        if (mobileMenuPoints) mobileMenuPoints.innerText = "0";
+        if (mobileMenuPoints) mobileMenuPoints.innerText = "0.00";
         if (mobileMenuAvatar) mobileMenuAvatar.innerText = '👤';
         if (mobileMenuEmail) mobileMenuEmail.innerText = window.currentUserEmail || "Registered User";
 
@@ -745,11 +808,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const trailerKey = await fetchMovieTrailer(id, isTV);
                 if (trailerKey) {
                     modalTrailerFrame.style.display = 'block';
-                    modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=0&controls=1&showinfo=0&rel=0`;
+                    modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=1&showinfo=0&rel=0`;
                 } else { alert("Trailer not available for this title."); }
             };
 
-            // 📺 SMART MEMORY AUTO-SELECTION & SAFE PLAY LAUNCH
+            // 📺 TV MEMORY & PLAY LAUNCH
             if (isTV) {
                 modalTvControls.style.display = 'flex';
                 modalSeasonSelect.innerHTML = '';
@@ -772,7 +835,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 modalSeasonSelect.onchange = async (e) => { await populateModalEpisodes(id, e.target.value); };
 
-                // 🛡️ FULLY PROTECTED TV PLAY BUTTON
                 detailsPlayBtn.onclick = (e) => {
                     if (e) { e.preventDefault(); e.stopPropagation(); }
                     clearTimeout(modalTrailerTimeout);
@@ -784,7 +846,6 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 modalTvControls.style.display = 'none';
 
-                // 🛡️ FULLY PROTECTED MOVIE PLAY BUTTON
                 detailsPlayBtn.onclick = (e) => {
                     if (e) { e.preventDefault(); e.stopPropagation(); }
                     clearTimeout(modalTrailerTimeout);
@@ -825,8 +886,11 @@ document.addEventListener("DOMContentLoaded", () => {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
             let streamUrl = "";
 
-            // ✨ STARTING TIMER SAFELY ON WINDOW OBJECT
+            // Reset watch time & session reward state
             window.activeVideoStartTime = Date.now();
+            window.rewardClaimedForSession = false;
+
+            if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
 
             if (isTV) {
                 if (!progressMap[id] || typeof progressMap[id] !== 'object') {
@@ -848,7 +912,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch (e) { }
 
-            // ✨ USING YOUR ORIGINAL WORKING URLS
             if (isTV) {
                 btnPrevEp.style.display = currentTvState.episode > 1 ? 'inline-block' : 'none';
                 btnNextEp.style.display = 'inline-block';
@@ -863,11 +926,85 @@ document.addEventListener("DOMContentLoaded", () => {
 
             btnMarkFinished.innerText = "✔️ Mark Finished";
             
-            // 🛡️ REMOVED THE SANDBOX! Kodular is handling the ads now.
+            // 🛡️ REMOVED SANDBOX (Kodular SupportMultipleWindows handles popups natively)
             videoPlayerFrame.removeAttribute('sandbox');
             videoPlayerFrame.src = streamUrl;
-            
             videoModal.style.display = 'block';
+
+            // ✨ AUTOMATED BACKGROUND REWARD CHECKER (Runs every 10 seconds)
+            window.watchTimerInterval = setInterval(() => {
+                if (!currentUserUid || window.rewardClaimedForSession) return;
+
+                const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
+
+                if (!currentTvState.isTV) {
+                    // 🎬 MOVIE: 60 Minutes = $0.25 BZD Automatic Popup
+                    if (elapsedMinutes >= 60) {
+                        window.rewardClaimedForSession = true;
+                        window.userTotalPoints = parseFloat((window.userTotalPoints + 0.25).toFixed(2));
+                        progressMap['_points_'] = window.userTotalPoints;
+                        progressMap[currentTvState.id] = '100';
+
+                        const mobileMenuPoints = document.getElementById('mobile-menu-points');
+                        if (mobileMenuPoints) mobileMenuPoints.innerText = window.userTotalPoints.toFixed(2);
+
+                        saveUserData();
+                        showRewardToast("🍿 Reward Earned!", "You earned $0.25 BZD for watching 1 hour!");
+                    }
+                } else {
+                    // 📺 TV SHOW: 40 Minutes = Record Episode / Check Finale
+                    if (elapsedMinutes >= 40) {
+                        window.rewardClaimedForSession = true;
+
+                        if (!progressMap[currentTvState.id] || typeof progressMap[currentTvState.id] !== 'object') {
+                            progressMap[currentTvState.id] = {};
+                        }
+                        if (!Array.isArray(progressMap[currentTvState.id].completedEpisodes)) {
+                            progressMap[currentTvState.id].completedEpisodes = [];
+                        }
+
+                        const currentEpKey = `S${currentTvState.season}E${currentTvState.episode}`;
+                        if (!progressMap[currentTvState.id].completedEpisodes.includes(currentEpKey)) {
+                            progressMap[currentTvState.id].completedEpisodes.push(currentEpKey);
+                        }
+
+                        let isSeriesFinale = false;
+                        let totalShowEpisodes = 0;
+                        let maxSeason = 1;
+                        let maxEpisode = 1;
+
+                        if (currentModalData && currentModalData.seasons) {
+                            const validSeasons = currentModalData.seasons.filter(s => s.season_number > 0);
+                            maxSeason = Math.max(...validSeasons.map(s => s.season_number));
+                            validSeasons.forEach(s => { totalShowEpisodes += (s.episode_count || 0); });
+                            const targetSeasonObj = validSeasons.find(s => s.season_number === maxSeason);
+                            maxEpisode = targetSeasonObj ? targetSeasonObj.episode_count : 1;
+
+                            if (currentTvState.season === maxSeason && currentTvState.episode === maxEpisode) {
+                                isSeriesFinale = true;
+                            }
+                        }
+
+                        const watchedCount = progressMap[currentTvState.id].completedEpisodes.length;
+                        const requiredEpisodes = Math.max(1, Math.floor(totalShowEpisodes * 0.8));
+
+                        if (isSeriesFinale && watchedCount >= requiredEpisodes) {
+                            window.userTotalPoints = parseFloat((window.userTotalPoints + 1.00).toFixed(2));
+                            progressMap['_points_'] = window.userTotalPoints;
+                            progressMap[currentTvState.id].percent = '100';
+
+                            const mobileMenuPoints = document.getElementById('mobile-menu-points');
+                            if (mobileMenuPoints) mobileMenuPoints.innerText = window.userTotalPoints.toFixed(2);
+
+                            showRewardToast("🎉 Series Complete!", "You earned $1.00 BZD!");
+                        } else {
+                            showRewardToast("✔️ Episode Recorded!", `Progress saved! (${watchedCount}/${totalShowEpisodes} Watched)`);
+                        }
+
+                        saveUserData();
+                    }
+                }
+            }, 10000);
 
         } catch (fatalError) {
             console.error("Launch Video Stream crashed:", fatalError);
@@ -886,30 +1023,85 @@ document.addEventListener("DOMContentLoaded", () => {
         launchVideoStream(currentTvState.id, true, currentTvState.season, currentTvState.episode);
     });
 
-    // ✨ THE ANTI-SPAM REWARD SYSTEM
+    // ✨ MANUAL "MARK FINISHED" BUTTON LOGIC (WITH ANTI-CHEAT)
     btnMarkFinished.addEventListener('click', () => {
         if (currentUserUid && currentTvState.id) {
 
-            if (currentTvState.isTV && typeof progressMap[currentTvState.id] === 'object') {
-                progressMap[currentTvState.id].percent = '100';
-            } else {
+            const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
+            let earnedPoints = 0;
+            let btnFeedback = "";
+
+            if (!currentTvState.isTV) {
+                // 🎬 MOVIE LOGIC
                 progressMap[currentTvState.id] = '100';
+
+                if (elapsedMinutes >= 60) {
+                    earnedPoints = 0.25;
+                    btnFeedback = "⭐ +$0.25 BZD Earned!";
+                } else {
+                    btnFeedback = "✔️ Saved (Watch 1 hour for $0.25 BZD!)";
+                }
+            } else {
+                // 📺 TV SHOW LOGIC
+                if (!progressMap[currentTvState.id] || typeof progressMap[currentTvState.id] !== 'object') {
+                    progressMap[currentTvState.id] = {};
+                }
+                if (!Array.isArray(progressMap[currentTvState.id].completedEpisodes)) {
+                    progressMap[currentTvState.id].completedEpisodes = [];
+                }
+
+                const currentEpKey = `S${currentTvState.season}E${currentTvState.episode}`;
+
+                if (elapsedMinutes >= 40) {
+                    if (!progressMap[currentTvState.id].completedEpisodes.includes(currentEpKey)) {
+                        progressMap[currentTvState.id].completedEpisodes.push(currentEpKey);
+                    }
+                }
+
+                let isSeriesFinale = false;
+                let totalShowEpisodes = 0;
+                let maxSeason = 1;
+                let maxEpisode = 1;
+
+                if (currentModalData && currentModalData.seasons) {
+                    const validSeasons = currentModalData.seasons.filter(s => s.season_number > 0);
+                    maxSeason = Math.max(...validSeasons.map(s => s.season_number));
+                    validSeasons.forEach(s => { totalShowEpisodes += (s.episode_count || 0); });
+                    const targetSeasonObj = validSeasons.find(s => s.season_number === maxSeason);
+                    maxEpisode = targetSeasonObj ? targetSeasonObj.episode_count : 1;
+
+                    if (currentTvState.season === maxSeason && currentTvState.episode === maxEpisode) {
+                        isSeriesFinale = true;
+                    }
+                }
+
+                const watchedCount = progressMap[currentTvState.id].completedEpisodes.length;
+                const requiredEpisodes = Math.max(1, Math.floor(totalShowEpisodes * 0.8));
+
+                if (isSeriesFinale && elapsedMinutes >= 40 && watchedCount >= requiredEpisodes) {
+                    earnedPoints = 1.00;
+                    progressMap[currentTvState.id].percent = '100';
+                    btnFeedback = "⭐ Series Complete! +$1.00 BZD Earned!";
+                } else if (isSeriesFinale && elapsedMinutes >= 40 && watchedCount < requiredEpisodes) {
+                    btnFeedback = `🚫 Watch ${requiredEpisodes - watchedCount} more episodes to unlock $1.00!`;
+                } else if (!isSeriesFinale && elapsedMinutes >= 40) {
+                    btnFeedback = `✔️ Ep Saved! (${watchedCount}/${totalShowEpisodes} Watched)`;
+                } else {
+                    btnFeedback = "✔️ Saved (Watch 40m to record episode!)";
+                }
             }
 
-            // ✨ CALCULATE MINUTES SAFELY
-            const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
-
-            if (elapsedMinutes >= 40) {
-                window.userTotalPoints += 1;
+            if (earnedPoints > 0) {
+                window.userTotalPoints = parseFloat((window.userTotalPoints + earnedPoints).toFixed(2));
                 progressMap['_points_'] = window.userTotalPoints;
 
                 const mobileMenuPoints = document.getElementById('mobile-menu-points');
-                if (mobileMenuPoints) mobileMenuPoints.innerText = window.userTotalPoints;
-
-                btnMarkFinished.innerText = "⭐ +1 BZD Earned!";
-            } else {
-                btnMarkFinished.innerText = "✔️ Saved (Watch 40m for a point!)";
+                if (mobileMenuPoints) {
+                    mobileMenuPoints.innerText = window.userTotalPoints.toFixed(2);
+                }
             }
+
+            btnMarkFinished.innerText = btnFeedback;
 
             continueWatching = continueWatching.filter(item => item.id !== currentTvState.id);
 
@@ -927,12 +1119,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             saveUserData();
-            setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 3000);
+            setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 4000);
             syncProgressBars();
         }
     });
 
     closeModalBtn.addEventListener('click', () => {
+        if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
         videoModal.style.display = 'none';
         videoPlayerFrame.src = "";
         releaseWakeLock();
@@ -994,7 +1187,6 @@ document.addEventListener("DOMContentLoaded", () => {
         heroDisplayDesc.innerText = featuredMovie.overview || "No description available at this moment.";
         heroPosterBg.style.backgroundImage = `url('${HERO_IMAGE_BASE_URL}${featuredMovie.backdrop_path}')`;
 
-        // ✨ PROTECTED HERO PLAY BUTTON
         heroPlayBtn.onclick = (e) => {
             if (e) { e.preventDefault(); e.stopPropagation(); }
             openDetailsModal(featuredMovie.id, featuredMovie.isTV);
