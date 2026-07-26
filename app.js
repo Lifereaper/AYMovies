@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1721,5 +1721,75 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { window.lockCheckThrottled = false; }, 10000);
         }
     });
+// 🔑 PASSWORD RESET LOGIC
+    const btnForgotPassword = document.getElementById('btn-forgot-password');
+    const resetPasswordModal = document.getElementById('reset-password-modal');
+    const resetEmailInput = document.getElementById('reset-email-input');
+    const resetCancelBtn = document.getElementById('reset-cancel-btn');
+    const resetSubmitBtn = document.getElementById('reset-submit-btn');
+    const resetStatusMsg = document.getElementById('reset-status-msg');
 
+    if (btnForgotPassword) {
+        btnForgotPassword.addEventListener('click', () => {
+            resetEmailInput.value = authEmailInput.value || ''; 
+            resetStatusMsg.innerText = '';
+            resetPasswordModal.style.display = 'flex';
+        });
+    }
+    if (resetCancelBtn) resetCancelBtn.addEventListener('click', () => { resetPasswordModal.style.display = 'none'; });
+    
+    if (resetSubmitBtn) {
+        resetSubmitBtn.addEventListener('click', async () => {
+            const email = resetEmailInput.value.trim();
+            if (!email) {
+                resetStatusMsg.style.color = '#E50914';
+                resetStatusMsg.innerText = 'Please enter a valid email.';
+                return;
+            }
+            try {
+                resetStatusMsg.style.color = '#aaa';
+                resetStatusMsg.innerText = 'Sending link...';
+                await sendPasswordResetEmail(auth, email);
+                resetStatusMsg.style.color = '#46d369';
+                resetStatusMsg.innerText = '✅ Reset link sent to your email!';
+                setTimeout(() => { resetPasswordModal.style.display = 'none'; }, 3000);
+            } catch (error) {
+                resetStatusMsg.style.color = '#E50914';
+                resetStatusMsg.innerText = '❌ Failed to send link. Try again.';
+            }
+        });
+    }
+
+    // 🗑️ ACCOUNT DELETION LOGIC
+    const btnDeleteAccountMobile = document.getElementById('btn-delete-account-mobile');
+    const deleteAccountModal = document.getElementById('delete-account-modal');
+    const deleteCancelBtn = document.getElementById('delete-cancel-btn');
+    const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
+
+    if (btnDeleteAccountMobile) {
+        btnDeleteAccountMobile.addEventListener('click', () => {
+            mobileMenu.style.right = '-100%'; // Close menu
+            deleteAccountModal.style.display = 'flex';
+        });
+    }
+    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', () => { deleteAccountModal.style.display = 'none'; });
+    
+    if (deleteConfirmBtn) {
+        deleteConfirmBtn.addEventListener('click', async () => {
+            const user = auth.currentUser;
+            if (user) {
+                try {
+                    deleteConfirmBtn.innerText = "Deleting...";
+                    await deleteUser(user);
+                    deleteAccountModal.style.display = 'none';
+                    window.location.reload(); 
+                } catch (error) {
+                    // Firebase requires a "recent login" to allow account deletion for security reasons
+                    alert("For security reasons, please Log Out and log back in before deleting your account.");
+                    deleteAccountModal.style.display = 'none';
+                    deleteConfirmBtn.innerText = "Yes, Delete";
+                }
+            }
+        });
+    }
 });
