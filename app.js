@@ -586,6 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const payload = {
             action: "save",
             uid: currentUserUid,
+            email: window.currentUserEmail, // Saves user email for Admin Dashboard lookup
             userData: {
                 avatar: profileIcon.innerText,
                 myList: myList,
@@ -1721,7 +1722,8 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { window.lockCheckThrottled = false; }, 10000);
         }
     });
-// 🔑 PASSWORD RESET LOGIC
+
+    // 🔑 PASSWORD RESET LOGIC
     const btnForgotPassword = document.getElementById('btn-forgot-password');
     const resetPasswordModal = document.getElementById('reset-password-modal');
     const resetEmailInput = document.getElementById('reset-email-input');
@@ -1797,6 +1799,35 @@ document.addEventListener("DOMContentLoaded", () => {
                     deleteAccountModal.style.display = 'none';
                     deleteConfirmBtn.innerText = "Yes, Delete";
                 }
+            }
+        });
+    }
+
+    // 🤝 WHATSAPP REFERRAL LOGIC
+    const btnSendReferral = document.getElementById('btn-send-referral');
+    const referralPhoneInput = document.getElementById('referral-phone');
+
+    if (btnSendReferral) {
+        btnSendReferral.addEventListener('click', () => {
+            const phone = referralPhoneInput.value.trim();
+            if (!phone) {
+                referralPhoneInput.style.borderColor = '#E50914';
+                return;
+            }
+            referralPhoneInput.style.borderColor = '#444';
+            
+            const adminNumber = "5016542016"; // Your WhatsApp Support Line
+            const userEmail = window.currentUserEmail || "Unknown Email";
+            
+            const message = `Hey Admin! I want to invite a friend to AYMovies! My account is: ${userEmail} and phone number: ${phone}. Please set up an account for my friend. Once they pay/join, please add $0.50 BZD to my Rewards Wallet!`;
+            
+            const waUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(message)}`;
+            const nativeWaUrl = `whatsapp://send?phone=${adminNumber}&text=${encodeURIComponent(message)}`;
+            
+            if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+                window.AppInventor.setWebViewString(nativeWaUrl);
+            } else {
+                window.open(waUrl, '_blank');
             }
         });
     }
