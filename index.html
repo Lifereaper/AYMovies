@@ -30,7 +30,7 @@
         .card-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; text-shadow: 1px 1px 2px black; }
         .card-meta { font-size: 0.75rem; color: #46d369; font-weight: bold; display: flex; justify-content: space-between; text-shadow: 1px 1px 2px black; }
         
-        /* ✨ NEW: GLOBAL PROGRESS BAR STYLES */
+        /* ✨ GLOBAL PROGRESS BAR STYLES */
         .progress-track { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.3); z-index: 10; pointer-events: none; }
         .progress-fill { height: 100%; background: #E50914; transition: width 0.3s ease, background 0.3s ease; }
 
@@ -108,8 +108,8 @@
     <!-- 📱 MOBILE MENU -->
     <div id="mobile-menu" style="position: fixed; top: 0; right: -100%; width: 250px; height: 100vh; background: rgba(20,20,20,0.95); backdrop-filter: blur(10px); z-index: 2000; transition: right 0.3s ease; padding: 30px 20px; box-shadow: -5px 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 25px;">
         <button id="close-mobile-menu" style="align-self: flex-end; background: transparent; border: none; color: white; font-size: 35px; cursor: pointer;">&times;</button>
-        
-        <!-- ✨ NEW: Profile Header & Points Display -->
+
+        <!-- ✨ Profile Header & Points Display -->
         <div style="display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; padding-bottom: 20px; margin-top: -10px;">
             <div id="mobile-menu-avatar" style="font-size: 2.5rem;">👤</div>
             <div style="display: flex; flex-direction: column;">
@@ -131,7 +131,7 @@
     <main id="home-view">
         <div id="hero-poster-bg" style="height: 60vh; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 50px; position: relative;">
             <iframe id="hero-player-frame" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: none;" allow="autoplay"></iframe>
-            
+
             <button id="hero-prev" class="hero-nav-arrow">❮</button>
             <button id="hero-next" class="hero-nav-arrow">❯</button>
             <div id="hero-dots"></div>
@@ -142,7 +142,7 @@
                 <img id="hero-display-logo" src="" alt="Movie Logo" style="display: none; max-width: 400px; max-height: 150px; margin-bottom: 15px; object-fit: contain;">
                 <h1 id="hero-display-title" style="font-size: 3.5rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);"></h1>
                 <p id="hero-display-desc" style="font-size: 1.2rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); margin-bottom: 20px;"></p>
-                <button id="hero-play-btn" style="padding: 10px 30px; font-size: 1.3rem; font-weight: bold; cursor: pointer; background: white; color: black; border: none; border-radius: 5px;">▶ Play</button>
+                <button id="hero-play-btn" type="button" style="padding: 10px 30px; font-size: 1.3rem; font-weight: bold; cursor: pointer; background: white; color: black; border: none; border-radius: 5px;">▶ Play</button>
             </div>
         </div>
 
@@ -164,7 +164,7 @@
             </div>
         </div>
 
-        <!-- ✨ NEW: ALREADY WATCHED ROW ✨ -->
+        <!-- 🔁 ALREADY WATCHED ROW -->
         <div id="already-watched-container" class="row-container" style="display: none;">
             <h2 class="row-title">🔁 Watch It Again</h2>
             <div class="row-wrapper">
@@ -227,6 +227,7 @@
                 <button class="row-arrow right-arrow" onclick="scrollRow('series-row', 'right')">❯</button>
             </div>
         </div>
+
         <!-- 👥 SHARED COMMUNITY LISTING WATCH PARTY SHELF -->
         <div id="community-container" class="row-container" style="display: none;">
             <h2 class="row-title">👥 Shared Watch Party Community</h2>
@@ -236,7 +237,7 @@
                 <button class="row-arrow right-arrow" onclick="scrollRow('community-row', 'right')">❯</button>
             </div>
         </div>
-        
+
     </main>
 
     <!-- 🎬 DETAILS POP-UP -->
@@ -249,9 +250,9 @@
                 <div style="position: relative; z-index: 3; width: 100%;">
                     <h2 id="details-title" style="margin: 0 0 20px 0; font-size: 2.5rem; color: white;">Movie Title</h2>
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                        <button id="details-play-btn" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: white; color: black; border: none; border-radius: 5px; cursor: pointer;">▶ Play Now</button>
-                        <button id="details-trailer-btn" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer;">📺 Trailer</button>
-                        <button id="details-mylist-btn" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s;">➕ My List</button>
+                        <button id="details-play-btn" type="button" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: white; color: black; border: none; border-radius: 5px; cursor: pointer;">▶ Play Now</button>
+                        <button id="details-trailer-btn" type="button" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer;">📺 Trailer</button>
+                        <button id="details-mylist-btn" type="button" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s;">➕ My List</button>
                         <div id="modal-tv-controls" style="display: none; gap: 10px;">
                             <select id="modal-season-select" style="background: #141414; color: white; border: 1px solid #E50914; padding: 12px; border-radius: 5px; font-size: 1rem; cursor: pointer; outline: none;"></select>
                             <select id="modal-episode-select" style="background: #141414; color: white; border: 1px solid #E50914; padding: 12px; border-radius: 5px; font-size: 1rem; cursor: pointer; outline: none;"></select>
@@ -312,10 +313,10 @@
     </div>
 
     <button id="whatsappFloatingBtn" class="whatsapp-float" title="Contact Support" onclick="handleWhatsAppReport()">
-  <svg viewBox="0 0 32 32" class="whatsapp-icon">
-    <path d="M16 0c-8.837 0-16 7.163-16 16 0 2.825.733 5.483 2.017 7.792l-2.017 7.371 7.542-1.98c2.254 1.221 4.833 1.912 7.575 1.912 8.837 0 16-7.163 16-16s-7.163-16-16-16zm8.933 22.842c-.367 1.033-1.808 1.908-2.5 1.975-.6.058-1.383.275-3.958-.783-3.292-1.358-5.383-4.733-5.55-4.958-.158-.225-1.317-1.758-1.317-3.358s.833-2.383 1.133-2.692c.3-.3.65-.375.867-.375.208 0 .425.008.608.017.192.008.45-.075.7-.108.275-.033.567-.033.808.458.267.658.917 2.242.992 2.392.083.15.133.325.033.525-.1.2-.15.317-.3.492-.15.175-.317.392-.45.525-.15.15-.308.317-.133.617.175.3.775 1.283 1.658 2.067.142.125 2.65 2.342 5.083 3.325.333.133.592.117.808-.092.275-.267.925-1.075 1.183-1.442.258-.367.517-.3.867-.175.35.133 2.225 1.05 2.608 1.242.383.192.642.283.733.442.092.158.092.908-.275 1.942z"/>
-  </svg>
-</button>
+        <svg viewBox="0 0 32 32" class="whatsapp-icon">
+            <path d="M16 0c-8.837 0-16 7.163-16 16 0 2.825.733 5.483 2.017 7.792l-2.017 7.371 7.542-1.98c2.254 1.221 4.833 1.912 7.575 1.912 8.837 0 16-7.163 16-16s-7.163-16-16-16zm8.933 22.842c-.367 1.033-1.808 1.908-2.5 1.975-.6.058-1.383.275-3.958-.783-3.292-1.358-5.383-4.733-5.55-4.958-.158-.225-1.317-1.758-1.317-3.358s.833-2.383 1.133-2.692c.3-.3.65-.375.867-.375.208 0 .425.008.608.017.192.008.45-.075.7-.108.275-.033.567-.033.808.458.267.658.917 2.242.992 2.392.083.15.133.325.033.525-.1.2-.15.317-.3.492-.15.175-.317.392-.45.525-.15.15-.308.317-.133.617.175.3.775 1.283 1.658 2.067.142.125 2.65 2.342 5.083 3.325.333.133.592.117.808-.092.275-.267.925-1.075 1.183-1.442.258-.367.517-.3.867-.175.35.133 2.225 1.05 2.608 1.242.383.192.642.283.733.442.092.158.092.908-.275 1.942z" />
+        </svg>
+    </button>
 
     <script>
         function handleWhatsAppReport() {
@@ -337,13 +338,11 @@
 
             const nativeAppUrl = `whatsapp://send?phone=${MY_SUPPORT_NUMBER}&text=${encodeURIComponent(messagePayload)}`;
 
-            // Force it to use Kodular, absolutely no browser redirects allowed!
             if (window.AppInventor) {
                 window.AppInventor.setWebViewString(nativeAppUrl);
             } else {
-                // If it fails to find Kodular, we just alert the user instead of crashing the app
                 alert("Opening WhatsApp...");
-                window.AppInventor.setWebViewString(nativeAppUrl); // Try forcing it anyway
+                window.AppInventor.setWebViewString(nativeAppUrl);
             }
         }
     </script>
