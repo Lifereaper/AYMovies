@@ -572,6 +572,37 @@ document.addEventListener("DOMContentLoaded", () => {
             globalCommunityMovies = result.communityList || [];
             globalReactionsMap = result.reactionsMap || {};
 
+            // 📊 UPDATE PAYOUT STATUS TRACKER IN DRAWER
+            const trackerCard = document.getElementById('payout-tracker-card');
+            const trackerAmount = document.getElementById('payout-tracker-amount');
+            const trackerStatus = document.getElementById('payout-tracker-status');
+
+            if (result.latestPayout && trackerCard) {
+                trackerCard.style.display = 'block';
+                trackerAmount.innerText = `$${parseFloat(result.latestPayout.amount || 0).toFixed(2)} BZD`;
+                
+                const statusText = String(result.latestPayout.status || 'Pending').trim();
+                
+                if (statusText.toLowerCase() === 'paid' || statusText.toLowerCase() === 'completed') {
+                    trackerStatus.innerText = '✅ Paid';
+                    trackerStatus.style.background = 'rgba(70, 211, 105, 0.2)';
+                    trackerStatus.style.color = '#46d369';
+                    trackerCard.style.borderLeftColor = '#46d369';
+                } else if (statusText.toLowerCase() === 'rejected' || statusText.toLowerCase() === 'cancelled') {
+                    trackerStatus.innerText = '❌ Rejected';
+                    trackerStatus.style.background = 'rgba(229, 9, 20, 0.2)';
+                    trackerStatus.style.color = '#E50914';
+                    trackerCard.style.borderLeftColor = '#E50914';
+                } else {
+                    trackerStatus.innerText = '⏳ Pending';
+                    trackerStatus.style.background = 'rgba(255, 215, 0, 0.2)';
+                    trackerStatus.style.color = '#ffd700';
+                    trackerCard.style.borderLeftColor = '#ffd700';
+                }
+            } else if (trackerCard) {
+                trackerCard.style.display = 'none';
+            }
+
         } catch (e) {
             console.error("❌ Network glitch! Google Sheet didn't answer in time.");
         }
