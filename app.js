@@ -64,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentHeroIndex = 0;
     let rotationIntervalId = null;
     let currentTvState = { id: null, season: 1, episode: 1, isTV: false };
+    let globalReactionsMap = {};
 
     let currentUserUid = null;
     let continueWatching = [];
@@ -458,6 +459,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const episodeIndicatorText = document.getElementById('episode-indicator-text');
     const serverSelect = document.getElementById('server-select');
 
+    // 🖼️ MINI-PLAYER MODE TOGGLE
+    const btnToggleMiniPlayer = document.getElementById('btn-toggle-mini-player');
+    if (btnToggleMiniPlayer) {
+        btnToggleMiniPlayer.addEventListener('click', () => {
+            const isMini = videoModal.classList.toggle('mini-mode');
+            btnToggleMiniPlayer.innerText = isMini ? "🔲 Expand" : "🔽 Mini";
+        });
+    }
+
     const heroDisplayTitle = document.getElementById('hero-display-title');
     const heroDisplayLogo = document.getElementById('hero-display-logo');
     const heroDisplayDesc = document.getElementById('hero-display-desc');
@@ -541,6 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             globalCommunityMovies = result.communityList || [];
+            globalReactionsMap = result.reactionsMap || {};
 
         } catch (e) {
             console.error("❌ Network glitch! Google Sheet didn't answer in time.");
@@ -711,6 +722,47 @@ document.addEventListener("DOMContentLoaded", () => {
             loadCategoryView(view);
         });
     });
+
+    // 🔥 EMOJI REACTION CLICK HANDLERS
+    document.querySelectorAll('.emoji-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            if (!currentUserUid || !currentModalData) return;
+
+            const emojiType = btn.getAttribute('data-emoji');
+            const movieId = currentModalData.id.toString();
+
+            // Increment UI immediately
+            if (!globalReactionsMap[movieId]) globalReactionsMap[movieId] = { "🔥": 0, "🤯": 0, "😂": 0, "😴": 0 };
+            globalReactionsMap[movieId][emojiType] = (globalReactionsMap[movieId][emojiType] || 0) + 1;
+
+            updateEmojiUI(movieId);
+
+            // Send to Google Sheets
+            try {
+                fetch(GOOGLE_SHEET_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "react",
+                        movieId: movieId,
+                        emoji: emojiType
+                    })
+                });
+            } catch (err) { }
+        });
+    });
+
+    function updateEmojiUI(movieId) {
+        const counts = globalReactionsMap[movieId] || { "🔥": 0, "🤯": 0, "😂": 0, "😴": 0 };
+        const elFire = document.getElementById('count-fire');
+        const elMind = document.getElementById('count-mindblown');
+        const elFunny = document.getElementById('count-funny');
+        const elBoring = document.getElementById('count-boring');
+
+        if (elFire) elFire.innerText = counts["🔥"] || 0;
+        if (elMind) elMind.innerText = counts["🤯"] || 0;
+        if (elFunny) elFunny.innerText = counts["😂"] || 0;
+        if (elBoring) elBoring.innerText = counts["😴"] || 0;
+    }
 
     function syncProgressBars() {
         if (!currentUserUid) return;
@@ -1141,6 +1193,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
             }
             detailsModal.style.display = 'block';
+            updateEmojiUI(id.toString());
 
         } catch (error) { console.error("Failed to load details modal:", error); }
     }
