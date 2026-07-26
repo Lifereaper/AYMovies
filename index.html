@@ -14,61 +14,377 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><text x='50%' y='50%' font-family='Arial' font-size='45' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>AY</text></svg>">
     <link rel="stylesheet" href="style.css?v=19">
     <style>
+        /* 📱 RESPONSIVE HEADER FIXES (Keeps Profile & Hamburger inside view) */
         @media (max-width: 768px) {
-            header { padding: 10px 12px !important; }
-            .desktop-nav, .hide-mobile { display: none !important; }
-            .show-mobile { display: block !important; }
-            #search-input { width: 100px !important; padding: 6px 10px !important; font-size: 0.85rem !important; }
-            .brand-logo { font-size: 20px !important; }
+            header {
+                padding: 10px 12px !important;
+            }
+            .desktop-nav, .hide-mobile {
+                display: none !important;
+            }
+            .show-mobile {
+                display: block !important;
+            }
+            #search-input {
+                width: 100px !important;
+                padding: 6px 10px !important;
+                font-size: 0.85rem !important;
+            }
+            .brand-logo {
+                font-size: 20px !important;
+            }
         }
 
-        .nav-link { color: #aaa; text-decoration: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .nav-link:hover, .nav-link.active { color: white; }
+        .nav-link {
+            color: #aaa;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-        .filter-chips-container { display: flex; gap: 10px; overflow-x: auto; padding: 15px 40px; background: #111; scrollbar-width: none; border-bottom: 1px solid #222; }
-        .filter-chips-container::-webkit-scrollbar { display: none; }
-        .chip-btn { background: #222; color: #ccc; border: 1px solid #444; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; white-space: nowrap; cursor: pointer; transition: all 0.2s ease; }
-        .chip-btn:hover, .chip-btn.active { background: #E50914; color: white; border-color: #E50914; transform: scale(1.05); }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+        }
 
-        #rewards-drawer { position: fixed; top: 0; right: -100%; width: 340px; max-width: 90vw; height: 100vh; background: #141414; border-left: 2px solid #ffd700; z-index: 9999; transition: right 0.3s ease; box-shadow: -10px 0 30px rgba(0,0,0,0.9); padding: 25px; overflow-y: auto; color: white; }
-        
-        .top-10-wrapper { position: relative; min-width: 200px; cursor: pointer; transition: transform 0.3s; margin-left: 20px; display: flex; align-items: flex-end; }
-        .top-10-wrapper:hover { transform: scale(1.1); z-index: 20; }
-        .top-10-number { font-size: 10rem; font-weight: 900; color: black; -webkit-text-stroke: 4px #555; position: absolute; left: -30px; bottom: -25px; z-index: 1; line-height: 0.8; letter-spacing: -5px; }
-        .top-10-poster { position: relative; z-index: 2; width: 140px; border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.9); }
-        .movie-card { position: relative; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; border-radius: 5px; }
-        .movie-card:hover { transform: scale(1.15); z-index: 20; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
-        .movie-card img { width: 100%; border-radius: 5px; display: block; }
-        .card-info { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%); padding: 30px 10px 10px 10px; opacity: 0; transition: opacity 0.3s ease; color: white; pointer-events: none; border-radius: 0 0 5px 5px; z-index: 5; }
-        .movie-card:hover .card-info { opacity: 1; }
-        .card-title { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; text-shadow: 1px 1px 2px black; }
-        .card-meta { font-size: 0.75rem; color: #46d369; font-weight: bold; display: flex; justify-content: space-between; text-shadow: 1px 1px 2px black; }
-        .progress-track { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.3); z-index: 10; pointer-events: none; }
-        .progress-fill { height: 100%; background: #E50914; transition: width 0.3s ease, background 0.3s ease; }
-        .row-wrapper { position: relative; }
-        .row-arrow { position: absolute; top: 0; height: 100%; width: 50px; background: rgba(0,0,0,0.6); color: white; border: none; font-size: 2.5rem; cursor: pointer; z-index: 15; opacity: 0; transition: opacity 0.3s, background 0.3s; display: flex; align-items: center; justify-content: center; padding-bottom: 15px; }
-        .row-arrow:hover { background: rgba(0,0,0,0.9); font-size: 3rem; }
-        .left-arrow { left: 0; border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
-        .right-arrow { right: 0; border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
-        .row-wrapper:hover .row-arrow { opacity: 1; }
-        @media (hover: none) { .row-arrow { display: none !important; } }
-        .hero-nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: transparent; color: rgba(255,255,255,0.5); border: none; font-size: 4rem; cursor: pointer; z-index: 10; transition: color 0.2s; }
-        .hero-nav-arrow:hover { color: white; }
-        #hero-prev { left: 20px; }
-        #hero-next { right: 20px; }
-        #hero-dots { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
-        .hero-dot { width: 10px; height: 10px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: 0.3s; }
-        .hero-dot.active { background: white; transform: scale(1.3); }
-        .skeleton-card { width: 150px; height: 225px; border-radius: 5px; flex-shrink: 0; background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-        .skeleton-top10 { width: 140px; height: 210px; margin-left: 50px; border-radius: 5px; flex-shrink: 0; background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .search-dropdown { position: absolute; top: 40px; right: 0; width: 300px; max-height: 400px; background: #141414; border: 1px solid #333; border-radius: 5px; overflow-y: auto; z-index: 3000; box-shadow: 0 10px 20px rgba(0,0,0,0.9); }
-        .search-item { display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; transition: background 0.2s; align-items: center; }
-        .search-item:hover { background: #333; }
-        .search-item img { width: 40px; height: 60px; object-fit: cover; border-radius: 3px; }
-        .search-item-info { display: flex; flex-direction: column; }
-        .search-item-title { color: white; font-size: 0.9rem; font-weight: bold; }
-        .search-item-meta { color: #aaa; font-size: 0.8rem; }
+        /* 🎯 MOOD CHIPS STYLING */
+        .filter-chips-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 15px 40px;
+            background: #111;
+            scrollbar-width: none;
+            border-bottom: 1px solid #222;
+        }
+        .filter-chips-container::-webkit-scrollbar {
+            display: none;
+        }
+        .chip-btn {
+            background: #222;
+            color: #ccc;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .chip-btn:hover, .chip-btn.active {
+            background: #E50914;
+            color: white;
+            border-color: #E50914;
+            transform: scale(1.05);
+        }
+
+        /* 💰 REWARDS DRAWER STYLING */
+        #rewards-drawer {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 340px;
+            max-width: 90vw;
+            height: 100vh;
+            background: #141414;
+            border-left: 2px solid #ffd700;
+            z-index: 9999;
+            transition: right 0.3s ease;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.9);
+            padding: 25px;
+            overflow-y: auto;
+            color: white;
+        }
+
+        .top-10-wrapper {
+            position: relative;
+            min-width: 200px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin-left: 20px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .top-10-wrapper:hover {
+            transform: scale(1.1);
+            z-index: 20;
+        }
+
+        .top-10-number {
+            font-size: 10rem;
+            font-weight: 900;
+            color: black;
+            -webkit-text-stroke: 4px #555;
+            position: absolute;
+            left: -30px;
+            bottom: -25px;
+            z-index: 1;
+            line-height: 0.8;
+            letter-spacing: -5px;
+        }
+
+        .top-10-poster {
+            position: relative;
+            z-index: 2;
+            width: 140px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.9);
+        }
+
+        .movie-card {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .movie-card:hover {
+            transform: scale(1.15);
+            z-index: 20;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+        }
+
+        .movie-card img {
+            width: 100%;
+            border-radius: 5px;
+            display: block;
+        }
+
+        .card-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
+            padding: 30px 10px 10px 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            color: white;
+            pointer-events: none;
+            border-radius: 0 0 5px 5px;
+            z-index: 5;
+        }
+
+        .movie-card:hover .card-info {
+            opacity: 1;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .card-meta {
+            font-size: 0.75rem;
+            color: #46d369;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .progress-track {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #E50914;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .row-wrapper {
+            position: relative;
+        }
+
+        .row-arrow {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            font-size: 2.5rem;
+            cursor: pointer;
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 0.3s, background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 15px;
+        }
+
+        .row-arrow:hover {
+            background: rgba(0,0,0,0.9);
+            font-size: 3rem;
+        }
+
+        .left-arrow {
+            left: 0;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        .right-arrow {
+            right: 0;
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+
+        .row-wrapper:hover .row-arrow {
+            opacity: 1;
+        }
+
+        @media (hover: none) {
+            .row-arrow {
+                display: none !important;
+            }
+        }
+
+        .hero-nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            color: rgba(255,255,255,0.5);
+            border: none;
+            font-size: 4rem;
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.2s;
+        }
+
+        .hero-nav-arrow:hover {
+            color: white;
+        }
+
+        #hero-prev {
+            left: 20px;
+        }
+
+        #hero-next {
+            right: 20px;
+        }
+
+        #hero-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .hero-dot {
+            width: 10px;
+            height: 10px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .hero-dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
+
+        .skeleton-card {
+            width: 150px;
+            height: 225px;
+            border-radius: 5px;
+            flex-shrink: 0;
+            background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        .skeleton-top10 {
+            width: 140px;
+            height: 210px;
+            margin-left: 50px;
+            border-radius: 5px;
+            flex-shrink: 0;
+            background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 40px;
+            right: 0;
+            width: 300px;
+            max-height: 400px;
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 5px;
+            overflow-y: auto;
+            z-index: 3000;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.9);
+        }
+
+        .search-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #222;
+            transition: background 0.2s;
+            align-items: center;
+        }
+
+        .search-item:hover {
+            background: #333;
+        }
+
+        .search-item img {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 3px;
+        }
+
+        .search-item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-item-title {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .search-item-meta {
+            color: #aaa;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -99,10 +415,12 @@
         </div>
 
         <div style="display: flex; gap: 8px; align-items: center;">
+            <!-- 💰 REWARDS BUTTON (DESKTOP) -->
             <button id="btn-rewards-desktop" style="background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.9rem;" class="hide-mobile">
                 💰 $<span class="header-points-val">0.00</span> BZD
             </button>
 
+            <!-- 🌐 LANGUAGE SELECTOR (DESKTOP) -->
             <select id="lang-select" class="hide-mobile" style="background: #000; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
                 <option value="en">🇺🇸 EN</option>
                 <option value="es">🇲🇽 ES</option>
@@ -147,24 +465,29 @@
                     <option value="Belize Bank / E-Wallet">🏦 Belize Bank E-Wallet</option>
                 </select>
             </div>
+
             <div>
                 <label style="font-size: 0.8rem; color: #aaa; display: block; margin-bottom: 4px;">Phone / Account #</label>
                 <input type="text" id="payout-account" placeholder="e.g. 501-610-1234" required style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box;">
             </div>
+
             <div>
                 <label style="font-size: 0.8rem; color: #aaa; display: block; margin-bottom: 4px;">Amount (Min. $5.00 BZD)</label>
                 <input type="number" id="payout-amount" step="0.50" min="5.00" placeholder="5.00" required style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box;">
             </div>
+
             <button type="submit" style="width: 100%; padding: 12px; background: #ffd700; color: black; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px;">
                 Submit Payout Request
             </button>
         </form>
+
         <p id="payout-status-msg" style="font-size: 0.85rem; text-align: center; margin-top: 15px; color: #46d369;"></p>
     </div>
 
     <!-- 📱 MOBILE MENU -->
     <div id="mobile-menu" style="position: fixed; top: 0; right: -100%; width: 250px; height: 100vh; background: rgba(20,20,20,0.95); backdrop-filter: blur(10px); z-index: 2000; transition: right 0.3s ease; padding: 30px 20px; box-shadow: -5px 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 20px;">
         <button id="close-mobile-menu" style="align-self: flex-end; background: transparent; border: none; color: white; font-size: 35px; cursor: pointer;">&times;</button>
+
         <div style="display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; padding-bottom: 15px; margin-top: -10px;">
             <div id="mobile-menu-avatar" style="font-size: 2.5rem;">👤</div>
             <div style="display: flex; flex-direction: column;">
@@ -174,6 +497,7 @@
                 </div>
             </div>
         </div>
+
         <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #333;">
             <span style="color: #aaa; font-size: 1rem; font-weight: bold;">🌐 Language:</span>
             <select id="lang-select-mobile" style="background: #000; color: #fff; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
@@ -181,6 +505,7 @@
                 <option value="es">🇲🇽 Español</option>
             </select>
         </div>
+
         <span class="nav-link active" data-view="home" style="font-size: 1.2rem;">Home</span>
         <span class="nav-link" data-view="tv" style="font-size: 1.2rem;">TV Shows</span>
         <span class="nav-link" data-view="movies" style="font-size: 1.2rem;">Movies</span>
@@ -194,10 +519,13 @@
     <main id="home-view">
         <div id="hero-poster-bg" style="height: 60vh; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 50px; position: relative;">
             <iframe id="hero-player-frame" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: none;" allow="autoplay"></iframe>
+
             <button id="hero-prev" class="hero-nav-arrow">❮</button>
             <button id="hero-next" class="hero-nav-arrow">❯</button>
             <div id="hero-dots"></div>
+
             <button id="hero-mute-btn" style="position: absolute; bottom: 30px; right: 50px; background: rgba(0,0,0,0.5); border: 1px solid white; color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.2rem; cursor: pointer; z-index: 10; display: none; align-items: center; justify-content: center;">🔇</button>
+
             <div style="position: relative; z-index: 2; color: white; max-width: 600px;">
                 <img id="hero-display-logo" src="" alt="Movie Logo" style="display: none; max-width: 400px; max-height: 150px; margin-bottom: 15px; object-fit: contain;">
                 <h1 id="hero-display-title" style="font-size: 3.5rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);"></h1>
@@ -206,6 +534,7 @@
             </div>
         </div>
 
+        <!-- 🎯 QUICK MOOD & FILTER CHIPS ROW -->
         <div class="filter-chips-container">
             <button class="chip-btn active" data-filter="all">✨ All</button>
             <button class="chip-btn" data-filter="top-rated">⭐ 8+ Rating</button>
@@ -321,7 +650,6 @@
                         <button id="details-play-btn" type="button" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: white; color: black; border: none; border-radius: 5px; cursor: pointer;">▶ Play Now</button>
                         <button id="details-trailer-btn" type="button" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer;">📺 Trailer</button>
                         <button id="details-mylist-btn" type="button" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s;">➕ My List</button>
-                        <!-- Community Share Button injected via JS here -->
                         <div id="modal-tv-controls" style="display: none; gap: 10px;">
                             <select id="modal-season-select" style="background: #141414; color: white; border: 1px solid #E50914; padding: 12px; border-radius: 5px; font-size: 1rem; cursor: pointer; outline: none;"></select>
                             <select id="modal-episode-select" style="background: #141414; color: white; border: 1px solid #E50914; padding: 12px; border-radius: 5px; font-size: 1rem; cursor: pointer; outline: none;"></select>
@@ -370,9 +698,13 @@
     <!-- 🎥 VIDEO PLAYER MODAL -->
     <div id="video-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10001;">
         <span id="close-modal-btn" style="position: absolute; top: 15px; right: 30px; color: white; font-size: 40px; cursor: pointer; z-index: 10;">&times;</span>
+        
         <iframe id="video-player-frame" style="width: 100%; height: 75%; border: none; margin-top: 60px;" allowfullscreen></iframe>
+        
         <div style="text-align: center; color: white; margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <h3 id="episode-indicator-text" style="font-size: 1.2rem; margin: 0; color: #aaa;">Feature Film</h3>
+            
+            <!-- 🎛️ INLINE CONTROLS BAR (Server selector + prev + next + mark finished side-by-side) -->
             <div style="display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 10px;">
                 <div style="display: flex; align-items: center; gap: 8px; background: rgba(30, 30, 30, 0.8); padding: 7px 12px; border-radius: 6px; border: 1px solid #333;">
                     <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.85rem;">📡 Server:</label>
@@ -382,6 +714,7 @@
                         <option value="vidlink">Server 3 (VidLink HD)</option>
                     </select>
                 </div>
+
                 <button id="btn-prev-ep" style="display: none; padding: 8px 16px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">⏮ Prev Ep</button>
                 <button id="btn-next-ep" style="display: none; padding: 8px 16px; background: #E50914; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Up Next ⏭</button>
                 <button id="btn-mark-finished" style="padding: 8px 16px; background: #46d369; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">✔️ Mark Finished</button>
@@ -389,7 +722,7 @@
         </div>
     </div>
 
-    <!-- 💬 CUSTOM PROMPT MODAL (WhatsApp) -->
+    <!-- 💬 CUSTOM PROMPT MODAL (WhatsApp Support) -->
     <div id="custom-prompt-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10005; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div style="background: #181818; width: 90%; max-width: 400px; padding: 25px; border-radius: 10px; border: 1px solid #333; box-shadow: 0 10px 25px rgba(0,0,0,0.9); text-align: center;">
             <h3 style="color: white; margin-top: 0; font-size: 1.3rem;">Contact Support</h3>
@@ -402,7 +735,7 @@
         </div>
     </div>
 
-    <!-- 🔔 CUSTOM ALERT MODAL (Community Share) -->
+    <!-- 🔔 CUSTOM ALERT MODAL (Community Share Success) -->
     <div id="custom-alert-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10006; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div style="background: #181818; width: 90%; max-width: 350px; padding: 25px; border-radius: 10px; border: 1px solid #ffd700; box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2); text-align: center;">
             <div style="font-size: 3rem; margin-bottom: 10px;">✨</div>
