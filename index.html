@@ -589,23 +589,27 @@
         
         <iframe id="video-player-frame" style="width: 100%; height: 75%; border: none; margin-top: 60px;" allowfullscreen></iframe>
         
-        <div style="text-align: center; color: white; margin-top: 15px; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="text-align: center; color: white; margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
             
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: rgba(30, 30, 30, 0.8); padding: 8px 16px; border-radius: 8px; border: 1px solid #333;">
-                <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.95rem;">📡 Server:</label>
-                <select id="server-select" style="background: #111; color: #fff; border: 1px solid #ffd700; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none; font-size: 0.9rem;">
-                    <option value="vidsrc">Server 1 (VidSrc Main)</option>
-                    <option value="vidsrc2">Server 2 (VidSrc Mirror)</option>
-                    <option value="vidlink">Server 3 (VidLink HD)</option>
-                </select>
-            </div>
+            <h3 id="episode-indicator-text" style="font-size: 1.2rem; margin: 0; color: #aaa;">Feature Film</h3>
+            
+            <!-- 🎛️ SIDE-BY-SIDE CONTROLS BAR -->
+            <div style="display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 10px;">
+                
+                <!-- 📡 SERVER SELECTOR -->
+                <div style="display: flex; align-items: center; gap: 8px; background: rgba(30, 30, 30, 0.8); padding: 7px 12px; border-radius: 6px; border: 1px solid #333;">
+                    <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.85rem;">📡 Server:</label>
+                    <select id="server-select" style="background: #111; color: #fff; border: 1px solid #ffd700; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; outline: none; font-size: 0.85rem;">
+                        <option value="vidsrc">Server 1 (VidSrc Main)</option>
+                        <option value="vidsrc2">Server 2 (VidSrc Mirror)</option>
+                        <option value="vidlink">Server 3 (VidLink HD)</option>
+                    </select>
+                </div>
 
-            <h3 id="episode-indicator-text" style="font-size: 1.5rem; margin-bottom: 10px;">Feature Film</h3>
-            
-            <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
-                <button id="btn-prev-ep" style="display: none; padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">⏮ Prev Ep</button>
-                <button id="btn-next-ep" style="display: none; padding: 10px 20px; background: #E50914; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1rem;">Up Next ⏭</button>
-                <button id="btn-mark-finished" style="padding: 10px 20px; background: #46d369; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1rem;">✔️ Mark Finished</button>
+                <!-- ⏯️ ACTION BUTTONS (INLINE WITH SERVER DROPDOWN) -->
+                <button id="btn-prev-ep" style="display: none; padding: 8px 16px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">⏮ Prev Ep</button>
+                <button id="btn-next-ep" style="display: none; padding: 8px 16px; background: #E50914; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Up Next ⏭</button>
+                <button id="btn-mark-finished" style="padding: 8px 16px; background: #46d369; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">✔️ Mark Finished</button>
             </div>
         </div>
     </div>
