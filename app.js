@@ -46,7 +46,26 @@ window.scrollRow = function (rowId, direction) {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+    // ⚖️ SPLASH / DMCA DISCLAIMER LOGIC
+    const splashDmcaView = document.getElementById('splash-dmca-view');
+    const btnAcceptDmca = document.getElementById('btn-accept-dmca');
 
+    // Check if they have accepted it on this device before
+    if (!localStorage.getItem('ay_dmca_accepted')) {
+        // If not, force the splash screen to show
+        splashDmcaView.style.display = 'flex';
+    }
+
+    if (btnAcceptDmca) {
+        btnAcceptDmca.addEventListener('click', () => {
+            // Save their agreement to the device memory
+            localStorage.setItem('ay_dmca_accepted', 'true');
+            // Hide the splash screen with a smooth fade
+            splashDmcaView.style.opacity = '0';
+            setTimeout(() => { splashDmcaView.style.display = 'none'; }, 300);
+        });
+    }
+    
     const loginView = document.getElementById('login-view');
     const authForm = document.getElementById('auth-form');
     const authEmailInput = document.getElementById('auth-email');
