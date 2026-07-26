@@ -103,12 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     ? `https://vidlink.pro/tv/${id}/${season}/${episode}`
                     : `https://vidlink.pro/movie/${id}`;
                     
-            case 'vidsrcpro':
-                // Server 4: VidSrc.pro
-                return isTV 
-                    ? `https://vidsrc.pro/embed/tv/${id}/${season}/${episode}`
-                    : `https://vidsrc.pro/embed/movie/${id}`;
-                    
             case 'vidsrc':
             default:
                 // Server 1: VidSrc Primary
