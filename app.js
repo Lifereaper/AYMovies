@@ -88,24 +88,126 @@ document.addEventListener("DOMContentLoaded", () => {
     window.watchTimerInterval = null;
     window.rewardClaimedForSession = false;
 
-   // 📡 MULTI-SERVER STREAM URL GENERATOR (UPDATED & WORKING EMBEDS)
+    // 🌐 LANGUAGE DICTIONARY & TOGGLE SYSTEM
+    const translations = {
+        en: {
+            navHome: "Home",
+            navTv: "TV Shows",
+            navMovies: "Movies",
+            navAnimations: "Animations",
+            navSurprise: "🎲 Surprise Me",
+            navLogout: "Logout",
+            searchPlaceholder: "Search...",
+            rowMyList: "➕ My List",
+            rowContinue: "🍿 Continue Watching",
+            rowWatchAgain: "🔁 Watch It Again",
+            rowRecommended: "💡 Recommended For You",
+            rowTop10: "🏆 Top 10 Today",
+            rowCommunity: "👥 Shared Watch Party Community",
+            rowTrending: "🔥 Trending Now",
+            rowAction: "💥 Action Movies",
+            rowComedy: "😂 Comedy Movies",
+            rowSeries: "📺 Trending Series",
+            btnMarkFinished: "✔️ Mark Finished"
+        },
+        es: {
+            navHome: "Inicio",
+            navTv: "Series TV",
+            navMovies: "Películas",
+            navAnimations: "Animación",
+            navSurprise: "🎲 Sorpréndeme",
+            navLogout: "Cerrar sesión",
+            searchPlaceholder: "Buscar...",
+            rowMyList: "➕ Mi Lista",
+            rowContinue: "🍿 Continuar Viendo",
+            rowWatchAgain: "🔁 Volver a Ver",
+            rowRecommended: "💡 Recomendado para Ti",
+            rowTop10: "🏆 Top 10 Hoy",
+            rowCommunity: "👥 Comunidad Watch Party",
+            rowTrending: "🔥 Tendencias Ahora",
+            rowAction: "💥 Películas de Acción",
+            rowComedy: "😂 Películas de Comedia",
+            rowSeries: "📺 Series en Tendencia",
+            btnMarkFinished: "✔️ Marcar Terminado"
+        }
+    };
+
+    let currentLang = localStorage.getItem('ay_language') || 'en';
+
+    function setAppLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('ay_language', lang);
+
+        const langDesktop = document.getElementById('lang-select');
+        const langMobile = document.getElementById('lang-select-mobile');
+        if (langDesktop) langDesktop.value = lang;
+        if (langMobile) langMobile.value = lang;
+
+        const dict = translations[lang] || translations.en;
+
+        document.querySelectorAll('[data-view="home"]').forEach(el => el.innerText = dict.navHome);
+        document.querySelectorAll('[data-view="tv"]').forEach(el => el.innerText = dict.navTv);
+        document.querySelectorAll('[data-view="movies"]').forEach(el => el.innerText = dict.navMovies);
+        document.querySelectorAll('[data-view="animations"]').forEach(el => el.innerText = dict.navAnimations);
+
+        const searchInp = document.getElementById('search-input');
+        if (searchInp) searchInp.placeholder = dict.searchPlaceholder;
+
+        const rowTitles = {
+            'row1-title': dict.rowTrending,
+            'row2-title': dict.rowAction,
+            'row3-title': dict.rowComedy,
+            'row4-title': dict.rowSeries
+        };
+
+        for (const [id, titleText] of Object.entries(rowTitles)) {
+            const titleEl = document.getElementById(id);
+            if (titleEl) titleEl.innerText = titleText;
+        }
+
+        const myListH2 = document.querySelector('#my-list-container .row-title');
+        if (myListH2) myListH2.innerText = dict.rowMyList;
+
+        const cwH2 = document.querySelector('#continue-watching-container .row-title');
+        if (cwH2) cwH2.innerText = dict.rowContinue;
+
+        const awH2 = document.querySelector('#already-watched-container .row-title');
+        if (awH2) awH2.innerText = dict.rowWatchAgain;
+
+        const recH2 = document.querySelector('#recommended-container .row-title');
+        if (recH2) recH2.innerText = dict.rowRecommended;
+
+        const top10H2 = document.querySelector('#top-10-container .row-title');
+        if (top10H2) top10H2.innerText = dict.rowTop10;
+
+        const commH2 = document.querySelector('#community-container .row-title');
+        if (commH2) commH2.innerText = dict.rowCommunity;
+    }
+
+    ['lang-select', 'lang-select-mobile'].forEach(selectId => {
+        const el = document.getElementById(selectId);
+        if (el) {
+            el.addEventListener('change', (e) => setAppLanguage(e.target.value));
+        }
+    });
+
+    setAppLanguage(currentLang);
+
+    // 📡 MULTI-SERVER STREAM URL GENERATOR (3 VERIFIED SERVERS)
     function getServerStreamUrl(serverKey, id, isTV = false, season = 1, episode = 1) {
         switch (serverKey) {
             case 'vidsrc2':
-                // Server 2: VidSrc.cc (Alternative VidSrc mirror)
                 return isTV 
                     ? `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`
                     : `https://vidsrc.cc/v2/embed/movie/${id}`;
                     
             case 'vidlink':
-                // Server 3: VidLink (Very reliable, dark UI player)
                 return isTV 
                     ? `https://vidlink.pro/tv/${id}/${season}/${episode}`
                     : `https://vidlink.pro/movie/${id}`;
                     
             case 'vidsrc':
             default:
-                // Server 1: VidSrc Primary
                 return isTV 
                     ? `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
                     : `https://vidsrc.me/embed/movie?tmdb=${id}`;
@@ -145,7 +247,6 @@ document.addEventListener("DOMContentLoaded", () => {
         toast.style.opacity = '1';
         toast.style.display = 'block';
 
-        // ⏸️ ATTEMPT TO PAUSE THE VIDEO PLAYER
         const player = document.getElementById('video-player-frame');
         if (player && player.contentWindow) {
             try {
@@ -155,14 +256,12 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (e) { }
         }
 
-        // Auto-dismiss popup after 5 seconds & Resume Video
         setTimeout(() => {
             if (toast) {
                 toast.style.opacity = '0';
                 setTimeout(() => { toast.style.display = 'none'; }, 500);
             }
 
-            // ▶️ ATTEMPT TO RESUME THE VIDEO PLAYER
             if (player && player.contentWindow) {
                 try {
                     player.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
@@ -276,7 +375,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 continueWatching = data.continueWatching || [];
                 alreadyWatched = data.alreadyWatched || [];
 
-                // Load Points cleanly formatted
                 window.userTotalPoints = parseFloat(progressMap['_points_']) || 0.00;
                 const mobileMenuPoints = document.getElementById('mobile-menu-points');
                 const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
@@ -554,10 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const row3 = document.getElementById('comedy-row');
         const row4 = document.getElementById('series-row');
 
-        const title1 = document.getElementById('row1-title');
-        const title2 = document.getElementById('row2-title');
-        const title3 = document.getElementById('row3-title');
-        const title4 = document.getElementById('row4-title');
+        const dict = translations[currentLang] || translations.en;
 
         renderSkeletons(row1); renderSkeletons(row2); renderSkeletons(row3); renderSkeletons(row4);
 
@@ -565,10 +660,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (viewType === 'home') {
                 top10Container.style.display = 'block';
                 renderSkeletons(top10Row, 10, true);
-                title1.innerText = "🔥 Trending Now";
-                title2.innerText = "💥 Action Movies";
-                title3.innerText = "😂 Comedy Movies";
-                title4.innerText = "📺 Trending Series";
+
+                document.getElementById('row1-title').innerText = dict.rowTrending;
+                document.getElementById('row2-title').innerText = dict.rowAction;
+                document.getElementById('row3-title').innerText = dict.rowComedy;
+                document.getElementById('row4-title').innerText = dict.rowSeries;
 
                 const tData = await (await fetch(`${BASE_URL}/trending/all/day?api_key=${API_KEY}`)).json();
                 populateTop10Row(tData.results.slice(0, 10), top10Row);
@@ -585,12 +681,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 populateRow(sData.results, row4, true);
 
             } else if (viewType === 'animations') {
-                // 🎨 ANIMATIONS CATEGORY (GENRE 16)
                 top10Container.style.display = 'none';
-                title1.innerText = "🍿 Top Animated Movies";
-                title2.innerText = "🎌 Anime & Animated Series";
-                title3.innerText = "🧸 Family Animation";
-                title4.innerText = "🔥 Trending Animated Releases";
+                document.getElementById('row1-title').innerText = currentLang === 'es' ? "🍿 Top Películas de Animación" : "🍿 Top Animated Movies";
+                document.getElementById('row2-title').innerText = currentLang === 'es' ? "🎌 Anime y Series Animadas" : "🎌 Anime & Animated Series";
+                document.getElementById('row3-title').innerText = currentLang === 'es' ? "🧸 Animación Familiar" : "🧸 Family Animation";
+                document.getElementById('row4-title').innerText = currentLang === 'es' ? "🔥 Lanzamientos Animados" : "🔥 Trending Animated Releases";
 
                 const animMovData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16&sort_by=popularity.desc`)).json();
                 populateRow(animMovData.results, row1, false);
@@ -608,10 +703,10 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 top10Container.style.display = 'none';
                 if (viewType === 'tv') {
-                    title1.innerText = "📺 Top TV Shows";
-                    title2.innerText = "🦸‍♂️ Action TV";
-                    title3.innerText = "😂 Comedy TV";
-                    title4.innerText = "🎭 Drama TV";
+                    document.getElementById('row1-title').innerText = currentLang === 'es' ? "📺 Top Series de TV" : "📺 Top TV Shows";
+                    document.getElementById('row2-title').innerText = currentLang === 'es' ? "🦸‍♂️ TV de Acción" : "🦸‍♂️ Action TV";
+                    document.getElementById('row3-title').innerText = currentLang === 'es' ? "😂 TV de Comedia" : "😂 Comedy TV";
+                    document.getElementById('row4-title').innerText = currentLang === 'es' ? "🎭 TV de Drama" : "🎭 Drama TV";
                     const tData = await (await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`)).json();
                     populateRow(tData.results, row1, true);
                     setupHero(tData.results.slice(0, 5), true);
@@ -623,10 +718,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     populateRow(dData.results, row4, true);
 
                 } else if (viewType === 'movies') {
-                    title1.innerText = "🎬 Top Movies";
-                    title2.innerText = "💥 Action Movies";
-                    title3.innerText = "😂 Comedy Movies";
-                    title4.innerText = "👻 Horror Movies";
+                    document.getElementById('row1-title').innerText = currentLang === 'es' ? "🎬 Top Películas" : "🎬 Top Movies";
+                    document.getElementById('row2-title').innerText = currentLang === 'es' ? "💥 Películas de Acción" : "💥 Action Movies";
+                    document.getElementById('row3-title').innerText = currentLang === 'es' ? "😂 Películas de Comedia" : "😂 Comedy Movies";
+                    document.getElementById('row4-title').innerText = currentLang === 'es' ? "👻 Películas de Terror" : "👻 Horror Movies";
                     const tData = await (await fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`)).json();
                     populateRow(tData.results, row1, false);
                     setupHero(tData.results.slice(0, 5));
@@ -858,7 +953,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else { alert("Trailer not available for this title."); }
             };
 
-            // 📺 TV MEMORY & PLAY LAUNCH
             if (isTV) {
                 modalTvControls.style.display = 'flex';
                 modalSeasonSelect.innerHTML = '';
@@ -931,7 +1025,6 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
 
-            // Reset watch time & session reward state
             window.activeVideoStartTime = Date.now();
             window.rewardClaimedForSession = false;
 
@@ -969,7 +1062,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             btnMarkFinished.innerText = "✔️ Mark Finished";
 
-            // 📡 Read selected server from dropdown
             const activeServer = serverSelect ? serverSelect.value : 'vidsrc';
             const streamUrl = getServerStreamUrl(activeServer, id, isTV, season, episode);
 
@@ -977,14 +1069,12 @@ document.addEventListener("DOMContentLoaded", () => {
             videoPlayerFrame.src = streamUrl;
             videoModal.style.display = 'block';
 
-            // ✨ AUTOMATED BACKGROUND REWARD CHECKER (Runs every 10 seconds)
             window.watchTimerInterval = setInterval(() => {
                 if (!currentUserUid || window.rewardClaimedForSession) return;
 
                 const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
 
                 if (!currentTvState.isTV) {
-                    // 🎬 MOVIE: 60 Minutes = $0.25 BZD Automatic Popup
                     if (elapsedMinutes >= 60) {
                         window.rewardClaimedForSession = true;
                         window.userTotalPoints = parseFloat((window.userTotalPoints + 0.25).toFixed(2));
@@ -998,7 +1088,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         showRewardToast("🍿 Reward Earned!", "You earned $0.25 BZD for watching 1 hour!");
                     }
                 } else {
-                    // 📺 TV SHOW: 40 Minutes = Record Episode / Check Finale
                     if (elapsedMinutes >= 40) {
                         window.rewardClaimedForSession = true;
 
@@ -1057,7 +1146,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 🔄 SWITCH SERVER ON THE FLY WITHOUT RESETTING WATCH TIMER
     if (serverSelect) {
         serverSelect.addEventListener('change', (e) => {
             if (currentTvState.id) {
@@ -1088,7 +1176,6 @@ document.addEventListener("DOMContentLoaded", () => {
         launchVideoStream(currentTvState.id, true, currentTvState.season, currentTvState.episode);
     });
 
-    // ✨ MANUAL "MARK FINISHED" BUTTON LOGIC (WITH ANTI-CHEAT)
     btnMarkFinished.addEventListener('click', () => {
         if (currentUserUid && currentTvState.id) {
 
@@ -1097,7 +1184,6 @@ document.addEventListener("DOMContentLoaded", () => {
             let btnFeedback = "";
 
             if (!currentTvState.isTV) {
-                // 🎬 MOVIE LOGIC
                 progressMap[currentTvState.id] = '100';
 
                 if (elapsedMinutes >= 60) {
@@ -1107,7 +1193,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     btnFeedback = "✔️ Saved (Watch 1 hour for $0.25 BZD!)";
                 }
             } else {
-                // 📺 TV SHOW LOGIC
                 if (!progressMap[currentTvState.id] || typeof progressMap[currentTvState.id] !== 'object') {
                     progressMap[currentTvState.id] = {};
                 }
