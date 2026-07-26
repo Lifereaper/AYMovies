@@ -848,23 +848,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch (e) { }
 
-            // ✨ USING NEW BACKUP STREAM SERVERS AND SANDBOXING TO PREVENT REDIRECTS
+            // ✨ USING YOUR ORIGINAL WORKING URLS
             if (isTV) {
                 btnPrevEp.style.display = currentTvState.episode > 1 ? 'inline-block' : 'none';
                 btnNextEp.style.display = 'inline-block';
                 episodeIndicatorText.innerText = `Playing: Season ${season}, Episode ${episode}`;
-                streamUrl = `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
+                streamUrl = `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`;
             } else {
                 btnPrevEp.style.display = 'none';
                 btnNextEp.style.display = 'none';
                 episodeIndicatorText.innerText = "Feature Film";
-                streamUrl = `https://vidsrc.cc/v2/embed/movie/${id}`;
+                streamUrl = `https://vidsrc.me/embed/movie?tmdb=${id}`;
             }
 
             btnMarkFinished.innerText = "✔️ Mark Finished";
             
-            // 🛡️ This stops the video player from crashing your app back to the home screen
-            videoPlayerFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
+            // 🛡️ REMOVED THE SANDBOX! Kodular is handling the ads now.
+            videoPlayerFrame.removeAttribute('sandbox');
             videoPlayerFrame.src = streamUrl;
             
             videoModal.style.display = 'block';
