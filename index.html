@@ -14,6 +14,27 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><text x='50%' y='50%' font-family='Arial' font-size='45' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>AY</text></svg>">
     <link rel="stylesheet" href="style.css?v=19">
     <style>
+        /* 📱 RESPONSIVE HEADER FIXES */
+        @media (max-width: 768px) {
+            header {
+                padding: 10px 12px !important;
+            }
+            .desktop-nav, .hide-mobile {
+                display: none !important;
+            }
+            .show-mobile {
+                display: block !important;
+            }
+            #search-input {
+                width: 110px !important;
+                padding: 6px 10px !important;
+                font-size: 0.85rem !important;
+            }
+            .brand-logo {
+                font-size: 20px !important;
+            }
+        }
+
         .nav-link {
             color: #aaa;
             text-decoration: none;
@@ -22,9 +43,9 @@
             transition: 0.2s;
         }
 
-            .nav-link:hover, .nav-link.active {
-                color: white;
-            }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+        }
 
         .top-10-wrapper {
             position: relative;
@@ -36,10 +57,10 @@
             align-items: flex-end;
         }
 
-            .top-10-wrapper:hover {
-                transform: scale(1.1);
-                z-index: 20;
-            }
+        .top-10-wrapper:hover {
+            transform: scale(1.1);
+            z-index: 20;
+        }
 
         .top-10-number {
             font-size: 10rem;
@@ -70,17 +91,17 @@
             border-radius: 5px;
         }
 
-            .movie-card:hover {
-                transform: scale(1.15);
-                z-index: 20;
-                box-shadow: 0 10px 20px rgba(0,0,0,0.8);
-            }
+        .movie-card:hover {
+            transform: scale(1.15);
+            z-index: 20;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+        }
 
-            .movie-card img {
-                width: 100%;
-                border-radius: 5px;
-                display: block;
-            }
+        .movie-card img {
+            width: 100%;
+            border-radius: 5px;
+            display: block;
+        }
 
         .card-info {
             position: absolute;
@@ -117,7 +138,6 @@
             text-shadow: 1px 1px 2px black;
         }
 
-        /* ✨ GLOBAL PROGRESS BAR STYLES */
         .progress-track {
             position: absolute;
             bottom: 0;
@@ -158,10 +178,10 @@
             padding-bottom: 15px;
         }
 
-            .row-arrow:hover {
-                background: rgba(0,0,0,0.9);
-                font-size: 3rem;
-            }
+        .row-arrow:hover {
+            background: rgba(0,0,0,0.9);
+            font-size: 3rem;
+        }
 
         .left-arrow {
             left: 0;
@@ -198,9 +218,9 @@
             transition: color 0.2s;
         }
 
-            .hero-nav-arrow:hover {
-                color: white;
-            }
+        .hero-nav-arrow:hover {
+            color: white;
+        }
 
         #hero-prev {
             left: 20px;
@@ -229,10 +249,10 @@
             transition: 0.3s;
         }
 
-            .hero-dot.active {
-                background: white;
-                transform: scale(1.3);
-            }
+        .hero-dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
 
         .skeleton-card {
             width: 150px;
@@ -289,16 +309,16 @@
             align-items: center;
         }
 
-            .search-item:hover {
-                background: #333;
-            }
+        .search-item:hover {
+            background: #333;
+        }
 
-            .search-item img {
-                width: 40px;
-                height: 60px;
-                object-fit: cover;
-                border-radius: 3px;
-            }
+        .search-item img {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 3px;
+        }
 
         .search-item-info {
             display: flex;
@@ -334,7 +354,7 @@
 
     <!-- 🌐 NAVBAR -->
     <header style="display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: #141414; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 1000;">
-        <div style="display: flex; gap: 30px; align-items: center;">
+        <div style="display: flex; gap: 20px; align-items: center;">
             <div class="brand-logo" id="btn-home" style="cursor: pointer; font-size: 28px; font-weight: bold; color: #E50914;">AYMovies</div>
             <nav id="main-nav" class="desktop-nav" style="display: flex; gap: 20px; font-size: 1rem;">
                 <span class="nav-link active" data-view="home">Home</span>
@@ -344,15 +364,15 @@
             </nav>
         </div>
 
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <!-- 🌐 DESKTOP LANGUAGE TOGGLE -->
-            <select id="lang-select" style="background: #000; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <!-- Hidden on mobile so header doesn't overflow -->
+            <select id="lang-select" class="hide-mobile" style="background: #000; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
                 <option value="en">🇺🇸 EN</option>
                 <option value="es">🇲🇽 ES</option>
             </select>
 
             <div style="position: relative;">
-                <input type="text" id="search-input" placeholder="Search..." style="padding: 8px 15px; border-radius: 20px; border: 1px solid #444; background: #000; color: white; outline: none;">
+                <input type="text" id="search-input" placeholder="Search..." style="padding: 8px 12px; border-radius: 20px; border: 1px solid #444; background: #000; color: white; outline: none;">
                 <div id="search-dropdown" class="search-dropdown" style="display: none;"></div>
             </div>
             <button id="btn-surprise" class="hide-mobile" style="padding: 8px 15px; background: #E50914; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">🎲 Surprise Me</button>
@@ -361,7 +381,7 @@
                 <div id="avatar-dropdown" style="display: none; position: absolute; top: 45px; right: 0; background: #181818; border: 1px solid #333; border-radius: 5px; padding: 10px; width: 150px; box-shadow: 0 5px 15px rgba(0,0,0,0.8); z-index: 2000; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
             </div>
             <button id="btn-logout" class="hide-mobile" style="padding: 8px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
-            <button id="mobile-menu-btn" class="show-mobile" style="display: none; background: transparent; border: none; color: white; font-size: 30px; cursor: pointer; margin-left: 10px;">☰</button>
+            <button id="mobile-menu-btn" class="show-mobile" style="display: none; background: transparent; border: none; color: white; font-size: 28px; cursor: pointer; margin-left: 5px;">☰</button>
         </div>
     </header>
 
@@ -369,7 +389,6 @@
     <div id="mobile-menu" style="position: fixed; top: 0; right: -100%; width: 250px; height: 100vh; background: rgba(20,20,20,0.95); backdrop-filter: blur(10px); z-index: 2000; transition: right 0.3s ease; padding: 30px 20px; box-shadow: -5px 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 20px;">
         <button id="close-mobile-menu" style="align-self: flex-end; background: transparent; border: none; color: white; font-size: 35px; cursor: pointer;">&times;</button>
 
-        <!-- ✨ Profile Header & Points Display -->
         <div style="display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; padding-bottom: 15px; margin-top: -10px;">
             <div id="mobile-menu-avatar" style="font-size: 2.5rem;">👤</div>
             <div style="display: flex; flex-direction: column;">
@@ -378,7 +397,6 @@
             </div>
         </div>
 
-        <!-- 🌐 MOBILE LANGUAGE TOGGLE -->
         <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #333;">
             <span style="color: #aaa; font-size: 1rem; font-weight: bold;">🌐 Language:</span>
             <select id="lang-select-mobile" style="background: #000; color: #fff; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
@@ -433,7 +451,6 @@
             </div>
         </div>
 
-        <!-- 🔁 ALREADY WATCHED ROW -->
         <div id="already-watched-container" class="row-container" style="display: none;">
             <h2 class="row-title">🔁 Watch It Again</h2>
             <div class="row-wrapper">
@@ -497,7 +514,6 @@
             </div>
         </div>
 
-        <!-- 👥 SHARED COMMUNITY LISTING WATCH PARTY SHELF -->
         <div id="community-container" class="row-container" style="display: none;">
             <h2 class="row-title">👥 Shared Watch Party Community</h2>
             <div class="row-wrapper">
@@ -575,7 +591,6 @@
         
         <div style="text-align: center; color: white; margin-top: 15px; display: flex; justify-content: center; align-items: center; flex-direction: column;">
             
-            <!-- 📡 MULTI-SERVER SELECTOR DROPDOWN (3 VERIFIED SERVERS) -->
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: rgba(30, 30, 30, 0.8); padding: 8px 16px; border-radius: 8px; border: 1px solid #333;">
                 <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.95rem;">📡 Server:</label>
                 <select id="server-select" style="background: #111; color: #fff; border: 1px solid #ffd700; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none; font-size: 0.9rem;">
@@ -601,7 +616,7 @@
         </svg>
     </button>
 
-    <!-- 📱 KODULAR SUPPORTED WHATSAPP SCRIPT -->
+    <!-- 📱 KODULAR WHATSAPP DUAL-LAUNCHER SCRIPT -->
     <script>
         function handleWhatsAppReport() {
             const MY_SUPPORT_NUMBER = "5016542016";
@@ -620,14 +635,18 @@
 
             const messagePayload = `🚨 *AYMOVIES SYSTEM ALERT* 🚨\n\n*From Account:* ${currentUserAccountEmail}\n*Context/Movie:* ${subjectMovieTitle} (ID: ${subjectMovieId})\n\n*User's Message:*\n"${customUserMessage}"`;
 
-            const waUrl = `https://wa.me/${MY_SUPPORT_NUMBER}?text=${encodeURIComponent(messagePayload)}`;
             const nativeAppUrl = `whatsapp://send?phone=${MY_SUPPORT_NUMBER}&text=${encodeURIComponent(messagePayload)}`;
+            const waUrl = `https://wa.me/${MY_SUPPORT_NUMBER}?text=${encodeURIComponent(messagePayload)}`;
 
-            // 📱 IN KODULAR APP: Passes link to ActivityStarter block
+            // 1. Pass string to Kodular bridge if present
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString(nativeAppUrl);
-            } else {
-                // 🌐 IN BROWSER: Opens WhatsApp web link directly
+            }
+
+            // 2. Direct scheme trigger as fail-safe for CustomWebView
+            try {
+                window.location.href = nativeAppUrl;
+            } catch(e) {
                 window.open(waUrl, '_blank');
             }
         }
