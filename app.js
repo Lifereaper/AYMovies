@@ -1066,15 +1066,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const communityContainer = document.getElementById('community-container');
         const communityRow = document.getElementById('community-row');
 
+        // 1. My List
         if (myList.length > 0) {
             myListContainer.style.display = 'block';
             populateRow(myList, myListRow, false);
         } else { myListContainer.style.display = 'none'; }
 
+        // 🚀 2. Watch It Again (Moved UP so it draws instantly!)
+        if (alreadyWatched.length > 0) {
+            awContainer.style.display = 'block';
+            populateRow(alreadyWatched, awRow, false);
+        } else { awContainer.style.display = 'none'; }
+
+        // 3. Community Row
         if (globalCommunityMovies.length > 0 && communityContainer && communityRow) {
             communityContainer.style.display = 'block';
             communityRow.innerHTML = '';
-
             globalCommunityMovies.forEach(item => {
                 const movieId = item.id || item.movieId || item[0];
                 const movieTitle = item.title || item.movieTitle || item.name || item[1];
@@ -1084,10 +1091,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!movieId || !moviePoster) return;
 
                 const card = document.createElement('div');
-                // ADDED tv-focusable so TV remotes catch community movies
                 card.className = 'movie-card tv-focusable';
                 card.setAttribute('data-id', movieId.toString());
-                card.setAttribute('tabindex', '0'); // ADDED for TV remote focus
+                card.setAttribute('tabindex', '0');
                 card.setAttribute('data-community-item', 'true');
                 card.setAttribute('data-added-by-me', (addedByUser === currentUserUid).toString());
 
@@ -1098,39 +1104,34 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="card-meta"><span style="color:#e50914; font-weight:bold;">👥 Shared Party</span></div>
                     </div>
                 `;
-
-                card.addEventListener('click', () => {
-                    openDetailsModal(movieId, false);
-                });
+                card.addEventListener('click', () => openDetailsModal(movieId, false));
                 communityRow.appendChild(card);
             });
-            syncProgressBars();
         } else if (communityContainer) {
             communityContainer.style.display = 'none';
         }
 
+        // 4. Continue Watching & Recommendations (Background Fetch)
         if (continueWatching.length > 0) {
             cwContainer.style.display = 'block';
             populateRow(continueWatching, cwRow, false);
             const lastWatched = continueWatching[0];
-            try {
-                const res = await fetch(`${BASE_URL}/${lastWatched.media_type}/${lastWatched.id}/similar?api_key=${API_KEY}`);
-                const data = await res.json();
-                if (data.results && data.results.length > 0) {
-                    recContainer.style.display = 'block';
-                    const formattedRecs = data.results.map(item => ({ ...item, media_type: lastWatched.media_type }));
-                    populateRow(formattedRecs, recRow, lastWatched.media_type === 'tv');
-                } else { recContainer.style.display = 'none'; }
-            } catch (e) { recContainer.style.display = 'none'; }
+            
+            // 🚥 UNBLOCKED FETCH: Gets recommendations in the background without freezing the UI!
+            fetch(`${BASE_URL}/${lastWatched.media_type}/${lastWatched.id}/similar?api_key=${API_KEY}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.results && data.results.length > 0) {
+                        recContainer.style.display = 'block';
+                        const formattedRecs = data.results.map(item => ({ ...item, media_type: lastWatched.media_type }));
+                        populateRow(formattedRecs, recRow, lastWatched.media_type === 'tv');
+                        syncProgressBars(); // Resync after background load finishes
+                    } else { recContainer.style.display = 'none'; }
+                }).catch(e => { recContainer.style.display = 'none'; });
         } else {
             cwContainer.style.display = 'none';
             recContainer.style.display = 'none';
         }
-
-        if (alreadyWatched.length > 0) {
-            awContainer.style.display = 'block';
-            populateRow(alreadyWatched, awRow, false);
-        } else { awContainer.style.display = 'none'; }
 
         syncProgressBars();
     }
