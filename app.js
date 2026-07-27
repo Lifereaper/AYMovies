@@ -1989,7 +1989,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (allowedKeys.includes(e.key)) {
             e.preventDefault(); // Stop FireOS from trying to do it
             moveFocus(e.key);
-        } else if (e.key === 'Enter') {
+            
+        // 👇 UPDATED: Catch every single variation of the TV "Select" button
+        } else if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.key === ' ') {
             e.preventDefault();
             if (currentFocus) {
                 currentFocus.click(); // Force the click!
