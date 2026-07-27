@@ -422,21 +422,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     ? `https://vidlink.pro/tv/${id}/${season}/${episode}`
                     : `https://vidlink.pro/movie/${id}`;
             
-            // 🚀 NEW SERVERS ADDED BELOW
-            case 'vidsrcpro':
+            // 🚀 NEW HIGH-RELIABILITY SERVERS
+            case 'embedsu':
                 return isTV
-                    ? `https://vidsrc.pro/embed/tv/${id}/${season}/${episode}`
-                    : `https://vidsrc.pro/embed/movie/${id}`;
+                    ? `https://embed.su/embed/tv/${id}/${season}/${episode}`
+                    : `https://embed.su/embed/movie/${id}`;
 
-            case 'autoembed':
+            case 'vidsrcnet':
                 return isTV
-                    ? `https://autoembed.to/tv/tmdb/${id}-${season}-${episode}`
-                    : `https://autoembed.to/movie/tmdb/${id}`;
+                    ? `https://vidsrc.net/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
+                    : `https://vidsrc.net/embed/movie?tmdb=${id}`;
 
-            case 'vidbinge':
+            case 'vidsrcxyz':
                 return isTV
-                    ? `https://vidbinge.dev/embed/tv/${id}/${season}/${episode}`
-                    : `https://vidbinge.dev/embed/movie/${id}`;
+                    ? `https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`
+                    : `https://vidsrc.xyz/embed/movie/${id}`;
 
             case 'vidsrc':
             default:
@@ -445,6 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     : `https://vidsrc.me/embed/movie?tmdb=${id}`;
         }
     }
+    
 // ✨ FLOATING REWARD TOAST POPUP (UPGRADED Z-INDEX FOR VIDEO OVERLAY)
     function showRewardToast(title, message) {
         let toast = document.getElementById('reward-toast');
