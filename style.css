@@ -286,6 +286,7 @@ body {
         width: 100% !important;
     }
 }
+
 /* 🖼️ MINI-PLAYER MODE (OPTION C) */
 #video-modal.mini-mode {
     width: 340px !important;
@@ -331,10 +332,16 @@ body {
     border-color: #E50914;
     transform: scale(1.08);
 }
-/* TV Remote Focus State (Only shows when using D-Pad/Keyboard) */
+
+/* 📺 TV Remote Focus State (Only shows when using D-Pad/Keyboard) */
 .tv-focusable:focus-visible, 
 button:focus-visible, 
-.movie-poster:focus-visible {
+.movie-poster:focus-visible,
+.movie-card:focus-visible,
+.nav-link:focus-visible,
+.chip-btn:focus-visible,
+input:focus-visible,
+select:focus-visible {
     outline: 4px solid #ffcc00 !important; /* Yellow highlight border */
     transform: scale(1.05); /* Slightly enlarge the focused item */
     box-shadow: 0px 0px 15px #ffcc00;
@@ -345,6 +352,11 @@ button:focus-visible,
 /* Remove default focus outlines on phone taps */
 .tv-focusable:focus:not(:focus-visible),
 button:focus:not(:focus-visible),
-.movie-poster:focus:not(:focus-visible) {
+.movie-poster:focus:not(:focus-visible),
+.movie-card:focus:not(:focus-visible),
+.nav-link:focus:not(:focus-visible),
+.chip-btn:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
     outline: none !important;
 }
