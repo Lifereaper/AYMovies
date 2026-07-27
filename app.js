@@ -1893,25 +1893,118 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-// TV Remote D-Pad Navigation (Applies to static items on load)
+// ==========================================
+// 🚀 AYMOVIES SPATIAL NAVIGATION ENGINE
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Select all static clickable elements (nav links, buttons, inputs)
-    const clickableItems = document.querySelectorAll('button, a, select, input, .nav-link, .chip-btn');
-    
-    clickableItems.forEach(item => {
-        if (!item.hasAttribute('tabindex')) {
-            item.setAttribute('tabindex', '0'); // Allows TV remote D-Pad focus
-        }
-        item.classList.add('tv-focusable');
-    });
+    let currentFocus = null;
 
-    // Handle Firestick / TV Remote "Select" button (Registers as Enter key)
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            if (document.activeElement) {
-                document.activeElement.click(); // Triggers the click on focused item
+    // 1. Grab everything on screen that should be clickable
+    function getFocusableElements() {
+        const selector = 'button, a, input, select, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot';
+        const elements = Array.from(document.querySelectorAll(selector));
+        
+        // Filter out elements that are hidden (display: none or invisible)
+        return elements.filter(el => {
+            const rect = el.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).display !== 'none';
+        });
+    }
+
+    // 2. Mathematical formula to find the closest element in a specific direction
+    function moveFocus(direction) {
+        const elements = getFocusableElements();
+        if (elements.length === 0) return;
+
+        // If nothing is focused yet, grab the very first visible thing (like the Disclaimer button!)
+        if (!currentFocus || !document.body.contains(currentFocus) || currentFocus.offsetParent === null) {
+            setFocus(elements[0]);
+            return;
+        }
+
+        const currentRect = currentFocus.getBoundingClientRect();
+        const currentCenter = {
+            x: currentRect.left + currentRect.width / 2,
+            y: currentRect.top + currentRect.height / 2
+        };
+
+        let bestMatch = null;
+        let minDistance = Infinity;
+
+        elements.forEach(el => {
+            if (el === currentFocus) return;
+            const rect = el.getBoundingClientRect();
+            const center = {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+
+            let isDirectionMatch = false;
+
+            // Check if the target element is physically in the direction we pressed
+            if (direction === 'ArrowUp') isDirectionMatch = center.y < currentCenter.y;
+            if (direction === 'ArrowDown') isDirectionMatch = center.y > currentCenter.y;
+            if (direction === 'ArrowLeft') isDirectionMatch = center.x < currentCenter.x;
+            if (direction === 'ArrowRight') isDirectionMatch = center.x > currentCenter.x;
+
+            if (isDirectionMatch) {
+                const dx = center.x - currentCenter.x;
+                const dy = center.y - currentCenter.y;
+
+                // Weight the math to prefer moving in straight lines
+                let distance;
+                if (direction === 'ArrowUp' || direction === 'ArrowDown') {
+                    distance = Math.abs(dy) + (Math.abs(dx) * 4); 
+                } else {
+                    distance = Math.abs(dx) + (Math.abs(dy) * 4);
+                }
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestMatch = el;
+                }
+            }
+        });
+
+        if (bestMatch) {
+            setFocus(bestMatch);
+            // Smoothly auto-scroll the screen and horizontal rows so the cursor is always visible!
+            bestMatch.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    }
+
+    // 3. Manually apply the glowing box
+    function setFocus(el) {
+        if (currentFocus) {
+            currentFocus.classList.remove('tv-focused'); // Remove glow from old
+        }
+        currentFocus = el;
+        currentFocus.classList.add('tv-focused'); // Add glow to new
+    }
+
+    // 4. Hijack the Firestick Remote
+    document.addEventListener('keydown', (e) => {
+        const allowedKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+        
+        if (allowedKeys.includes(e.key)) {
+            e.preventDefault(); // Stop FireOS from trying to do it
+            moveFocus(e.key);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (currentFocus) {
+                currentFocus.click(); // Force the click!
             }
         }
     });
+
+    // 5. AUTO-FOCUS ON STARTUP (Fixes the Disclaimer Screen)
+    setTimeout(() => {
+        const disclaimerBtn = document.getElementById('btn-accept-dmca');
+        if (disclaimerBtn && window.getComputedStyle(disclaimerBtn).display !== 'none') {
+            setFocus(disclaimerBtn);
+        } else {
+            const elements = getFocusableElements();
+            if (elements.length > 0) setFocus(elements[0]);
+        }
+    }, 800); // 800ms delay ensures TV is fully awake before mapping the screen
 });
