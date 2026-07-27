@@ -262,11 +262,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             } else if (filter === '2026') {
                 if (cardMeta.includes('2026') || cardMeta.includes('2025')) isMatch = true;
-            } else if (filter === 'series') {
-                if (cardMeta.toLowerCase().includes('tv') || cardTitle.includes('series')) isMatch = true;
-            } else if (filter === 'action' || filter === 'comedy' || filter === 'horror') {
+            } else if (filter === 'action' || filter === 'comedy' || filter === 'series') { 
+                // 👇 We removed 'horror' and combined 'series' here so it checks the row title!
                 const rowParent = card.closest('.row-container');
                 const rowTitle = (rowParent?.querySelector('.row-title')?.innerText || '').toLowerCase();
+                
                 if (rowTitle.includes(filter) || cardTitle.includes(filter)) isMatch = true;
             }
 
