@@ -1922,25 +1922,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 🤝 WHATSAPP REFERRAL LOGIC
     const btnSendReferral = document.getElementById('btn-send-referral');
-    const referralPhoneInput = document.getElementById('referral-phone');
+    const referralFriendEmailInput = document.getElementById('referral-friend-email');
+    const referralFriendPhoneInput = document.getElementById('referral-friend-phone');
 
     if (btnSendReferral) {
         btnSendReferral.addEventListener('click', () => {
-            const phone = referralPhoneInput.value.trim();
-            if (!phone) {
-                referralPhoneInput.style.borderColor = '#E50914';
-                return;
+            const friendEmail = referralFriendEmailInput ? referralFriendEmailInput.value.trim() : '';
+            const friendPhone = referralFriendPhoneInput ? referralFriendPhoneInput.value.trim() : '';
+
+            let hasError = false;
+
+            if (!friendEmail) {
+                if (referralFriendEmailInput) referralFriendEmailInput.style.borderColor = '#E50914';
+                hasError = true;
+            } else {
+                if (referralFriendEmailInput) referralFriendEmailInput.style.borderColor = '#444';
             }
-            referralPhoneInput.style.borderColor = '#444';
-            
+
+            if (!friendPhone) {
+                if (referralFriendPhoneInput) referralFriendPhoneInput.style.borderColor = '#E50914';
+                hasError = true;
+            } else {
+                if (referralFriendPhoneInput) referralFriendPhoneInput.style.borderColor = '#444';
+            }
+
+            if (hasError) return;
+
             const adminNumber = "5016542016"; // Your WhatsApp Support Line
             const userEmail = window.currentUserEmail || "Unknown Email";
-            
-            const message = `Hey Admin! I want to invite a friend to AYMovies! My account is: ${userEmail} and phone number: ${phone}. Please set up an account for my friend. Once they pay/join, please add $0.50 BZD to my Rewards Wallet!`;
-            
+
+            const message = `Hey Admin! I want to invite a friend to AYMovies!\n\n*My Account:* ${userEmail}\n\n*Friend's Details:*\n📧 Email: ${friendEmail}\n📱 Phone: ${friendPhone}\n\nPlease set up an account for my friend. Once they pay/join, please add $0.50 BZD to my Rewards Wallet, Thanks!`;
+
             const waUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(message)}`;
             const nativeWaUrl = `whatsapp://send?phone=${adminNumber}&text=${encodeURIComponent(message)}`;
-            
+
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString(nativeWaUrl);
             } else {
@@ -1948,9 +1963,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
-});
-
 // ==========================================
 // 🚀 AYMOVIES SPATIAL NAVIGATION ENGINE
 // ==========================================
