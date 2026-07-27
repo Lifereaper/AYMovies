@@ -243,7 +243,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function applyMoodFilter(filter) {
         const allCards = document.querySelectorAll('.movie-card, .top-10-wrapper');
-        const allRows = document.querySelectorAll('.row-container');
+        // 👇 We added .row-wrapper to ensure it catches your specific layout!
+        const allRows = document.querySelectorAll('.row-wrapper, .row-container'); 
 
         if (filter === 'all') {
             allCards.forEach(c => c.style.display = 'block');
@@ -254,7 +255,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const top10Container = document.getElementById('top-10-container');
             if (top10Container) top10Container.style.display = (activeView === 'home') ? 'block' : 'none';
             
-            // Re-hide personalized rows if they are empty
             renderPersonalizedRows(); 
             return;
         }
@@ -263,15 +263,18 @@ document.addEventListener("DOMContentLoaded", () => {
         allCards.forEach(c => c.style.display = 'block');
 
         if (filter === 'action' || filter === 'comedy' || filter === 'series') {
-            // 🚀 ROW-LEVEL FILTERING (Perfectly pulls row to the top)
-            // Instead of hiding individual movies, we just turn off the entire row.
+            
+            // 🚀 ROW-LEVEL FILTERING 
             allRows.forEach(row => {
-                const rowTitle = (row.querySelector('.row-title')?.innerText || '').toLowerCase();
+                // Check both the visible text AND the invisible HTML ID (like 'series-row')
+                const rowTitle = (row.querySelector('.category-title, .row-title')?.innerText || '').toLowerCase();
+                const innerRowId = (row.querySelector('.movie-row')?.id || row.id || '').toLowerCase();
                 
-                if (rowTitle.includes(filter)) {
-                    row.style.display = 'block'; // Keep the matched row
+                // If either the title OR the ID matches, keep it on screen!
+                if (rowTitle.includes(filter) || innerRowId.includes(filter)) {
+                    row.style.display = 'block'; 
                 } else {
-                    row.style.display = 'none';  // Nuke everything else!
+                    row.style.display = 'none';  
                 }
             });
             
@@ -300,7 +303,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     }
-
     // 🌐 LANGUAGE DICTIONARY & TOGGLE SYSTEM
     const translations = {
         en: {
