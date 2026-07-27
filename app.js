@@ -421,6 +421,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 return isTV
                     ? `https://vidlink.pro/tv/${id}/${season}/${episode}`
                     : `https://vidlink.pro/movie/${id}`;
+            
+            // 🚀 NEW SERVERS ADDED BELOW
+            case 'vidsrcpro':
+                return isTV
+                    ? `https://vidsrc.pro/embed/tv/${id}/${season}/${episode}`
+                    : `https://vidsrc.pro/embed/movie/${id}`;
+
+            case 'autoembed':
+                return isTV
+                    ? `https://autoembed.to/tv/tmdb/${id}-${season}-${episode}`
+                    : `https://autoembed.to/movie/tmdb/${id}`;
+
+            case 'vidbinge':
+                return isTV
+                    ? `https://vidbinge.dev/embed/tv/${id}/${season}/${episode}`
+                    : `https://vidbinge.dev/embed/movie/${id}`;
 
             case 'vidsrc':
             default:
@@ -429,7 +445,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     : `https://vidsrc.me/embed/movie?tmdb=${id}`;
         }
     }
-
 // ✨ FLOATING REWARD TOAST POPUP (UPGRADED Z-INDEX FOR VIDEO OVERLAY)
     function showRewardToast(title, message) {
         let toast = document.getElementById('reward-toast');
