@@ -242,36 +242,63 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function applyMoodFilter(filter) {
-        const allCards = document.querySelectorAll('.movie-card');
+        const allCards = document.querySelectorAll('.movie-card, .top-10-wrapper');
+        const allRows = document.querySelectorAll('.row-container');
 
         if (filter === 'all') {
-            allCards.forEach(card => card.style.display = 'block');
+            allCards.forEach(c => c.style.display = 'block');
+            allRows.forEach(r => r.style.display = 'block');
+            
+            // Keep Top-10 only on the Home view
+            const activeView = document.querySelector('.nav-link.active')?.getAttribute('data-view') || 'home';
+            const top10Container = document.getElementById('top-10-container');
+            if (top10Container) top10Container.style.display = (activeView === 'home') ? 'block' : 'none';
+            
+            // Re-hide personalized rows if they are empty
+            renderPersonalizedRows(); 
             return;
         }
 
-        allCards.forEach(card => {
-            const cardTitle = (card.querySelector('.card-title')?.innerText || '').toLowerCase();
-            const cardMeta = card.querySelector('.card-meta')?.innerText || '';
+        // Reset all cards before applying filters
+        allCards.forEach(c => c.style.display = 'block');
 
-            let isMatch = false;
+        if (filter === 'action' || filter === 'comedy' || filter === 'series') {
+            // 🚀 ROW-LEVEL FILTERING (Perfectly pulls row to the top)
+            // Instead of hiding individual movies, we just turn off the entire row.
+            allRows.forEach(row => {
+                const rowTitle = (row.querySelector('.row-title')?.innerText || '').toLowerCase();
+                
+                if (rowTitle.includes(filter)) {
+                    row.style.display = 'block'; // Keep the matched row
+                } else {
+                    row.style.display = 'none';  // Nuke everything else!
+                }
+            });
+            
+        } else {
+            // ⭐ CARD-LEVEL FILTERING (For "Top Rated" & "2026")
+            allCards.forEach(card => {
+                const cardMeta = card.querySelector('.card-meta')?.innerText || '';
+                let isMatch = false;
 
-            if (filter === 'top-rated') {
-                if (cardMeta.includes('⭐')) {
+                if (filter === 'top-rated' && cardMeta.includes('⭐')) {
                     const score = parseFloat(cardMeta.split('⭐')[1]) || 0;
                     if (score >= 8.0) isMatch = true;
+                } else if (filter === '2026' && (cardMeta.includes('2026') || cardMeta.includes('2025'))) {
+                    isMatch = true;
                 }
-            } else if (filter === '2026') {
-                if (cardMeta.includes('2026') || cardMeta.includes('2025')) isMatch = true;
-            } else if (filter === 'action' || filter === 'comedy' || filter === 'series') { 
-                // 👇 We removed 'horror' and combined 'series' here so it checks the row title!
-                const rowParent = card.closest('.row-container');
-                const rowTitle = (rowParent?.querySelector('.row-title')?.innerText || '').toLowerCase();
-                
-                if (rowTitle.includes(filter) || cardTitle.includes(filter)) isMatch = true;
-            }
+                card.style.display = isMatch ? 'block' : 'none';
+            });
 
-            card.style.display = isMatch ? 'block' : 'none';
-        });
+            // Collapse rows that became completely empty
+            allRows.forEach(row => {
+                const cardsInRow = Array.from(row.querySelectorAll('.movie-card, .top-10-wrapper'));
+                if (cardsInRow.length > 0) {
+                    const hasVisibleCards = cardsInRow.some(card => card.style.display === 'block');
+                    row.style.display = hasVisibleCards ? 'block' : 'none';
+                }
+            });
+        }
     }
 
     // 🌐 LANGUAGE DICTIONARY & TOGGLE SYSTEM
