@@ -1904,19 +1904,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const selector = 'button, a, input, select, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot';
         const elements = Array.from(document.querySelectorAll(selector));
         
-        // Filter out elements that are hidden (display: none or invisible)
         return elements.filter(el => {
             const rect = el.getBoundingClientRect();
             return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).display !== 'none';
         });
     }
 
-    // 2. Mathematical formula to find the closest element in a specific direction
+    // 2. Mathematical formula to find the closest element
     function moveFocus(direction) {
         const elements = getFocusableElements();
         if (elements.length === 0) return;
 
-        // If nothing is focused yet, grab the very first visible thing (like the Disclaimer button!)
         if (!currentFocus || !document.body.contains(currentFocus) || currentFocus.offsetParent === null) {
             setFocus(elements[0]);
             return;
@@ -1941,7 +1939,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let isDirectionMatch = false;
 
-            // Check if the target element is physically in the direction we pressed
             if (direction === 'ArrowUp') isDirectionMatch = center.y < currentCenter.y;
             if (direction === 'ArrowDown') isDirectionMatch = center.y > currentCenter.y;
             if (direction === 'ArrowLeft') isDirectionMatch = center.x < currentCenter.x;
@@ -1951,7 +1948,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dx = center.x - currentCenter.x;
                 const dy = center.y - currentCenter.y;
 
-                // Weight the math to prefer moving in straight lines
                 let distance;
                 if (direction === 'ArrowUp' || direction === 'ArrowDown') {
                     distance = Math.abs(dy) + (Math.abs(dx) * 4); 
@@ -1968,38 +1964,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (bestMatch) {
             setFocus(bestMatch);
-            // Smoothly auto-scroll the screen and horizontal rows so the cursor is always visible!
             bestMatch.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
     }
 
-    // 3. Manually apply the glowing box
+    // 3. Manually apply the glowing box AND NATIVE FOCUS
     function setFocus(el) {
         if (currentFocus) {
-            currentFocus.classList.remove('tv-focused'); // Remove glow from old
+            currentFocus.classList.remove('tv-focused'); 
         }
         currentFocus = el;
-        currentFocus.classList.add('tv-focused'); // Add glow to new
+        currentFocus.classList.add('tv-focused'); 
+        
+        // 👇 THE MAGIC FIX FOR THE PHONE APP:
+        // This physically forces the TV's invisible cursor to follow our yellow box!
+        currentFocus.focus({ preventScroll: true }); 
     }
 
-    // 4. Hijack the Firestick Remote
+    // 4. Hijack the Firestick Remote / Phone App
     document.addEventListener('keydown', (e) => {
         const allowedKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
         
         if (allowedKeys.includes(e.key)) {
-            e.preventDefault(); // Stop FireOS from trying to do it
+            e.preventDefault(); 
             moveFocus(e.key);
             
-        // 👇 UPDATED: Catch every single variation of the TV "Select" button
-        } else if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.key === ' ') {
+        // Catch every variation of the "Select/Tap" signal sent by virtual apps
+        } else if (e.key === 'Enter' || e.key === 'Select' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.key === ' ') {
             e.preventDefault();
             if (currentFocus) {
-                currentFocus.click(); // Force the click!
+                currentFocus.click(); 
             }
         }
     });
 
-    // 5. AUTO-FOCUS ON STARTUP (Fixes the Disclaimer Screen)
+    // 5. AUTO-FOCUS ON STARTUP
     setTimeout(() => {
         const disclaimerBtn = document.getElementById('btn-accept-dmca');
         if (disclaimerBtn && window.getComputedStyle(disclaimerBtn).display !== 'none') {
@@ -2008,5 +2007,5 @@ document.addEventListener('DOMContentLoaded', () => {
             const elements = getFocusableElements();
             if (elements.length > 0) setFocus(elements[0]);
         }
-    }, 800); // 800ms delay ensures TV is fully awake before mapping the screen
+    }, 800); 
 });
