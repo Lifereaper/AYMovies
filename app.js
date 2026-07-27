@@ -1963,6 +1963,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+ });
+
 // ==========================================
 // 🚀 AYMOVIES SPATIAL NAVIGATION ENGINE
 // ==========================================
