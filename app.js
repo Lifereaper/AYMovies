@@ -20,17 +20,28 @@ const db = initializeFirestore(firebaseApp, {
 });
 
 let wakeLock = null;
+const noSleepFallback = new window.NoSleep(); // 👈 Initialize the TV browser fallback
+
 async function requestWakeLock() {
     try {
+        // 1. Enable the bulletproof fallback for TV Browsers (Plays invisible video)
+        noSleepFallback.enable(); 
+        
+        // 2. Try the modern API for phones and desktop Chrome
         if ('wakeLock' in navigator) {
             wakeLock = await navigator.wakeLock.request('screen');
         }
     } catch (err) { console.error("Wake Lock failed:", err); }
 }
-function releaseWakeLock() {
-    if (wakeLock !== null) wakeLock.release().then(() => wakeLock = null);
-}
 
+function releaseWakeLock() {
+    // Disable the invisible video so the TV can sleep normally when they exit the movie
+    noSleepFallback.disable(); 
+    
+    if (wakeLock !== null) {
+        wakeLock.release().then(() => wakeLock = null);
+    }
+}
 window.scrollRow = function (rowId, direction) {
     const row = document.getElementById(rowId);
     if (!row) return;
