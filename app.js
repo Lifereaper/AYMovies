@@ -1575,6 +1575,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             saveUserData();
+            
+            // 🚀 THE MAGIC FIX: Instantly tell the UI to rebuild the personalized rows!
+            renderPersonalizedRows();
+            
             setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 4000);
             syncProgressBars();
         }
