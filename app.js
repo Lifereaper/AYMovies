@@ -1560,10 +1560,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             btnMarkFinished.innerText = btnFeedback;
 
-            continueWatching = continueWatching.filter(item => item.id !== currentTvState.id);
+            // 🛡️ THE SAFEGUARD: Force these to be Arrays so they never crash!
+            if (!Array.isArray(continueWatching)) continueWatching = [];
+            if (!Array.isArray(alreadyWatched)) alreadyWatched = [];
+
+            // Remove it from continue watching
+            continueWatching = continueWatching.filter(item => String(item.id) !== String(currentTvState.id));
 
             if (currentModalData) {
-                alreadyWatched = alreadyWatched.filter(item => item.id !== currentModalData.id);
+                // Remove any duplicates first
+                alreadyWatched = alreadyWatched.filter(item => String(item.id) !== String(currentModalData.id));
+                
+                // Add the fresh movie to the front of the Watch It Again row
                 alreadyWatched.unshift({
                     id: currentModalData.id,
                     title: currentModalData.title || currentModalData.name,
@@ -1572,12 +1580,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     release_date: currentModalData.release_date || currentModalData.first_air_date,
                     vote_average: currentModalData.vote_average
                 });
+                
+                // Keep the list to a maximum of 15 movies
                 if (alreadyWatched.length > 15) alreadyWatched.pop();
             }
 
             saveUserData();
             
-            // 🚀 THE MAGIC FIX: Instantly tell the UI to rebuild the personalized rows!
+            // 🚀 Force the UI to draw the row immediately
             renderPersonalizedRows();
             
             setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 4000);
