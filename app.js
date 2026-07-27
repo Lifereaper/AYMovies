@@ -458,6 +458,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const span = document.createElement('span');
         span.innerText = av;
         span.style.cssText = "font-size: 1.8rem; cursor: pointer; transition: transform 0.2s;";
+        span.className = "tv-focusable"; // ADDED for TV remote focus
+        span.setAttribute('tabindex', '0'); // ADDED for TV remote focus
         span.onmouseover = () => span.style.transform = "scale(1.3)";
         span.onmouseout = () => span.style.transform = "scale(1)";
         span.onclick = () => {
@@ -988,7 +990,9 @@ document.addEventListener("DOMContentLoaded", () => {
         heroDotsContainer.innerHTML = '';
         trendingMoviesList.forEach((_, idx) => {
             const dot = document.createElement('div');
-            dot.className = `hero-dot ${idx === currentHeroIndex ? 'active' : ''}`;
+            // ADDED tv-focusable and tabindex to dot so it can be navigated via TV remote
+            dot.className = `hero-dot tv-focusable ${idx === currentHeroIndex ? 'active' : ''}`;
+            dot.setAttribute('tabindex', '0');
             dot.onclick = () => {
                 currentHeroIndex = idx;
                 updateHeroBillboard(trendingMoviesList[currentHeroIndex]);
@@ -1037,8 +1041,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!movieId || !moviePoster) return;
 
                 const card = document.createElement('div');
-                card.className = 'movie-card';
+                // ADDED tv-focusable so TV remotes catch community movies
+                card.className = 'movie-card tv-focusable';
                 card.setAttribute('data-id', movieId.toString());
+                card.setAttribute('tabindex', '0'); // ADDED for TV remote focus
                 card.setAttribute('data-community-item', 'true');
                 card.setAttribute('data-added-by-me', (addedByUser === currentUserUid).toString());
 
@@ -1160,6 +1166,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     const span = document.createElement('span');
                     span.innerText = c.name + (index < 5 ? ", " : "");
                     span.style.cssText = "cursor: pointer; color: #fff; text-decoration: underline; margin-right: 5px; transition: color 0.2s;";
+                    // ADDED TV focusable class and tabindex
+                    span.className = 'tv-focusable';
+                    span.setAttribute('tabindex', '0');
                     span.onclick = () => openActorModal(c.id);
                     castContainer.appendChild(span);
                 });
@@ -1188,6 +1197,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const communityShareBtn = document.createElement('button');
             communityShareBtn.id = "details-community-btn";
+            communityShareBtn.className = "tv-focusable"; // ADDED for TV remote focus
+            communityShareBtn.setAttribute('tabindex', '0'); // ADDED for TV remote focus
             communityShareBtn.style.cssText = "padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(229, 9, 20, 0.2); color: #fff; border: 1px solid #E50914; border-radius: 5px; cursor: pointer; transition: 0.2s;";
             communityShareBtn.innerText = "👥 Share to Community";
             communityShareBtn.onmouseover = () => communityShareBtn.style.background = "#E50914";
@@ -1615,8 +1626,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!item.poster_path) return;
             const isTV = item.media_type === 'tv';
             const card = document.createElement('div');
-            card.className = 'top-10-wrapper';
+            // ADDED tv-focusable so TV remotes catch the Top 10 movies dynamically
+            card.className = 'top-10-wrapper tv-focusable';
             card.setAttribute('data-id', item.id);
+            card.setAttribute('tabindex', '0'); // ADDED tabindex
 
             card.innerHTML = `
                 <span class="top-10-number">${index + 1}</span>
@@ -1658,7 +1671,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 validResults.forEach(item => {
                     const isTV = (item.media_type === 'tv');
                     const div = document.createElement('div');
-                    div.className = 'search-item';
+                    // ADDED tv-focusable so TV remotes can click search items
+                    div.className = 'search-item tv-focusable';
+                    div.setAttribute('tabindex', '0'); // ADDED tabindex
                     const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
                     div.innerHTML = `
                         <img src="${IMAGE_BASE_URL}${item.poster_path}" alt="">
@@ -1692,8 +1707,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function createMovieCard(item, isTV = false) {
         const card = document.createElement('div');
-        card.className = 'movie-card';
+        // ADDED tv-focusable so TV remotes catch ALL regular movies dynamically
+        card.className = 'movie-card tv-focusable';
         card.setAttribute('data-id', item.id);
+        card.setAttribute('tabindex', '0'); // ADDED tabindex
 
         const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
         const rating = parseFloat(item.vote_average || 0).toFixed(1);
@@ -1875,13 +1892,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
-// TV Remote D-Pad Navigation
+
+// TV Remote D-Pad Navigation (Applies to static items on load)
 document.addEventListener('DOMContentLoaded', () => {
-    // Select all clickable elements (update '.movie-poster' if your class is different)
-    const clickableItems = document.querySelectorAll('button, a, .movie-poster');
+    // Select all static clickable elements (nav links, buttons, inputs)
+    const clickableItems = document.querySelectorAll('button, a, select, input, .nav-link, .chip-btn');
     
     clickableItems.forEach(item => {
-        item.setAttribute('tabindex', '0'); // Allows TV remote D-Pad focus
+        if (!item.hasAttribute('tabindex')) {
+            item.setAttribute('tabindex', '0'); // Allows TV remote D-Pad focus
+        }
         item.classList.add('tv-focusable');
     });
 
