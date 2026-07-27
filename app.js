@@ -389,7 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // ✨ FLOATING REWARD TOAST POPUP (CENTERED, PAUSE & RESUME)
+// ✨ FLOATING REWARD TOAST POPUP (UPGRADED Z-INDEX FOR VIDEO OVERLAY)
     function showRewardToast(title, message) {
         let toast = document.getElementById('reward-toast');
         if (!toast) {
@@ -400,13 +400,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                background: rgba(20, 20, 20, 0.95);
-                border: 2px solid #ffd700;
-                box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+                background: rgba(15, 15, 15, 0.98);
+                border: 3px solid #ffd700;
+                box-shadow: 0 0 35px rgba(255, 215, 0, 0.8);
                 color: white;
-                padding: 24px 40px;
-                border-radius: 8px;
-                z-index: 10002;
+                padding: 25px 45px;
+                border-radius: 12px;
+                z-index: 9999999; /* 👈 Set to max layer so it renders above video iframe */
                 text-align: center;
                 font-family: Arial, sans-serif;
                 pointer-events: none;
@@ -416,12 +416,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         toast.innerHTML = `
-            <div style="font-size: 1.6rem; font-weight: bold; color: #ffd700; margin-bottom: 8px;">${title}</div>
-            <div style="font-size: 1.1rem; color: #ffffff;">${message}</div>
+            <div style="font-size: 1.8rem; font-weight: bold; color: #ffd700; margin-bottom: 8px;">${title}</div>
+            <div style="font-size: 1.2rem; color: #ffffff;">${message}</div>
         `;
         toast.style.opacity = '1';
         toast.style.display = 'block';
 
+        // Pause video stream temporarily while toast displays
         const player = document.getElementById('video-player-frame');
         if (player && player.contentWindow) {
             try {
@@ -431,6 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (e) { }
         }
 
+        // Hide toast after 5 seconds and resume video
         setTimeout(() => {
             if (toast) {
                 toast.style.opacity = '0';
