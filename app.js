@@ -243,8 +243,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function applyMoodFilter(filter) {
         const allCards = document.querySelectorAll('.movie-card, .top-10-wrapper');
-        // 👇 We added .row-wrapper to ensure it catches your specific layout!
-        const allRows = document.querySelectorAll('.row-wrapper, .row-container'); 
+        
+        // 👇 THE FIX: Only look at the outer container!
+        const allRows = document.querySelectorAll('.row-container'); 
 
         if (filter === 'all') {
             allCards.forEach(c => c.style.display = 'block');
@@ -266,8 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // 🚀 ROW-LEVEL FILTERING 
             allRows.forEach(row => {
-                // Check both the visible text AND the invisible HTML ID (like 'series-row')
-                const rowTitle = (row.querySelector('.category-title, .row-title')?.innerText || '').toLowerCase();
+                const rowTitle = (row.querySelector('.row-title')?.innerText || '').toLowerCase();
                 const innerRowId = (row.querySelector('.movie-row')?.id || row.id || '').toLowerCase();
                 
                 // If either the title OR the ID matches, keep it on screen!
@@ -303,6 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     }
+    
     // 🌐 LANGUAGE DICTIONARY & TOGGLE SYSTEM
     const translations = {
         en: {
