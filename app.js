@@ -1875,3 +1875,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+// TV Remote D-Pad Navigation
+document.addEventListener('DOMContentLoaded', () => {
+    // Select all clickable elements (update '.movie-poster' if your class is different)
+    const clickableItems = document.querySelectorAll('button, a, .movie-poster');
+    
+    clickableItems.forEach(item => {
+        item.setAttribute('tabindex', '0'); // Allows TV remote D-Pad focus
+        item.classList.add('tv-focusable');
+    });
+
+    // Handle Firestick / TV Remote "Select" button (Registers as Enter key)
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (document.activeElement) {
+                document.activeElement.click(); // Triggers the click on focused item
+            }
+        }
+    });
+});
