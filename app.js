@@ -412,17 +412,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // 📡 MULTI-SERVER STREAM URL GENERATOR
     function getServerStreamUrl(serverKey, id, isTV = false, season = 1, episode = 1) {
         switch (serverKey) {
-            case 'vidsrc2':
-                return isTV
-                    ? `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`
-                    : `https://vidsrc.cc/v2/embed/movie/${id}`;
-
             case 'vidlink':
                 return isTV
                     ? `https://vidlink.pro/tv/${id}/${season}/${episode}`
                     : `https://vidlink.pro/movie/${id}`;
             
-            // 🚀 NEW HIGH-RELIABILITY SERVERS
             case 'embedsu':
                 return isTV
                     ? `https://embed.su/embed/tv/${id}/${season}/${episode}`
