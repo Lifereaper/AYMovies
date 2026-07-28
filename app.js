@@ -56,13 +56,16 @@ window.scrollRow = function (rowId, direction) {
     }
 };
 
-// ⚡ FASTEST SERVER DETECTION ENGINE
+// ⚡ FASTEST SERVER DETECTION ENGINE (ALL 7 SERVERS)
 async function getFastestServer() {
     const servers = [
         { key: 'vidsrc', url: 'https://vidsrc.me' },
         { key: 'vidlink', url: 'https://vidlink.pro' },
         { key: 'embedsu', url: 'https://embed.su' },
-        { key: 'vidsrcxyz', url: 'https://vidsrc.xyz' }
+        { key: 'vidsrcxyz', url: 'https://vidsrc.xyz' },
+        { key: 'smashystream', url: 'https://embed.smashystream.com' },
+        { key: '2embed', url: 'https://www.2embed.cc' },
+        { key: 'videasy', url: 'https://player.videasy.net' }
     ];
 
     const measureServerPing = (server) => {
@@ -443,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setAppLanguage(currentLang);
 
-    // 📡 MULTI-SERVER STREAM URL GENERATOR
+    // 📡 MULTI-SERVER STREAM URL GENERATOR (ALL 7 SERVERS)
     function getServerStreamUrl(serverKey, id, isTV = false, season = 1, episode = 1) {
         switch (serverKey) {
             case 'vidlink':
@@ -456,11 +459,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     ? `https://embed.su/embed/tv/${id}/${season}/${episode}`
                     : `https://embed.su/embed/movie/${id}`;
 
-
             case 'vidsrcxyz':
                 return isTV
                     ? `https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`
                     : `https://vidsrc.xyz/embed/movie/${id}`;
+
+            case 'smashystream':
+                return isTV
+                    ? `https://embed.smashystream.com/playere.php?tmdb=${id}&s=${season}&e=${episode}`
+                    : `https://embed.smashystream.com/playere.php?tmdb=${id}`;
+
+            case '2embed':
+                return isTV
+                    ? `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`
+                    : `https://www.2embed.cc/embed/${id}`;
+
+            case 'videasy':
+                return isTV
+                    ? `https://player.videasy.net/tv/${id}/${season}/${episode}`
+                    : `https://player.videasy.net/movie/${id}`;
 
             case 'vidsrc':
             default:
@@ -470,7 +487,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-// ✨ FLOATING REWARD TOAST POPUP (UPGRADED Z-INDEX FOR VIDEO OVERLAY)
+// ✨ FLOATING REWARD TOAST POPUP
     function showRewardToast(title, message) {
         let toast = document.getElementById('reward-toast');
         if (!toast) {
@@ -487,7 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 color: white;
                 padding: 25px 45px;
                 border-radius: 12px;
-                z-index: 9999999; /* 👈 Set to max layer so it renders above video iframe */
+                z-index: 9999999;
                 text-align: center;
                 font-family: Arial, sans-serif;
                 pointer-events: none;
@@ -503,7 +520,6 @@ document.addEventListener("DOMContentLoaded", () => {
         toast.style.opacity = '1';
         toast.style.display = 'block';
 
-        // Pause video stream temporarily while toast displays
         const player = document.getElementById('video-player-frame');
         if (player && player.contentWindow) {
             try {
@@ -513,7 +529,6 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (e) { }
         }
 
-        // Hide toast after 5 seconds and resume video
         setTimeout(() => {
             if (toast) {
                 toast.style.opacity = '0';
@@ -541,8 +556,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const span = document.createElement('span');
         span.innerText = av;
         span.style.cssText = "font-size: 1.8rem; cursor: pointer; transition: transform 0.2s;";
-        span.className = "tv-focusable"; // ADDED for TV remote focus
-        span.setAttribute('tabindex', '0'); // ADDED for TV remote focus
+        span.className = "tv-focusable";
+        span.setAttribute('tabindex', '0');
         span.onmouseover = () => span.style.transform = "scale(1.3)";
         span.onmouseout = () => span.style.transform = "scale(1)";
         span.onclick = () => {
@@ -713,7 +728,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const payload = {
             action: "save",
             uid: currentUserUid,
-            email: window.currentUserEmail, // Saves user email for Admin Dashboard lookup
+            email: window.currentUserEmail,
             userData: {
                 avatar: profileIcon.innerText,
                 myList: myList,
@@ -878,13 +893,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const emojiType = btn.getAttribute('data-emoji');
             const movieId = currentModalData.id.toString();
 
-            // Increment UI immediately
             if (!globalReactionsMap[movieId]) globalReactionsMap[movieId] = { "🔥": 0, "🤯": 0, "😂": 0, "😴": 0 };
             globalReactionsMap[movieId][emojiType] = (globalReactionsMap[movieId][emojiType] || 0) + 1;
 
             updateEmojiUI(movieId);
 
-            // Send to Google Sheets
             try {
                 fetch(GOOGLE_SHEET_URL, {
                     method: "POST",
@@ -1073,7 +1086,6 @@ document.addEventListener("DOMContentLoaded", () => {
         heroDotsContainer.innerHTML = '';
         trendingMoviesList.forEach((_, idx) => {
             const dot = document.createElement('div');
-            // ADDED tv-focusable and tabindex to dot so it can be navigated via TV remote
             dot.className = `hero-dot tv-focusable ${idx === currentHeroIndex ? 'active' : ''}`;
             dot.setAttribute('tabindex', '0');
             dot.onclick = () => {
@@ -1112,7 +1124,7 @@ document.addEventListener("DOMContentLoaded", () => {
             populateRow(myList, myListRow, false);
         } else { myListContainer.style.display = 'none'; }
 
-        // 🚀 2. Watch It Again (Moved UP so it draws instantly!)
+        // 2. Watch It Again
         if (alreadyWatched.length > 0) {
             awContainer.style.display = 'block';
             populateRow(alreadyWatched, awRow, false);
@@ -1151,13 +1163,12 @@ document.addEventListener("DOMContentLoaded", () => {
             communityContainer.style.display = 'none';
         }
 
-        // 4. Continue Watching & Recommendations (Background Fetch)
+        // 4. Continue Watching & Recommendations
         if (continueWatching.length > 0) {
             cwContainer.style.display = 'block';
             populateRow(continueWatching, cwRow, false);
             const lastWatched = continueWatching[0];
             
-            // 🚥 UNBLOCKED FETCH: Gets recommendations in the background without freezing the UI!
             fetch(`${BASE_URL}/${lastWatched.media_type}/${lastWatched.id}/similar?api_key=${API_KEY}`)
                 .then(res => res.json())
                 .then(data => {
@@ -1165,7 +1176,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         recContainer.style.display = 'block';
                         const formattedRecs = data.results.map(item => ({ ...item, media_type: lastWatched.media_type }));
                         populateRow(formattedRecs, recRow, lastWatched.media_type === 'tv');
-                        syncProgressBars(); // Resync after background load finishes
+                        syncProgressBars();
                     } else { recContainer.style.display = 'none'; }
                 }).catch(e => { recContainer.style.display = 'none'; });
         } else {
@@ -1250,7 +1261,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     const span = document.createElement('span');
                     span.innerText = c.name + (index < 5 ? ", " : "");
                     span.style.cssText = "cursor: pointer; color: #fff; text-decoration: underline; margin-right: 5px; transition: color 0.2s;";
-                    // ADDED TV focusable class and tabindex
                     span.className = 'tv-focusable';
                     span.setAttribute('tabindex', '0');
                     span.onclick = () => openActorModal(c.id);
@@ -1274,15 +1284,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 detailsMylistBtn.style.backgroundColor = isInList ? "#46d369" : "rgba(109, 109, 110, 0.7)";
             };
 
-            // Inject Community Share Button
             const detailsBtnGroup = document.getElementById('details-btn-group') || detailsPlayBtn.parentElement;
             const oldShareBtn = document.getElementById('details-community-btn');
             if (oldShareBtn) oldShareBtn.remove();
 
             const communityShareBtn = document.createElement('button');
             communityShareBtn.id = "details-community-btn";
-            communityShareBtn.className = "tv-focusable"; // ADDED for TV remote focus
-            communityShareBtn.setAttribute('tabindex', '0'); // ADDED for TV remote focus
+            communityShareBtn.className = "tv-focusable";
+            communityShareBtn.setAttribute('tabindex', '0');
             communityShareBtn.style.cssText = "padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(229, 9, 20, 0.2); color: #fff; border: 1px solid #E50914; border-radius: 5px; cursor: pointer; transition: 0.2s;";
             communityShareBtn.innerText = "👥 Share to Community";
             communityShareBtn.onmouseover = () => communityShareBtn.style.background = "#E50914";
@@ -1423,7 +1432,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             videoModal.style.display = 'block';
 
-            // ⚡ Detect fastest server on-the-fly
+            // ⚡ Detect fastest working server on-the-fly across all 7 endpoints
             const fastestServer = await getFastestServer();
 
             if (serverSelect) {
@@ -1612,18 +1621,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             btnMarkFinished.innerText = btnFeedback;
 
-            // 🛡️ THE SAFEGUARD: Force these to be Arrays so they never crash!
             if (!Array.isArray(continueWatching)) continueWatching = [];
             if (!Array.isArray(alreadyWatched)) alreadyWatched = [];
 
-            // Remove it from continue watching
             continueWatching = continueWatching.filter(item => String(item.id) !== String(currentTvState.id));
 
             if (currentModalData) {
-                // Remove any duplicates first
                 alreadyWatched = alreadyWatched.filter(item => String(item.id) !== String(currentModalData.id));
                 
-                // Add the fresh movie to the front of the Watch It Again row
                 alreadyWatched.unshift({
                     id: currentModalData.id,
                     title: currentModalData.title || currentModalData.name,
@@ -1633,13 +1638,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     vote_average: currentModalData.vote_average
                 });
                 
-                // Keep the list to a maximum of 15 movies
                 if (alreadyWatched.length > 15) alreadyWatched.pop();
             }
 
             saveUserData();
             
-            // 🚀 Force the UI to draw the row immediately
             renderPersonalizedRows();
             
             setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 4000);
@@ -1736,10 +1739,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!item.poster_path) return;
             const isTV = item.media_type === 'tv';
             const card = document.createElement('div');
-            // ADDED tv-focusable so TV remotes catch the Top 10 movies dynamically
             card.className = 'top-10-wrapper tv-focusable';
             card.setAttribute('data-id', item.id);
-            card.setAttribute('tabindex', '0'); // ADDED tabindex
+            card.setAttribute('tabindex', '0');
 
             card.innerHTML = `
                 <span class="top-10-number">${index + 1}</span>
@@ -1781,9 +1783,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 validResults.forEach(item => {
                     const isTV = (item.media_type === 'tv');
                     const div = document.createElement('div');
-                    // ADDED tv-focusable so TV remotes can click search items
                     div.className = 'search-item tv-focusable';
-                    div.setAttribute('tabindex', '0'); // ADDED tabindex
+                    div.setAttribute('tabindex', '0');
                     const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
                     div.innerHTML = `
                         <img src="${IMAGE_BASE_URL}${item.poster_path}" alt="">
@@ -1817,10 +1818,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function createMovieCard(item, isTV = false) {
         const card = document.createElement('div');
-        // ADDED tv-focusable so TV remotes catch ALL regular movies dynamically
         card.className = 'movie-card tv-focusable';
         card.setAttribute('data-id', item.id);
-        card.setAttribute('tabindex', '0'); // ADDED tabindex
+        card.setAttribute('tabindex', '0');
 
         const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
         const rating = parseFloat(item.vote_average || 0).toFixed(1);
@@ -1939,7 +1939,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnDeleteAccountMobile) {
         btnDeleteAccountMobile.addEventListener('click', () => {
-            mobileMenu.style.right = '-100%'; // Close menu
+            mobileMenu.style.right = '-100%';
             deleteAccountModal.style.display = 'flex';
         });
     }
@@ -1952,13 +1952,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     deleteConfirmBtn.innerText = "Deleting...";
                     
-                    // 1. Tell Google Sheets to delete the user's row
                     await fetch(GOOGLE_SHEET_URL, {
                         method: "POST",
                         body: JSON.stringify({ action: "deleteAccount", uid: user.uid })
                     });
 
-                    // 2. Tell Firebase to permanently delete the login credentials
                     await deleteUser(user);
                     
                     deleteAccountModal.style.display = 'none';
@@ -2000,7 +1998,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (hasError) return;
 
-            const adminNumber = "5016542016"; // Your WhatsApp Support Line
+            const adminNumber = "5016542016";
             const userEmail = window.currentUserEmail || "Unknown Email";
 
             const message = `Hey Admin! I want to invite a friend to AYMovies!\n\n*My Account:* ${userEmail}\n\n*Friend's Details:*\n📧 Email: ${friendEmail}\n📱 Phone: ${friendPhone}\n\nPlease set up an account for my friend. Once they pay/join, please add $0.50 BZD to my Rewards Wallet, Thanks!`;
@@ -2023,7 +2021,6 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener('DOMContentLoaded', () => {
     let currentFocus = null;
 
-    // 1. Grab everything on screen that should be clickable
     function getFocusableElements() {
         const selector = 'button, a, input, select, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot';
         const elements = Array.from(document.querySelectorAll(selector));
@@ -2034,7 +2031,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. Mathematical formula to find the closest element
     function moveFocus(direction) {
         const elements = getFocusableElements();
         if (elements.length === 0) return;
@@ -2092,7 +2088,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 3. Manually apply the glowing box AND NATIVE FOCUS
     function setFocus(el) {
         if (currentFocus) {
             currentFocus.classList.remove('tv-focused'); 
@@ -2100,12 +2095,9 @@ document.addEventListener('DOMContentLoaded', () => {
         currentFocus = el;
         currentFocus.classList.add('tv-focused'); 
         
-        // 👇 THE MAGIC FIX FOR THE PHONE APP:
-        // This physically forces the TV's invisible cursor to follow our yellow box!
         currentFocus.focus({ preventScroll: true }); 
     }
 
-    // 4. Hijack the Firestick Remote / Phone App
     document.addEventListener('keydown', (e) => {
         const allowedKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
         
@@ -2113,7 +2105,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault(); 
             moveFocus(e.key);
             
-        // Catch every variation of the "Select/Tap" signal sent by virtual apps
         } else if (e.key === 'Enter' || e.key === 'Select' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.key === ' ') {
             e.preventDefault();
             if (currentFocus) {
@@ -2122,7 +2113,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 5. AUTO-FOCUS ON STARTUP
     setTimeout(() => {
         const disclaimerBtn = document.getElementById('btn-accept-dmca');
         if (disclaimerBtn && window.getComputedStyle(disclaimerBtn).display !== 'none') {
