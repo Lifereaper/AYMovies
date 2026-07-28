@@ -56,6 +56,41 @@ window.scrollRow = function (rowId, direction) {
     }
 };
 
+// ⚡ FASTEST SERVER DETECTION ENGINE
+async function getFastestServer() {
+    const servers = [
+        { key: 'vidsrc', url: 'https://vidsrc.me' },
+        { key: 'vidlink', url: 'https://vidlink.pro' },
+        { key: 'embedsu', url: 'https://embed.su' },
+        { key: 'vidsrcnet', url: 'https://vidsrc.net' },
+        { key: 'vidsrcxyz', url: 'https://vidsrc.xyz' }
+    ];
+
+    const measureServerPing = (server) => {
+        return new Promise((resolve) => {
+            const start = performance.now();
+            const timeout = setTimeout(() => resolve({ key: server.key, time: 9999 }), 2500);
+
+            fetch(server.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
+                .then(() => {
+                    clearTimeout(timeout);
+                    const duration = performance.now() - start;
+                    resolve({ key: server.key, time: duration });
+                })
+                .catch(() => {
+                    clearTimeout(timeout);
+                    resolve({ key: server.key, time: 9999 });
+                });
+        });
+    };
+
+    const results = await Promise.all(servers.map(measureServerPing));
+    results.sort((a, b) => a.time - b.time);
+
+    console.log("⚡ Live Server Ping Results:", results);
+    return results[0].time < 9999 ? results[0].key : 'embedsu';
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // ⚖️ SPLASH / DMCA DISCLAIMER LOGIC
     const splashDmcaView = document.getElementById('splash-dmca-view');
@@ -1346,7 +1381,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modalTrailerFrame.src = "";
     });
 
-    function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
+    async function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         try {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
 
@@ -1387,12 +1422,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
             btnMarkFinished.innerText = "✔️ Mark Finished";
 
-            const activeServer = serverSelect ? serverSelect.value : 'vidsrc';
-            const streamUrl = getServerStreamUrl(activeServer, id, isTV, season, episode);
+            if (serverSelect) {
+                serverSelect.disabled = true;
+            }
+
+            videoModal.style.display = 'block';
+
+            // ⚡ Detect fastest server on-the-fly
+            const fastestServer = await getFastestServer();
+
+            if (serverSelect) {
+                serverSelect.value = fastestServer;
+                serverSelect.disabled = false;
+            }
+
+            const streamUrl = getServerStreamUrl(fastestServer, id, isTV, season, episode);
 
             videoPlayerFrame.removeAttribute('sandbox');
             videoPlayerFrame.src = streamUrl;
-            videoModal.style.display = 'block';
 
             window.watchTimerInterval = setInterval(() => {
                 if (!currentUserUid || window.rewardClaimedForSession) return;
@@ -1973,7 +2020,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
- });
+});
 
 // ==========================================
 // 🚀 AYMOVIES SPATIAL NAVIGATION ENGINE
