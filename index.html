@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="style.css?v=19">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
 
-    <!-- 🚀 PRE-CONNECT & DNS PREFETCH FOR ALL STREAMING SERVERS -->
+    <!-- 🚀 PRE-CONNECT & DNS PREFETCH FOR ALL 7 STREAMING SERVERS -->
     <link rel="preconnect" href="https://vidsrc.me" crossorigin>
     <link rel="dns-prefetch" href="https://vidsrc.me">
 
@@ -27,6 +27,15 @@
 
     <link rel="preconnect" href="https://vidsrc.xyz" crossorigin>
     <link rel="dns-prefetch" href="https://vidsrc.xyz">
+
+    <link rel="preconnect" href="https://embed.smashystream.com" crossorigin>
+    <link rel="dns-prefetch" href="https://embed.smashystream.com">
+
+    <link rel="preconnect" href="https://www.2embed.cc" crossorigin>
+    <link rel="dns-prefetch" href="https://www.2embed.cc">
+
+    <link rel="preconnect" href="https://player.videasy.net" crossorigin>
+    <link rel="dns-prefetch" href="https://player.videasy.net">
 
     <style>
         /* 📱 RESPONSIVE HEADER FIXES */
@@ -782,12 +791,12 @@
     <!-- 🎥 VIDEO PLAYER MODAL -->
     <div id="video-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10001;">
         
-        <!-- ❌ CLOSE BUTTON (Moved to the Left) -->
+        <!-- ❌ CLOSE BUTTON -->
         <div style="position: absolute; top: 15px; left: 25px; z-index: 10;">
             <span id="close-modal-btn" style="color: white; font-size: 30px; cursor: pointer; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.8);">&times;</span>
         </div>
 
-        <!-- 🔽 MINI PLAYER BUTTON (Kept on the Right) -->
+        <!-- 🔽 MINI PLAYER BUTTON -->
         <div style="position: absolute; top: 20px; right: 25px; z-index: 10;">
             <button id="btn-toggle-mini-player" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid #666; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem;" title="Minimize Player">🔽 Mini</button>
         </div>
@@ -797,15 +806,18 @@
         <div class="video-modal-controls" style="text-align: center; color: white; margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <h3 id="episode-indicator-text" style="font-size: 1.2rem; margin: 0; color: #aaa;">Feature Film</h3>
             
-            <!-- 🎛️ INLINE CONTROLS BAR (Server selector + prev + next + mark finished side-by-side) -->
+            <!-- 🎛️ INLINE CONTROLS BAR (ALL 7 SERVERS) -->
             <div style="display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 10px;">
                 <div style="display: flex; align-items: center; gap: 8px; background: rgba(30, 30, 30, 0.8); padding: 7px 12px; border-radius: 6px; border: 1px solid #333;">
                     <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.85rem;">📡 Server:</label>
                     <select id="server-select" style="background: #111; color: #fff; border: 1px solid #ffd700; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; outline: none; font-size: 0.85rem;">
                         <option value="vidsrc">Server 1 (VidSrc Main)</option>
                         <option value="vidlink">Server 2 (VidLink HD)</option>
-                        <option value="embed.su">Server 3 (Embed.su HD)</option>
-                        <option value="vidSrc">Server 5 (VidSrc XYZ)</option>
+                        <option value="embedsu">Server 3 (Embed.su HD)</option>
+                        <option value="vidsrcxyz">Server 4 (VidSrc XYZ)</option>
+                        <option value="smashystream">Server 5 (SmashyStream)</option>
+                        <option value="2embed">Server 6 (2Embed)</option>
+                        <option value="videasy">Server 7 (Videasy HD)</option>
                     </select>
                 </div>
 
