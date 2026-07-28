@@ -62,7 +62,6 @@ async function getFastestServer() {
         { key: 'vidsrc', url: 'https://vidsrc.me' },
         { key: 'vidlink', url: 'https://vidlink.pro' },
         { key: 'embedsu', url: 'https://embed.su' },
-        { key: 'vidsrcnet', url: 'https://vidsrc.net' },
         { key: 'vidsrcxyz', url: 'https://vidsrc.xyz' }
     ];
 
@@ -457,10 +456,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     ? `https://embed.su/embed/tv/${id}/${season}/${episode}`
                     : `https://embed.su/embed/movie/${id}`;
 
-            case 'vidsrcnet':
-                return isTV
-                    ? `https://vidsrc.net/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
-                    : `https://vidsrc.net/embed/movie?tmdb=${id}`;
 
             case 'vidsrcxyz':
                 return isTV
