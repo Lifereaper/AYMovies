@@ -14,6 +14,23 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><text x='50%' y='50%' font-family='Arial' font-size='45' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>AY</text></svg>">
     <link rel="stylesheet" href="style.css?v=19">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
+
+    <!-- 🚀 PRE-CONNECT & DNS PREFETCH FOR ALL STREAMING SERVERS -->
+    <link rel="preconnect" href="https://vidsrc.me" crossorigin>
+    <link rel="dns-prefetch" href="https://vidsrc.me">
+
+    <link rel="preconnect" href="https://vidlink.pro" crossorigin>
+    <link rel="dns-prefetch" href="https://vidlink.pro">
+
+    <link rel="preconnect" href="https://embed.su" crossorigin>
+    <link rel="dns-prefetch" href="https://embed.su">
+
+    <link rel="preconnect" href="https://vidsrc.net" crossorigin>
+    <link rel="dns-prefetch" href="https://vidsrc.net">
+
+    <link rel="preconnect" href="https://vidsrc.xyz" crossorigin>
+    <link rel="dns-prefetch" href="https://vidsrc.xyz">
+
     <style>
         /* 📱 RESPONSIVE HEADER FIXES */
         @media (max-width: 768px) {
@@ -939,6 +956,27 @@
                     }
                 }
             });
+        });
+    </script>
+
+    <!-- 🚀 HLS BUFFER BOOST & PRELOAD ENGINE -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.tagName === 'IFRAME' && node.id === 'video-player-frame') {
+                            node.setAttribute('loading', 'eager');
+                            node.setAttribute('fetchpriority', 'high');
+                        }
+                    });
+                });
+            });
+
+            const playerModal = document.getElementById('video-modal');
+            if (playerModal) {
+                observer.observe(playerModal, { childList: true, subtree: true });
+            }
         });
     </script>
 
