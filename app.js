@@ -1431,6 +1431,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             videoModal.style.display = 'block';
+            
+            // ENSURE NATIVE PLAYER IS HIDDEN & IFRAME IS SHOWN ON FRESH LAUNCH
+            const nativePlayer = document.getElementById('native-video-player');
+            if (nativePlayer) {
+                nativePlayer.style.display = 'none';
+                nativePlayer.pause();
+            }
+            videoPlayerFrame.style.display = 'block';
 
             // ⚡ Detect fastest working server on-the-fly across all 7 endpoints
             const fastestServer = await getFastestServer();
@@ -1519,19 +1527,57 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (serverSelect) {
-        serverSelect.addEventListener('change', (e) => {
+        serverSelect.addEventListener('change', async (e) => {
             if (currentTvState.id) {
                 const newServerKey = e.target.value;
-                const newStreamUrl = getServerStreamUrl(
-                    newServerKey,
-                    currentTvState.id,
-                    currentTvState.isTV,
-                    currentTvState.season,
-                    currentTvState.episode
-                );
+                const iframe = document.getElementById('video-player-frame');
+                const nativePlayer = document.getElementById('native-video-player');
 
-                videoPlayerFrame.removeAttribute('sandbox');
-                videoPlayerFrame.src = newStreamUrl;
+                if (newServerKey === 'native') {
+                    // 1. Hide iframe, show Native Player
+                    iframe.style.display = 'none';
+                    iframe.src = ""; // Stop iframe from playing in the background
+                    if(nativePlayer) nativePlayer.style.display = 'block';
+
+                    // 2. THIS IS WHERE YOUR SCRAPER API GOES
+                    // For now, we will use a dummy test stream to prove it works without buffering
+                    const rawStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+
+                    // 3. Hook up Hls.js to play the stream smoothly
+                    if (nativePlayer) {
+                        if (window.Hls && Hls.isSupported()) {
+                            const hls = new Hls();
+                            hls.loadSource(rawStreamUrl);
+                            hls.attachMedia(nativePlayer);
+                            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                                nativePlayer.play();
+                            });
+                        } else if (nativePlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                            // For Safari / iOS which supports HLS natively
+                            nativePlayer.src = rawStreamUrl;
+                            nativePlayer.play();
+                        }
+                    }
+
+                } else {
+                    // 1. Hide Native Player, show Iframe
+                    if(nativePlayer) {
+                        nativePlayer.style.display = 'none';
+                        nativePlayer.pause(); // Stop native player audio
+                    }
+                    iframe.style.display = 'block';
+
+                    // 2. Load standard embedded URL
+                    const newStreamUrl = getServerStreamUrl(
+                        newServerKey,
+                        currentTvState.id,
+                        currentTvState.isTV,
+                        currentTvState.season,
+                        currentTvState.episode
+                    );
+                    iframe.removeAttribute('sandbox');
+                    iframe.src = newStreamUrl;
+                }
             }
         });
     }
@@ -1654,6 +1700,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
         videoModal.style.display = 'none';
         videoPlayerFrame.src = "";
+        
+        // CLEANUP NATIVE VIDEO AUDIO WHEN CLOSING MODAL
+        const nativePlayer = document.getElementById('native-video-player');
+        if (nativePlayer) {
+            nativePlayer.pause();
+            nativePlayer.src = "";
+        }
+
         releaseWakeLock();
         renderPersonalizedRows();
         try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); } catch (e) { }
