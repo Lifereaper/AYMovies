@@ -14,6 +14,9 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><text x='50%' y='50%' font-family='Arial' font-size='45' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>AY</text></svg>">
     <link rel="stylesheet" href="style.css?v=19">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
+    
+    <!-- 🚀 NEW: HLS STREAMING ENGINE FOR NATIVE PLAYER -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
     <!-- 🚀 PRE-CONNECT & DNS PREFETCH FOR ALL 7 STREAMING SERVERS -->
     <link rel="preconnect" href="https://vidsrc.me" crossorigin>
@@ -803,14 +806,18 @@
         
         <iframe id="video-player-frame" style="width: 100%; height: 75%; border: none; margin-top: 60px;" allowfullscreen></iframe>
         
+        <!-- 🌟 NEW: NATIVE VIDEO PLAYER (Hidden by default) -->
+        <video id="native-video-player" controls playsinline style="display: none; width: 100%; height: 75%; margin-top: 60px; background: #000; outline: none;"></video>
+        
         <div class="video-modal-controls" style="text-align: center; color: white; margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <h3 id="episode-indicator-text" style="font-size: 1.2rem; margin: 0; color: #aaa;">Feature Film</h3>
             
-            <!-- 🎛️ INLINE CONTROLS BAR (ALL 7 SERVERS) -->
+            <!-- 🎛️ INLINE CONTROLS BAR (ALL 7 SERVERS + NATIVE) -->
             <div style="display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 10px;">
                 <div style="display: flex; align-items: center; gap: 8px; background: rgba(30, 30, 30, 0.8); padding: 7px 12px; border-radius: 6px; border: 1px solid #333;">
                     <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.85rem;">📡 Server:</label>
                     <select id="server-select" style="background: #111; color: #fff; border: 1px solid #ffd700; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; outline: none; font-size: 0.85rem;">
+                        <option value="native" style="color: #46d369;">🌟 Server 8 (Fast Native Player)</option>
                         <option value="vidsrc">Server 1 (VidSrc Main)</option>
                         <option value="vidlink">Server 2 (VidLink HD)</option>
                         <option value="embedsu">Server 3 (Embed.su HD)</option>
