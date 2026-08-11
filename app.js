@@ -1537,35 +1537,50 @@ document.addEventListener("DOMContentLoaded", () => {
                     // 1. Hide iframe, show Native Player
                     iframe.style.display = 'none';
                     iframe.src = ""; // Stop iframe from playing in the background
-                    if(nativePlayer) nativePlayer.style.display = 'block';
+                    if (nativePlayer) nativePlayer.style.display = 'block';
 
-                    // 2. YOUR LIVE PRIVATE SCRAPER API
-                    // Using your newly deployed Render server!
                     const myScraperApiUrl = "https://my-private-scraper.onrender.com"; 
                     
                     episodeIndicatorText.innerText = "⏳ Extracting raw stream... Please wait";
 
                     try {
-                        // Build the endpoint URL for Movie vs TV Show
-                        const endpoint = currentTvState.isTV 
+                        // Pre-fetch IMDb ID directly from TMDB API to guarantee scrapers receive it
+                        let imdbId = null;
+                        try {
+                            const tmdbType = currentTvState.isTV ? 'tv' : 'movie';
+                            const idRes = await fetch(`${BASE_URL}/${tmdbType}/${currentTvState.id}/external_ids?api_key=${API_KEY}`);
+                            const idData = await idRes.json();
+                            imdbId = idData.imdb_id || null;
+                        } catch (e) {
+                            console.warn("Could not pre-fetch IMDb ID:", e);
+                        }
+
+                        // Build backend query string
+                        let endpoint = currentTvState.isTV 
                             ? `${myScraperApiUrl}/api/streams/tv/${currentTvState.id}?s=${currentTvState.season}&e=${currentTvState.episode}`
                             : `${myScraperApiUrl}/api/streams/movie/${currentTvState.id}`;
+
+                        if (imdbId) {
+                            endpoint += `?imdbId=${imdbId}`;
+                        }
 
                         const streamRes = await fetch(endpoint);
                         const streamData = await streamRes.json();
 
-                        // Grab the raw .m3u8 stream URL returned by the API
-                        const rawStreamUrl = streamData[0]?.url || streamData?.url || streamData?.stream;
+                        // Extract active .m3u8 link from the 'streams' array
+                        const rawStreamUrl = (streamData.streams && streamData.streams.length > 0)
+                            ? (streamData.streams[0].url || streamData.streams[0].link || streamData.streams[0].playlist)
+                            : null;
                         
                         if (!rawStreamUrl) {
-                            throw new Error("No stream found from providers.");
+                            throw new Error("No streams available across providers.");
                         }
 
                         episodeIndicatorText.innerText = currentTvState.isTV 
                             ? `Playing: Season ${currentTvState.season}, Episode ${currentTvState.episode}` 
                             : "Feature Film";
 
-                        // 3. Feed the HLS stream into your native player
+                        // Feed stream to Hls.js Native Player
                         if (nativePlayer) {
                             if (window.Hls && Hls.isSupported()) {
                                 const hls = new Hls();
@@ -1575,7 +1590,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                     nativePlayer.play();
                                 });
                             } else if (nativePlayer.canPlayType('application/vnd.apple.mpegurl')) {
-                                // Native support for Safari / iOS / Smart TVs
                                 nativePlayer.src = rawStreamUrl;
                                 nativePlayer.play();
                             }
