@@ -1539,24 +1539,50 @@ document.addEventListener("DOMContentLoaded", () => {
                     iframe.src = ""; // Stop iframe from playing in the background
                     if(nativePlayer) nativePlayer.style.display = 'block';
 
-                    // 2. THIS IS WHERE YOUR SCRAPER API GOES
-                    // For now, we will use a dummy test stream to prove it works without buffering
-                    const rawStreamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+                    // 2. YOUR LIVE PRIVATE SCRAPER API
+                    // Using your newly deployed Render server!
+                    const myScraperApiUrl = "https://my-private-scraper.onrender.com"; 
+                    
+                    episodeIndicatorText.innerText = "⏳ Extracting raw stream... Please wait";
 
-                    // 3. Hook up Hls.js to play the stream smoothly
-                    if (nativePlayer) {
-                        if (window.Hls && Hls.isSupported()) {
-                            const hls = new Hls();
-                            hls.loadSource(rawStreamUrl);
-                            hls.attachMedia(nativePlayer);
-                            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                                nativePlayer.play();
-                            });
-                        } else if (nativePlayer.canPlayType('application/vnd.apple.mpegurl')) {
-                            // For Safari / iOS which supports HLS natively
-                            nativePlayer.src = rawStreamUrl;
-                            nativePlayer.play();
+                    try {
+                        // Build the endpoint URL for Movie vs TV Show
+                        const endpoint = currentTvState.isTV 
+                            ? `${myScraperApiUrl}/api/streams/tv/${currentTvState.id}?s=${currentTvState.season}&e=${currentTvState.episode}`
+                            : `${myScraperApiUrl}/api/streams/movie/${currentTvState.id}`;
+
+                        const streamRes = await fetch(endpoint);
+                        const streamData = await streamRes.json();
+
+                        // Grab the raw .m3u8 stream URL returned by the API
+                        const rawStreamUrl = streamData[0]?.url || streamData?.url || streamData?.stream;
+                        
+                        if (!rawStreamUrl) {
+                            throw new Error("No stream found from providers.");
                         }
+
+                        episodeIndicatorText.innerText = currentTvState.isTV 
+                            ? `Playing: Season ${currentTvState.season}, Episode ${currentTvState.episode}` 
+                            : "Feature Film";
+
+                        // 3. Feed the HLS stream into your native player
+                        if (nativePlayer) {
+                            if (window.Hls && Hls.isSupported()) {
+                                const hls = new Hls();
+                                hls.loadSource(rawStreamUrl);
+                                hls.attachMedia(nativePlayer);
+                                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                                    nativePlayer.play();
+                                });
+                            } else if (nativePlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                                // Native support for Safari / iOS / Smart TVs
+                                nativePlayer.src = rawStreamUrl;
+                                nativePlayer.play();
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Scraper failed:", error);
+                        episodeIndicatorText.innerText = "❌ Failed to extract stream. Try Server 1-7.";
                     }
 
                 } else {
