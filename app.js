@@ -1578,7 +1578,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     iframe.style.display = 'none';
                     iframe.src = ""; // Stop iframe audio in background
 
-                    episodeIndicatorText.innerText = "⏳ Extracting stream via Home Server...";
+                    episodeIndicatorText.innerHTML = "⏳ <b>Extracting stream via Home Server...</b> (Searching providers)";
+                    if (iframe) iframe.style.opacity = '0.3';
+                    if (nativePlayer) nativePlayer.style.opacity = '0.3';
 
                     try {
                         let imdbId = null;
@@ -1643,14 +1645,20 @@ document.addEventListener("DOMContentLoaded", () => {
                                 nativePlayer.play();
                             }
                         }
+
+                        if (iframe) iframe.style.opacity = '1';
+                        if (nativePlayer) nativePlayer.style.opacity = '1';
+
                     } catch (error) {
                         console.warn("Home server extraction yielded no stream. Fallback triggered:", error);
 
                         if (nativePlayer) {
                             nativePlayer.style.display = 'none';
                             nativePlayer.pause();
+                            nativePlayer.style.opacity = '1';
                         }
                         iframe.style.display = 'block';
+                        iframe.style.opacity = '1';
 
                         const fallbackServer = 'embedsu';
                         if (serverSelect) serverSelect.value = fallbackServer;
@@ -1674,8 +1682,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (nativePlayer) {
                         nativePlayer.style.display = 'none';
                         nativePlayer.pause(); 
+                        nativePlayer.style.opacity = '1';
                     }
                     iframe.style.display = 'block';
+                    iframe.style.opacity = '1';
 
                     const newStreamUrl = getServerStreamUrl(
                         newServerKey,
@@ -1815,6 +1825,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (nativePlayer) {
             nativePlayer.pause();
             nativePlayer.src = "";
+            nativePlayer.style.opacity = '1';
         }
 
         releaseWakeLock();
