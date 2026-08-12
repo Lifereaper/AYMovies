@@ -1642,7 +1642,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
                                 const hls = new Hls({
-                                    defaultAudioCodec: 'mp4a.40.2'
+                                    defaultAudioCodec: 'mp4a.40.2',
+                                    // 🚀 INJECT NGROK BYPASS HEADER INTO HLS.JS REQUESTS
+                                    xhrSetup: function(xhr, url) {
+                                        xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
+                                    }
                                 });
                                 
                                 hls.loadSource(rawStreamUrl);
