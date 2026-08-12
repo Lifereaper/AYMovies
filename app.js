@@ -1610,10 +1610,13 @@ document.addEventListener("DOMContentLoaded", () => {
                             throw new Error("Backend server returned 0 streams for this title.");
                         }
 
-                        // Filter out unplayable .mkv files
+                        // Filter out unplayable .mkv files and explicit non-English tags
                         const playableStreams = streamData.streams.filter(s => {
                             const link = (s.url || s.playlist || s.link || '').toLowerCase();
-                            return link.includes('m3u8') || link.includes('.mp4');
+                            const title = (s.title || s.name || '').toLowerCase();
+                            const isSpanish = title.includes('latino') || title.includes('spanish') || title.includes('esp') || title.includes('dubbed');
+                            const isPlayable = link.includes('m3u8') || link.includes('.mp4');
+                            return isPlayable && !isSpanish;
                         });
 
                         const chosenStream = playableStreams.length > 0 ? playableStreams[0] : streamData.streams[0];
@@ -1634,12 +1637,47 @@ document.addEventListener("DOMContentLoaded", () => {
                             iframe.style.display = 'none';
 
                             if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
-                                const hls = new Hls();
+                                const hls = new Hls({
+                                    defaultAudioCodec: 'mp4a.40.2'
+                                });
+                                
                                 hls.loadSource(rawStreamUrl);
                                 hls.attachMedia(nativePlayer);
+
                                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                                    // 🎧 AUTOMATIC AUDIO TRACK SWITCHER TO ENGLISH
+                                    const audioTracks = hls.audioTracks;
+                                    if (audioTracks && audioTracks.length > 0) {
+                                        console.log("🔊 Found Audio Tracks:", audioTracks);
+
+                                        const englishTrackIndex = audioTracks.findIndex(track => {
+                                            const lang = (track.lang || track.name || '').toLowerCase();
+                                            return lang.includes('en') || lang.includes('eng') || lang.includes('english');
+                                        });
+
+                                        if (englishTrackIndex !== -1) {
+                                            console.log(`✅ Switching to English audio track index: ${englishTrackIndex}`);
+                                            hls.audioTrack = englishTrackIndex;
+                                        } else {
+                                            console.warn("⚠️ No explicit English audio track label found, keeping track 0.");
+                                        }
+                                    }
+
                                     nativePlayer.play();
                                 });
+
+                                hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, function(event, data) {
+                                    if (data.audioTracks && data.audioTracks.length > 0) {
+                                        const englishTrackIndex = data.audioTracks.findIndex(track => {
+                                            const lang = (track.lang || track.name || '').toLowerCase();
+                                            return lang.includes('en') || lang.includes('eng') || lang.includes('english');
+                                        });
+                                        if (englishTrackIndex !== -1) {
+                                            hls.audioTrack = englishTrackIndex;
+                                        }
+                                    }
+                                });
+
                             } else {
                                 nativePlayer.src = rawStreamUrl;
                                 nativePlayer.play();
