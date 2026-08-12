@@ -93,6 +93,46 @@ async function getFastestServer() {
     return results[0].time < 9999 ? results[0].key : 'embedsu';
 }
 
+// 🚀 CLIENT-SIDE STREAM EXTRACTION ENGINE (Bypasses Datacenter IP Blocks)
+async function fetchClientSideStream(tmdbId, isTV = false, season = 1, episode = 1, imdbId = null) {
+    const corsProxy = "https://corsproxy.io/?";
+
+    const providers = [
+        {
+            name: "Videasy",
+            url: isTV 
+                ? `https://player.videasy.net/tv/${tmdbId}/${season}/${episode}`
+                : `https://player.videasy.net/movie/${tmdbId}`
+        },
+        {
+            name: "Vidlink",
+            url: isTV
+                ? `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`
+                : `https://vidlink.pro/movie/${tmdbId}`
+        }
+    ];
+
+    for (const provider of providers) {
+        try {
+            console.log(`🔍 Client-side probing: ${provider.name}...`);
+
+            const res = await fetch(`${corsProxy}${encodeURIComponent(provider.url)}`);
+            const html = await res.text();
+
+            const m3u8Match = html.match(/https?:\/\/[^"'\s]+\.m3u8[^"'\s]*/i);
+
+            if (m3u8Match && m3u8Match[0]) {
+                console.log(`✅ Client-side stream found from ${provider.name}!`);
+                return m3u8Match[0];
+            }
+        } catch (err) {
+            console.warn(`⚠️ Client-side fetch failed for ${provider.name}:`, err);
+        }
+    }
+
+    return null;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // ⚖️ SPLASH / DMCA DISCLAIMER LOGIC
     const splashDmcaView = document.getElementById('splash-dmca-view');
@@ -616,6 +656,11 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
+                mode: "cors",
+                redirect: "follow",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
                 body: JSON.stringify({ action: "fetch", uid: currentUserUid })
             });
 
@@ -741,6 +786,11 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
+                mode: "cors",
+                redirect: "follow",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
                 body: JSON.stringify(payload)
             });
         } catch (e) { }
@@ -761,6 +811,11 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
+                mode: "cors",
+                redirect: "follow",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
                 body: JSON.stringify(payload)
             });
             if (response.ok) {
@@ -901,6 +956,11 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 fetch(GOOGLE_SHEET_URL, {
                     method: "POST",
+                    mode: "cors",
+                    redirect: "follow",
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8"
+                    },
                     body: JSON.stringify({
                         action: "react",
                         movieId: movieId,
@@ -1536,15 +1596,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (newServerKey === 'native') {
                     // 1. Hide iframe, show Native Player
                     iframe.style.display = 'none';
-                    iframe.src = ""; // Stop iframe from playing in the background
+                    iframe.src = ""; // Stop iframe audio in background
                     if (nativePlayer) nativePlayer.style.display = 'block';
 
-                    const myScraperApiUrl = "https://my-private-scraper.onrender.com"; 
-                    
-                    episodeIndicatorText.innerText = "⏳ Extracting raw stream... Please wait";
+                    episodeIndicatorText.innerText = "⏳ Extracting stream via Client Device...";
 
                     try {
-                        // Pre-fetch IMDb ID directly from TMDB API to guarantee scrapers receive it
                         let imdbId = null;
                         try {
                             const tmdbType = currentTvState.isTV ? 'tv' : 'movie';
@@ -1555,32 +1612,23 @@ document.addEventListener("DOMContentLoaded", () => {
                             console.warn("Could not pre-fetch IMDb ID:", e);
                         }
 
-                        // Build backend query string
-                        let endpoint = currentTvState.isTV 
-                            ? `${myScraperApiUrl}/api/streams/tv/${currentTvState.id}?s=${currentTvState.season}&e=${currentTvState.episode}`
-                            : `${myScraperApiUrl}/api/streams/movie/${currentTvState.id}`;
+                        // Perform direct client-side extraction (bypassing Render's datacenter IP block)
+                        const rawStreamUrl = await fetchClientSideStream(
+                            currentTvState.id, 
+                            currentTvState.isTV, 
+                            currentTvState.season, 
+                            currentTvState.episode,
+                            imdbId
+                        );
 
-                        if (imdbId) {
-                            endpoint += `?imdbId=${imdbId}`;
-                        }
-
-                        const streamRes = await fetch(endpoint);
-                        const streamData = await streamRes.json();
-
-                        // Extract active .m3u8 link from the 'streams' array
-                        const rawStreamUrl = (streamData.streams && streamData.streams.length > 0)
-                            ? (streamData.streams[0].url || streamData.streams[0].link || streamData.streams[0].playlist)
-                            : null;
-                        
                         if (!rawStreamUrl) {
-                            throw new Error("No streams available across providers.");
+                            throw new Error("No direct m3u8 links found via client-side extraction.");
                         }
 
                         episodeIndicatorText.innerText = currentTvState.isTV 
                             ? `Playing: Season ${currentTvState.season}, Episode ${currentTvState.episode}` 
                             : "Feature Film";
 
-                        // Feed stream to Hls.js Native Player
                         if (nativePlayer) {
                             if (window.Hls && Hls.isSupported()) {
                                 const hls = new Hls();
@@ -1595,13 +1643,33 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                         }
                     } catch (error) {
-                        console.error("Scraper failed:", error);
-                        episodeIndicatorText.innerText = "❌ Failed to extract stream. Try Server 1-7.";
+                        console.warn("Client extraction yielded no stream. Fallback triggered:", error);
+
+                        if (nativePlayer) {
+                            nativePlayer.style.display = 'none';
+                            nativePlayer.pause();
+                        }
+                        iframe.style.display = 'block';
+
+                        const fallbackServer = 'embedsu';
+                        if (serverSelect) serverSelect.value = fallbackServer;
+
+                        const fallbackUrl = getServerStreamUrl(
+                            fallbackServer,
+                            currentTvState.id,
+                            currentTvState.isTV,
+                            currentTvState.season,
+                            currentTvState.episode
+                        );
+
+                        iframe.removeAttribute('sandbox');
+                        iframe.src = fallbackUrl;
+                        episodeIndicatorText.innerText = "⚠️ Direct stream unavailable. Switched to Fallback Server.";
                     }
 
                 } else {
                     // 1. Hide Native Player, show Iframe
-                    if(nativePlayer) {
+                    if (nativePlayer) {
                         nativePlayer.style.display = 'none';
                         nativePlayer.pause(); // Stop native player audio
                     }
@@ -1755,7 +1823,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     heroMuteBtn.addEventListener('click', () => {
         isHeroMuted = !isHeroMuted;
-        heroMuteBtn.innerText = isHeroMuted ? "🔇" : "🔊";
+        heroMuteBtn.innerText = isHeroMuted ? "..." : "...";
         const command = isHeroMuted ? 'mute' : 'unMute';
         heroPlayerFrame.contentWindow.postMessage(`{"event":"command","func":"${command}","args":""}`, '*');
     });
@@ -1948,6 +2016,11 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
+                mode: "cors",
+                redirect: "follow",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
                 body: JSON.stringify({ action: "fetch", uid: currentUserUid, cacheBust: Date.now() })
             });
             const result = await response.json();
@@ -2048,6 +2121,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     await fetch(GOOGLE_SHEET_URL, {
                         method: "POST",
+                        mode: "cors",
+                        redirect: "follow",
+                        headers: {
+                            "Content-Type": "text/plain;charset=utf-8"
+                        },
                         body: JSON.stringify({ action: "deleteAccount", uid: user.uid })
                     });
 
