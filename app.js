@@ -1591,7 +1591,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             imdbId = idData.imdb_id || null;
                         } catch (e) { }
 
-                        const myScraperApiUrl = "https://affair-musical-learners-sufficient.trycloudflare.com";
+                        const myScraperApiUrl = "https://tug-doctrine-greedily.ngrok-free.dev";
                         const streamType = currentTvState.isTV ? 'series' : 'movie';
                         let endpoint = `${myScraperApiUrl}/api/streams/${streamType}/${currentTvState.id}`;
 
