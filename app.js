@@ -1601,7 +1601,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         console.log("📡 Requesting streams from Home Server:", endpoint);
 
-                        const streamRes = await fetch(endpoint);
+                        const streamRes = await fetch(endpoint, {
+                            headers: {
+                                'ngrok-skip-browser-warning': 'true'
+                            }
+                        });
                         const streamData = await streamRes.json();
 
                         console.log("📦 Home Server Response:", streamData);
