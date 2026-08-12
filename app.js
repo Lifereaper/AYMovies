@@ -93,7 +93,7 @@ async function getFastestServer() {
     return results[0].time < 9999 ? results[0].key : 'embedsu';
 }
 
-// 🚀 CLIENT-SIDE STREAM EXTRACTION ENGINE (Bypasses Datacenter IP Blocks)
+// 🚀 CLIENT-SIDE STREAM EXTRACTION ENGINE (Left here just in case, but no longer used for Server 8)
 async function fetchClientSideStream(tmdbId, isTV = false, season = 1, episode = 1, imdbId = null) {
     const corsProxy = "https://corsproxy.io/?";
 
@@ -1599,7 +1599,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     iframe.src = ""; // Stop iframe audio in background
                     if (nativePlayer) nativePlayer.style.display = 'block';
 
-                    episodeIndicatorText.innerText = "⏳ Extracting stream via Client Device...";
+                    episodeIndicatorText.innerText = "⏳ Extracting stream via Home Server...";
 
                     try {
                         let imdbId = null;
@@ -1612,17 +1612,26 @@ document.addEventListener("DOMContentLoaded", () => {
                             console.warn("Could not pre-fetch IMDb ID:", e);
                         }
 
-                        // Perform direct client-side extraction (bypassing Render's datacenter IP block)
-                        const rawStreamUrl = await fetchClientSideStream(
-                            currentTvState.id, 
-                            currentTvState.isTV, 
-                            currentTvState.season, 
-                            currentTvState.episode,
-                            imdbId
-                        );
+                        // 👇 YOUR NEW CLOUDFLARE HOME SERVER URL IS PLUGGED IN HERE! 👇
+                        const myScraperApiUrl = "https://affair-musical-learners-sufficient.trycloudflare.com";
+                        
+                        let endpoint = currentTvState.isTV 
+                            ? `${myScraperApiUrl}/api/streams/tv/${currentTvState.id}?s=${currentTvState.season}&e=${currentTvState.episode}`
+                            : `${myScraperApiUrl}/api/streams/movie/${currentTvState.id}`;
+
+                        if (imdbId) {
+                            endpoint += `?imdbId=${imdbId}`;
+                        }
+
+                        const streamRes = await fetch(endpoint);
+                        const streamData = await streamRes.json();
+
+                        const rawStreamUrl = (streamData.streams && streamData.streams.length > 0)
+                            ? (streamData.streams[0].url || streamData.streams[0].link || streamData.streams[0].playlist)
+                            : null;
 
                         if (!rawStreamUrl) {
-                            throw new Error("No direct m3u8 links found via client-side extraction.");
+                            throw new Error("No direct m3u8 links found via home server extraction.");
                         }
 
                         episodeIndicatorText.innerText = currentTvState.isTV 
@@ -1643,7 +1652,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                         }
                     } catch (error) {
-                        console.warn("Client extraction yielded no stream. Fallback triggered:", error);
+                        console.warn("Home server extraction yielded no stream. Fallback triggered:", error);
 
                         if (nativePlayer) {
                             nativePlayer.style.display = 'none';
