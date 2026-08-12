@@ -56,28 +56,24 @@ window.scrollRow = function (rowId, direction) {
     }
 };
 
-// ⚡ FASTEST SERVER DETECTION ENGINE (ALL 7 SERVERS)
+// ⚡ FASTEST SERVER DETECTION ENGINE
 async function getFastestServer() {
     const servers = [
-        { key: 'vidsrc', url: 'https://vidsrc.me' },
         { key: 'vidlink', url: 'https://vidlink.pro' },
-        { key: 'embedsu', url: 'https://embed.su' },
-        { key: 'vidsrcxyz', url: 'https://vidsrc.xyz' },
-        { key: 'smashystream', url: 'https://embed.smashystream.com' },
-        { key: '2embed', url: 'https://www.2embed.cc' },
-        { key: 'videasy', url: 'https://player.videasy.net' }
+        { key: 'vidsrc', url: 'https://vidsrc.me' },
+        { key: 'videasy', url: 'https://player.videasy.net' },
+        { key: '2embed', url: 'https://www.2embed.cc' }
     ];
 
     const measureServerPing = (server) => {
         return new Promise((resolve) => {
             const start = performance.now();
-            const timeout = setTimeout(() => resolve({ key: server.key, time: 9999 }), 2500);
+            const timeout = setTimeout(() => resolve({ key: server.key, time: 9999 }), 2000);
 
             fetch(server.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
                 .then(() => {
                     clearTimeout(timeout);
-                    const duration = performance.now() - start;
-                    resolve({ key: server.key, time: duration });
+                    resolve({ key: server.key, time: performance.now() - start });
                 })
                 .catch(() => {
                     clearTimeout(timeout);
@@ -90,10 +86,10 @@ async function getFastestServer() {
     results.sort((a, b) => a.time - b.time);
 
     console.log("⚡ Live Server Ping Results:", results);
-    return results[0].time < 9999 ? results[0].key : 'embedsu';
+    return results[0].time < 9999 ? results[0].key : 'vidlink';
 }
 
-// 🚀 CLIENT-SIDE STREAM EXTRACTION ENGINE (Left here just in case, but no longer used for Server 8)
+// 🚀 CLIENT-SIDE STREAM EXTRACTION ENGINE (Fallback)
 async function fetchClientSideStream(tmdbId, isTV = false, season = 1, episode = 1, imdbId = null) {
     const corsProxy = "https://corsproxy.io/?";
 
@@ -138,17 +134,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const splashDmcaView = document.getElementById('splash-dmca-view');
     const btnAcceptDmca = document.getElementById('btn-accept-dmca');
 
-    // Check if they have accepted it on this device before
     if (!localStorage.getItem('ay_dmca_accepted')) {
-        // If not, force the splash screen to show
         splashDmcaView.style.display = 'flex';
     }
 
     if (btnAcceptDmca) {
         btnAcceptDmca.addEventListener('click', () => {
-            // Save their agreement to the device memory
             localStorage.setItem('ay_dmca_accepted', 'true');
-            // Hide the splash screen with a smooth fade
             splashDmcaView.style.opacity = '0';
             setTimeout(() => { splashDmcaView.style.display = 'none'; }, 300);
         });
@@ -198,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
-    // 🔔 CUSTOM ALERT LOGIC (Replaces native browser alert for Community Share)
+    // 🔔 CUSTOM ALERT LOGIC
     function showCustomAlert(message) {
         const alertModal = document.getElementById('custom-alert-modal');
         const alertMsg = document.getElementById('alert-message');
@@ -252,14 +244,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isNaN(amount) || amount < 5.00) {
                 payoutStatusMsg.style.color = '#E50914';
                 payoutStatusMsg.innerText = '⚠️ Minimum payout request is $5.00 BZD.';
-                setTimeout(() => { payoutStatusMsg.innerText = ''; }, 3000); // 🧹 Auto-clears!
+                setTimeout(() => { payoutStatusMsg.innerText = ''; }, 3000);
                 return;
             }
 
             if (amount > window.userTotalPoints) {
                 payoutStatusMsg.style.color = '#E50914';
                 payoutStatusMsg.innerText = '⚠️ Insufficient balance!';
-                setTimeout(() => { payoutStatusMsg.innerText = ''; }, 3000); // 🧹 Auto-clears!
+                setTimeout(() => { payoutStatusMsg.innerText = ''; }, 3000);
                 return;
             }
 
@@ -289,10 +281,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     payoutStatusMsg.innerText = `✅ Request submitted! $${amount.toFixed(2)} BZD sent.`;
                     payoutForm.reset();
 
-                    // ⏱️ Clears message after 3 seconds & re-fetches status tracker box
                     setTimeout(async () => {
                         await fetchUserData();
-                        payoutStatusMsg.innerText = ''; // 🧹 Erases temporary text completely
+                        payoutStatusMsg.innerText = '';
                     }, 3000);
 
                 } else {
@@ -320,15 +311,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function applyMoodFilter(filter) {
         const allCards = document.querySelectorAll('.movie-card, .top-10-wrapper');
-        
-        // 👇 THE FIX: Only look at the outer container!
         const allRows = document.querySelectorAll('.row-container'); 
 
         if (filter === 'all') {
             allCards.forEach(c => c.style.display = 'block');
             allRows.forEach(r => r.style.display = 'block');
             
-            // Keep Top-10 only on the Home view
             const activeView = document.querySelector('.nav-link.active')?.getAttribute('data-view') || 'home';
             const top10Container = document.getElementById('top-10-container');
             if (top10Container) top10Container.style.display = (activeView === 'home') ? 'block' : 'none';
@@ -337,26 +325,20 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Reset all cards before applying filters
         allCards.forEach(c => c.style.display = 'block');
 
         if (filter === 'action' || filter === 'comedy' || filter === 'series') {
-            
-            // 🚀 ROW-LEVEL FILTERING 
             allRows.forEach(row => {
                 const rowTitle = (row.querySelector('.row-title')?.innerText || '').toLowerCase();
                 const innerRowId = (row.querySelector('.movie-row')?.id || row.id || '').toLowerCase();
                 
-                // If either the title OR the ID matches, keep it on screen!
                 if (rowTitle.includes(filter) || innerRowId.includes(filter)) {
                     row.style.display = 'block'; 
                 } else {
                     row.style.display = 'none';  
                 }
             });
-            
         } else {
-            // ⭐ CARD-LEVEL FILTERING (For "Top Rated" & "2026")
             allCards.forEach(card => {
                 const cardMeta = card.querySelector('.card-meta')?.innerText || '';
                 let isMatch = false;
@@ -370,7 +352,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 card.style.display = isMatch ? 'block' : 'none';
             });
 
-            // Collapse rows that became completely empty
             allRows.forEach(row => {
                 const cardsInRow = Array.from(row.querySelectorAll('.movie-card, .top-10-wrapper'));
                 if (cardsInRow.length > 0) {
@@ -411,7 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
             navSurprise: "🎲 Sorpréndeme",
             navLogout: "Cerrar sesión",
             searchPlaceholder: "Buscar...",
-            rowMyList: "➕ Mi Lista",
+            rowMyList: "Mi Lista",
             rowContinue: "🍿 Continuar Viendo",
             rowWatchAgain: "🔁 Volver a Ver",
             rowRecommended: "💡 Recomendado para Ti",
@@ -527,7 +508,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-// ✨ FLOATING REWARD TOAST POPUP
+    // ✨ FLOATING REWARD TOAST POPUP
     function showRewardToast(title, message) {
         let toast = document.getElementById('reward-toast');
         if (!toast) {
@@ -687,7 +668,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         document.body.appendChild(overlay);
 
                         setTimeout(() => {
-                            firebase.auth().signOut().then(() => {
+                            signOut(auth).then(() => {
                                 window.location.reload();
                             }).catch(() => {
                                 window.location.reload();
@@ -1492,7 +1473,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             videoModal.style.display = 'block';
             
-            // ENSURE NATIVE PLAYER IS HIDDEN & IFRAME IS SHOWN ON FRESH LAUNCH
             const nativePlayer = document.getElementById('native-video-player');
             if (nativePlayer) {
                 nativePlayer.style.display = 'none';
@@ -1500,7 +1480,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             videoPlayerFrame.style.display = 'block';
 
-            // ⚡ Detect fastest working server on-the-fly across all 7 endpoints
             const fastestServer = await getFastestServer();
 
             if (serverSelect) {
@@ -1511,6 +1490,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const streamUrl = getServerStreamUrl(fastestServer, id, isTV, season, episode);
 
             videoPlayerFrame.removeAttribute('sandbox');
+            videoPlayerFrame.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
+            videoPlayerFrame.setAttribute('allowfullscreen', 'true');
             videoPlayerFrame.src = streamUrl;
 
             window.watchTimerInterval = setInterval(() => {
@@ -1594,10 +1575,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const nativePlayer = document.getElementById('native-video-player');
 
                 if (newServerKey === 'native') {
-                    // 1. Hide iframe, show Native Player
                     iframe.style.display = 'none';
                     iframe.src = ""; // Stop iframe audio in background
-                    if (nativePlayer) nativePlayer.style.display = 'block';
 
                     episodeIndicatorText.innerText = "⏳ Extracting stream via Home Server...";
 
@@ -1608,45 +1587,58 @@ document.addEventListener("DOMContentLoaded", () => {
                             const idRes = await fetch(`${BASE_URL}/${tmdbType}/${currentTvState.id}/external_ids?api_key=${API_KEY}`);
                             const idData = await idRes.json();
                             imdbId = idData.imdb_id || null;
-                        } catch (e) {
-                            console.warn("Could not pre-fetch IMDb ID:", e);
-                        }
+                        } catch (e) { }
 
-                        // 👇 YOUR NEW CLOUDFLARE HOME SERVER URL IS PLUGGED IN HERE! 👇
                         const myScraperApiUrl = "https://affair-musical-learners-sufficient.trycloudflare.com";
-                        
-                        let endpoint = currentTvState.isTV 
-                            ? `${myScraperApiUrl}/api/streams/tv/${currentTvState.id}?s=${currentTvState.season}&e=${currentTvState.episode}`
-                            : `${myScraperApiUrl}/api/streams/movie/${currentTvState.id}`;
+                        const streamType = currentTvState.isTV ? 'series' : 'movie';
+                        let endpoint = `${myScraperApiUrl}/api/streams/${streamType}/${currentTvState.id}`;
 
-                        if (imdbId) {
-                            endpoint += `?imdbId=${imdbId}`;
+                        if (currentTvState.isTV) {
+                            endpoint += `?season=${currentTvState.season}&episode=${currentTvState.episode}`;
                         }
+
+                        console.log("📡 Requesting streams from Home Server:", endpoint);
 
                         const streamRes = await fetch(endpoint);
                         const streamData = await streamRes.json();
 
-                        const rawStreamUrl = (streamData.streams && streamData.streams.length > 0)
-                            ? (streamData.streams[0].url || streamData.streams[0].link || streamData.streams[0].playlist)
-                            : null;
+                        console.log("📦 Home Server Response:", streamData);
+
+                        if (!streamData || !streamData.streams || streamData.streams.length === 0) {
+                            throw new Error("Backend server returned 0 streams for this title.");
+                        }
+
+                        // Filter out unplayable .mkv files
+                        const playableStreams = streamData.streams.filter(s => {
+                            const link = (s.url || s.playlist || s.link || '').toLowerCase();
+                            return link.includes('m3u8') || link.includes('.mp4');
+                        });
+
+                        const chosenStream = playableStreams.length > 0 ? playableStreams[0] : streamData.streams[0];
+                        const rawStreamUrl = chosenStream.url || chosenStream.playlist || chosenStream.link;
 
                         if (!rawStreamUrl) {
-                            throw new Error("No direct m3u8 links found via home server extraction.");
+                            throw new Error("No playable stream URL found.");
                         }
+
+                        console.log("🎬 Selected Stream URL:", rawStreamUrl);
 
                         episodeIndicatorText.innerText = currentTvState.isTV 
                             ? `Playing: Season ${currentTvState.season}, Episode ${currentTvState.episode}` 
                             : "Feature Film";
 
                         if (nativePlayer) {
-                            if (window.Hls && Hls.isSupported()) {
+                            nativePlayer.style.display = 'block';
+                            iframe.style.display = 'none';
+
+                            if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
                                 const hls = new Hls();
                                 hls.loadSource(rawStreamUrl);
                                 hls.attachMedia(nativePlayer);
                                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                                     nativePlayer.play();
                                 });
-                            } else if (nativePlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                            } else {
                                 nativePlayer.src = rawStreamUrl;
                                 nativePlayer.play();
                             }
@@ -1672,19 +1664,19 @@ document.addEventListener("DOMContentLoaded", () => {
                         );
 
                         iframe.removeAttribute('sandbox');
+                        iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
+                        iframe.setAttribute('allowfullscreen', 'true');
                         iframe.src = fallbackUrl;
                         episodeIndicatorText.innerText = "⚠️ Direct stream unavailable. Switched to Fallback Server.";
                     }
 
                 } else {
-                    // 1. Hide Native Player, show Iframe
                     if (nativePlayer) {
                         nativePlayer.style.display = 'none';
-                        nativePlayer.pause(); // Stop native player audio
+                        nativePlayer.pause(); 
                     }
                     iframe.style.display = 'block';
 
-                    // 2. Load standard embedded URL
                     const newStreamUrl = getServerStreamUrl(
                         newServerKey,
                         currentTvState.id,
@@ -1693,6 +1685,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         currentTvState.episode
                     );
                     iframe.removeAttribute('sandbox');
+                    iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
+                    iframe.setAttribute('allowfullscreen', 'true');
                     iframe.src = newStreamUrl;
                 }
             }
@@ -1805,7 +1799,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             saveUserData();
-            
             renderPersonalizedRows();
             
             setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 4000);
@@ -1818,7 +1811,6 @@ document.addEventListener("DOMContentLoaded", () => {
         videoModal.style.display = 'none';
         videoPlayerFrame.src = "";
         
-        // CLEANUP NATIVE VIDEO AUDIO WHEN CLOSING MODAL
         const nativePlayer = document.getElementById('native-video-player');
         if (nativePlayer) {
             nativePlayer.pause();
@@ -2049,7 +2041,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     `;
 
                     setTimeout(() => {
-                        firebase.auth().signOut().then(() => {
+                        signOut(auth).then(() => {
+                            window.location.reload();
+                        }).catch(() => {
                             window.location.reload();
                         });
                     }, 4000);
