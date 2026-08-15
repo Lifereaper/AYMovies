@@ -20,14 +20,11 @@ const db = initializeFirestore(firebaseApp, {
 });
 
 let wakeLock = null;
-const noSleepFallback = new window.NoSleep(); // 👈 Initialize the TV browser fallback
+const noSleepFallback = new window.NoSleep();
 
 async function requestWakeLock() {
     try {
-        // 1. Enable the bulletproof fallback for TV Browsers (Plays invisible video)
         noSleepFallback.enable(); 
-        
-        // 2. Try the modern API for phones and desktop Chrome
         if ('wakeLock' in navigator) {
             wakeLock = await navigator.wakeLock.request('screen');
         }
@@ -35,13 +32,12 @@ async function requestWakeLock() {
 }
 
 function releaseWakeLock() {
-    // Disable the invisible video so the TV can sleep normally when they exit the movie
     noSleepFallback.disable(); 
-    
     if (wakeLock !== null) {
         wakeLock.release().then(() => wakeLock = null);
     }
 }
+
 window.scrollRow = function (rowId, direction) {
     const row = document.getElementById(rowId);
     if (!row) return;
@@ -56,81 +52,7 @@ window.scrollRow = function (rowId, direction) {
     }
 };
 
-// ⚡ FASTEST SERVER DETECTION ENGINE
-async function getFastestServer() {
-    const servers = [
-        { key: 'vidlink', url: 'https://vidlink.pro' },
-        { key: 'vidsrc', url: 'https://vidsrc.me' },
-        { key: 'videasy', url: 'https://player.videasy.net' },
-        { key: '2embed', url: 'https://www.2embed.cc' }
-    ];
-
-    const measureServerPing = (server) => {
-        return new Promise((resolve) => {
-            const start = performance.now();
-            const timeout = setTimeout(() => resolve({ key: server.key, time: 9999 }), 2000);
-
-            fetch(server.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
-                .then(() => {
-                    clearTimeout(timeout);
-                    resolve({ key: server.key, time: performance.now() - start });
-                })
-                .catch(() => {
-                    clearTimeout(timeout);
-                    resolve({ key: server.key, time: 9999 });
-                });
-        });
-    };
-
-    const results = await Promise.all(servers.map(measureServerPing));
-    results.sort((a, b) => a.time - b.time);
-
-    console.log("⚡ Live Server Ping Results:", results);
-    return results[0].time < 9999 ? results[0].key : 'vidlink';
-}
-
-// 🚀 CLIENT-SIDE STREAM EXTRACTION ENGINE (Fallback)
-async function fetchClientSideStream(tmdbId, isTV = false, season = 1, episode = 1, imdbId = null) {
-    const corsProxy = "https://corsproxy.io/?";
-
-    const providers = [
-        {
-            name: "Videasy",
-            url: isTV 
-                ? `https://player.videasy.net/tv/${tmdbId}/${season}/${episode}`
-                : `https://player.videasy.net/movie/${tmdbId}`
-        },
-        {
-            name: "Vidlink",
-            url: isTV
-                ? `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`
-                : `https://vidlink.pro/movie/${tmdbId}`
-        }
-    ];
-
-    for (const provider of providers) {
-        try {
-            console.log(`🔍 Client-side probing: ${provider.name}...`);
-
-            const res = await fetch(`${corsProxy}${encodeURIComponent(provider.url)}`);
-            const html = await res.text();
-
-            const m3u8Match = html.match(/https?:\/\/[^"'\s]+\.m3u8[^"'\s]*/i);
-
-            if (m3u8Match && m3u8Match[0]) {
-                console.log(`✅ Client-side stream found from ${provider.name}!`);
-                return m3u8Match[0];
-            }
-        } catch (err) {
-            console.warn(`⚠️ Client-side fetch failed for ${provider.name}:`, err);
-        }
-    }
-
-    return null;
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-    // ⚖️ SPLASH / DMCA DISCLAIMER LOGIC
     const splashDmcaView = document.getElementById('splash-dmca-view');
     const btnAcceptDmca = document.getElementById('btn-accept-dmca');
 
@@ -182,22 +104,17 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentModalData = null;
     let modalTrailerTimeout = null;
 
-    // ✨ GLOBAL TRACKERS FOR POINTS & TIMERS
     window.userTotalPoints = 0.00;
     window.activeVideoStartTime = 0;
     window.watchTimerInterval = null;
     window.rewardClaimedForSession = false;
     
-    // --- LOCAL DATABASE TRACKER VARIABLES ---
     let localProgressTrackerInterval = null;
     const LOCAL_API_URL = "https://tug-doctrine-greedily.ngrok-free.dev/api/progress";
-
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
-    // --- LOCAL DB PROGRESS FUNCTIONS (NEW) ---
     function startLocalProgressTracker(videoElement, currentMovieId) {
         if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval);
-        
         localProgressTrackerInterval = setInterval(() => {
             if (!videoElement.paused && videoElement.currentTime > 0 && videoElement.duration) {
                 fetch(LOCAL_API_URL, { 
@@ -220,7 +137,6 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true' }});
             const history = await response.json();
-            
             if (history[currentMovieId]) {
                 videoElement.currentTime = history[currentMovieId].currentTime;
             }
@@ -248,7 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (!track) {
                         track = document.createElement('div');
                         track.className = 'local-progress-track';
-                        // Clean styling that overlays at the very bottom
                         track.style.cssText = 'width: 100%; height: 5px; background-color: rgba(255,255,255,0.2); position: absolute; bottom: 0; left: 0; z-index: 20; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; overflow: hidden;';
                         
                         const fill = document.createElement('div');
@@ -257,36 +172,26 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         track.appendChild(fill);
                         card.appendChild(track);
-                        card.style.position = 'relative'; // Ensure absolute positioning binds to the card
+                        card.style.position = 'relative'; 
                     }
                     
                     const fill = track.querySelector('.local-progress-fill');
                     fill.style.width = `${percentage}%`;
                 }
             });
-        } catch (e) {
-            // Fail silently if server is offline
-        }
+        } catch (e) {}
     }
-    // ----------------------------------------
 
-    // 🔔 CUSTOM ALERT LOGIC
     function showCustomAlert(message) {
         const alertModal = document.getElementById('custom-alert-modal');
         const alertMsg = document.getElementById('alert-message');
         const alertOkBtn = document.getElementById('alert-ok-btn');
-
         if (!alertModal) return alert(message);
-
         alertMsg.innerText = message;
         alertModal.style.display = "flex";
-
-        alertOkBtn.onclick = () => {
-            alertModal.style.display = "none";
-        };
+        alertOkBtn.onclick = () => { alertModal.style.display = "none"; };
     }
 
-    // 💰 REWARDS & CASH-OUT DRAWER LOGIC
     const rewardsDrawer = document.getElementById('rewards-drawer');
     const closeRewardsBtn = document.getElementById('close-rewards-btn');
     const btnRewardsDesktop = document.getElementById('btn-rewards-desktop');
@@ -327,7 +232,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 setTimeout(() => { payoutStatusMsg.innerText = ''; }, 3000);
                 return;
             }
-
             if (amount > window.userTotalPoints) {
                 payoutStatusMsg.style.color = '#E50914';
                 payoutStatusMsg.innerText = '⚠️ Insufficient balance!';
@@ -350,22 +254,18 @@ document.addEventListener("DOMContentLoaded", () => {
                         amount: amount
                     })
                 });
-
                 if (response.ok) {
                     window.userTotalPoints = parseFloat((window.userTotalPoints - amount).toFixed(2));
                     progressMap['_points_'] = window.userTotalPoints;
                     updatePointsUI();
                     saveUserData();
-
                     payoutStatusMsg.style.color = '#46d369';
                     payoutStatusMsg.innerText = `✅ Request submitted! $${amount.toFixed(2)} BZD sent.`;
                     payoutForm.reset();
-
                     setTimeout(async () => {
                         await fetchUserData();
                         payoutStatusMsg.innerText = '';
                     }, 3000);
-
                 } else {
                     payoutStatusMsg.style.color = '#E50914';
                     payoutStatusMsg.innerText = '❌ Failed to process request. Try again later.';
@@ -379,7 +279,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 🎯 QUICK MOOD & FILTER CHIPS LOGIC
     document.querySelectorAll('.chip-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
@@ -396,22 +295,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (filter === 'all') {
             allCards.forEach(c => c.style.display = 'block');
             allRows.forEach(r => r.style.display = 'block');
-            
             const activeView = document.querySelector('.nav-link.active')?.getAttribute('data-view') || 'home';
             const top10Container = document.getElementById('top-10-container');
             if (top10Container) top10Container.style.display = (activeView === 'home') ? 'block' : 'none';
-            
             renderPersonalizedRows(); 
             return;
         }
 
         allCards.forEach(c => c.style.display = 'block');
-
         if (filter === 'action' || filter === 'comedy' || filter === 'series') {
             allRows.forEach(row => {
                 const rowTitle = (row.querySelector('.row-title')?.innerText || '').toLowerCase();
                 const innerRowId = (row.querySelector('.movie-row')?.id || row.id || '').toLowerCase();
-                
                 if (rowTitle.includes(filter) || innerRowId.includes(filter)) {
                     row.style.display = 'block'; 
                 } else {
@@ -422,7 +317,6 @@ document.addEventListener("DOMContentLoaded", () => {
             allCards.forEach(card => {
                 const cardMeta = card.querySelector('.card-meta')?.innerText || '';
                 let isMatch = false;
-
                 if (filter === 'top-rated' && cardMeta.includes('⭐')) {
                     const score = parseFloat(cardMeta.split('⭐')[1]) || 0;
                     if (score >= 8.0) isMatch = true;
@@ -431,7 +325,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 card.style.display = isMatch ? 'block' : 'none';
             });
-
             allRows.forEach(row => {
                 const cardsInRow = Array.from(row.querySelectorAll('.movie-card, .top-10-wrapper'));
                 if (cardsInRow.length > 0) {
@@ -442,46 +335,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-    // 🌐 LANGUAGE DICTIONARY & TOGGLE SYSTEM
     const translations = {
         en: {
-            navHome: "Home",
-            navTv: "TV Shows",
-            navMovies: "Movies",
-            navAnimations: "Animations",
-            navSurprise: "🎲 Surprise Me",
-            navLogout: "Logout",
-            searchPlaceholder: "Search...",
-            rowMyList: "➕ My List",
-            rowContinue: "🍿 Continue Watching",
-            rowWatchAgain: "🔁 Watch It Again",
-            rowRecommended: "💡 Recommended For You",
-            rowTop10: "🏆 Top 10 Today",
-            rowCommunity: "👥 Shared Watch Party Community",
-            rowTrending: "🔥 Trending Now",
-            rowAction: "💥 Action Movies",
-            rowComedy: "😂 Comedy Movies",
-            rowSeries: "📺 Trending Series",
+            navHome: "Home", navTv: "TV Shows", navMovies: "Movies", navAnimations: "Animations",
+            navSurprise: "🎲 Surprise Me", navLogout: "Logout", searchPlaceholder: "Search...",
+            rowMyList: "➕ My List", rowContinue: "🍿 Continue Watching", rowWatchAgain: "🔁 Watch It Again",
+            rowRecommended: "💡 Recommended For You", rowTop10: "🏆 Top 10 Today",
+            rowCommunity: "👥 Shared Watch Party Community", rowTrending: "🔥 Trending Now",
+            rowAction: "💥 Action Movies", rowComedy: "😂 Comedy Movies", rowSeries: "📺 Trending Series",
             btnMarkFinished: "✔️ Mark Finished"
         },
         es: {
-            navHome: "Inicio",
-            navTv: "Series TV",
-            navMovies: "Películas",
-            navAnimations: "Animación",
-            navSurprise: "🎲 Sorpréndeme",
-            navLogout: "Cerrar sesión",
-            searchPlaceholder: "Buscar...",
-            rowMyList: "Mi Lista",
-            rowContinue: "🍿 Continuar Viendo",
-            rowWatchAgain: "🔁 Volver a Ver",
-            rowRecommended: "💡 Recomendado para Ti",
-            rowTop10: "🏆 Top 10 Hoy",
-            rowCommunity: "👥 Comunidad Watch Party",
-            rowTrending: "🔥 Tendencias Ahora",
-            rowAction: "💥 Películas de Acción",
-            rowComedy: "😂 Películas de Comedia",
-            rowSeries: "📺 Series en Tendencia",
+            navHome: "Inicio", navTv: "Series TV", navMovies: "Películas", navAnimations: "Animación",
+            navSurprise: "🎲 Sorpréndeme", navLogout: "Cerrar sesión", searchPlaceholder: "Buscar...",
+            rowMyList: "Mi Lista", rowContinue: "🍿 Continuar Viendo", rowWatchAgain: "🔁 Volver a Ver",
+            rowRecommended: "💡 Recomendado para Ti", rowTop10: "🏆 Top 10 Hoy",
+            rowCommunity: "👥 Comunidad Watch Party", rowTrending: "🔥 Tendencias Ahora",
+            rowAction: "💥 Películas de Acción", rowComedy: "😂 Películas de Comedia", rowSeries: "📺 Series en Tendencia",
             btnMarkFinished: "✔️ Marcar Terminado"
         }
     };
@@ -498,7 +368,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (langMobile) langMobile.value = lang;
 
         const dict = translations[lang] || translations.en;
-
         document.querySelectorAll('[data-view="home"]').forEach(el => el.innerText = dict.navHome);
         document.querySelectorAll('[data-view="tv"]').forEach(el => el.innerText = dict.navTv);
         document.querySelectorAll('[data-view="movies"]').forEach(el => el.innerText = dict.navMovies);
@@ -508,147 +377,64 @@ document.addEventListener("DOMContentLoaded", () => {
         if (searchInp) searchInp.placeholder = dict.searchPlaceholder;
 
         const rowTitles = {
-            'row1-title': dict.rowTrending,
-            'row2-title': dict.rowAction,
-            'row3-title': dict.rowComedy,
-            'row4-title': dict.rowSeries
+            'row1-title': dict.rowTrending, 'row2-title': dict.rowAction,
+            'row3-title': dict.rowComedy, 'row4-title': dict.rowSeries
         };
-
         for (const [id, titleText] of Object.entries(rowTitles)) {
             const titleEl = document.getElementById(id);
             if (titleEl) titleEl.innerText = titleText;
         }
 
-        const myListH2 = document.querySelector('#my-list-container .row-title');
-        if (myListH2) myListH2.innerText = dict.rowMyList;
-
-        const cwH2 = document.querySelector('#continue-watching-container .row-title');
-        if (cwH2) cwH2.innerText = dict.rowContinue;
-
-        const awH2 = document.querySelector('#already-watched-container .row-title');
-        if (awH2) awH2.innerText = dict.rowWatchAgain;
-
-        const recH2 = document.querySelector('#recommended-container .row-title');
-        if (recH2) recH2.innerText = dict.rowRecommended;
-
-        const top10H2 = document.querySelector('#top-10-container .row-title');
-        if (top10H2) top10H2.innerText = dict.rowTop10;
-
-        const commH2 = document.querySelector('#community-container .row-title');
-        if (commH2) commH2.innerText = dict.rowCommunity;
+        const selectors = [
+            ['#my-list-container .row-title', dict.rowMyList],
+            ['#continue-watching-container .row-title', dict.rowContinue],
+            ['#already-watched-container .row-title', dict.rowWatchAgain],
+            ['#recommended-container .row-title', dict.rowRecommended],
+            ['#top-10-container .row-title', dict.rowTop10],
+            ['#community-container .row-title', dict.rowCommunity]
+        ];
+        selectors.forEach(([sel, text]) => {
+            const el = document.querySelector(sel);
+            if (el) el.innerText = text;
+        });
     }
 
     ['lang-select', 'lang-select-mobile'].forEach(selectId => {
         const el = document.getElementById(selectId);
-        if (el) {
-            el.addEventListener('change', (e) => setAppLanguage(e.target.value));
-        }
+        if (el) el.addEventListener('change', (e) => setAppLanguage(e.target.value));
     });
 
     setAppLanguage(currentLang);
 
-    // 📡 MULTI-SERVER STREAM URL GENERATOR (ALL 7 SERVERS)
-    function getServerStreamUrl(serverKey, id, isTV = false, season = 1, episode = 1) {
-        switch (serverKey) {
-            case 'vidlink':
-                return isTV
-                    ? `https://vidlink.pro/tv/${id}/${season}/${episode}`
-                    : `https://vidlink.pro/movie/${id}`;
-            
-            case 'embedsu':
-                return isTV
-                    ? `https://embed.su/embed/tv/${id}/${season}/${episode}`
-                    : `https://embed.su/embed/movie/${id}`;
-
-            case 'vidsrcxyz':
-                return isTV
-                    ? `https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`
-                    : `https://vidsrc.xyz/embed/movie/${id}`;
-
-            case 'smashystream':
-                return isTV
-                    ? `https://embed.smashystream.com/playere.php?tmdb=${id}&s=${season}&e=${episode}`
-                    : `https://embed.smashystream.com/playere.php?tmdb=${id}`;
-
-            case '2embed':
-                return isTV
-                    ? `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`
-                    : `https://www.2embed.cc/embed/${id}`;
-
-            case 'videasy':
-                return isTV
-                    ? `https://player.videasy.net/tv/${id}/${season}/${episode}`
-                    : `https://player.videasy.net/movie/${id}`;
-
-            case 'vidsrc':
-            default:
-                return isTV
-                    ? `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
-                    : `https://vidsrc.me/embed/movie?tmdb=${id}`;
-        }
-    }
-    
-    // ✨ FLOATING REWARD TOAST POPUP
     function showRewardToast(title, message) {
         let toast = document.getElementById('reward-toast');
         if (!toast) {
             toast = document.createElement('div');
             toast.id = 'reward-toast';
             toast.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(15, 15, 15, 0.98);
-                border: 3px solid #ffd700;
-                box-shadow: 0 0 35px rgba(255, 215, 0, 0.8);
-                color: white;
-                padding: 25px 45px;
-                border-radius: 12px;
-                z-index: 9999999;
-                text-align: center;
-                font-family: Arial, sans-serif;
-                pointer-events: none;
-                transition: opacity 0.5s ease-in-out;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: rgba(15, 15, 15, 0.98); border: 3px solid #ffd700; box-shadow: 0 0 35px rgba(255, 215, 0, 0.8);
+                color: white; padding: 25px 45px; border-radius: 12px; z-index: 9999999; text-align: center;
+                font-family: Arial, sans-serif; pointer-events: none; transition: opacity 0.5s ease-in-out;
             `;
             document.body.appendChild(toast);
         }
-
-        toast.innerHTML = `
-            <div style="font-size: 1.8rem; font-weight: bold; color: #ffd700; margin-bottom: 8px;">${title}</div>
-            <div style="font-size: 1.2rem; color: #ffffff;">${message}</div>
-        `;
+        toast.innerHTML = `<div style="font-size: 1.8rem; font-weight: bold; color: #ffd700; margin-bottom: 8px;">${title}</div>
+            <div style="font-size: 1.2rem; color: #ffffff;">${message}</div>`;
         toast.style.opacity = '1';
         toast.style.display = 'block';
 
-        const player = document.getElementById('video-player-frame');
-        if (player && player.contentWindow) {
-            try {
-                player.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                player.contentWindow.postMessage('pause', '*');
-                player.contentWindow.postMessage({ method: 'pause' }, '*');
-            } catch (e) { }
-        }
+        const player = document.getElementById('native-video-player');
+        if (player) player.pause();
 
         setTimeout(() => {
-            if (toast) {
-                toast.style.opacity = '0';
-                setTimeout(() => { toast.style.display = 'none'; }, 500);
-            }
-
-            if (player && player.contentWindow) {
-                try {
-                    player.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                    player.contentWindow.postMessage('play', '*');
-                    player.contentWindow.postMessage({ method: 'play' }, '*');
-                } catch (e) { }
-            }
+            if (toast) { toast.style.opacity = '0'; setTimeout(() => { toast.style.display = 'none'; }, 500); }
+            if (player) player.play();
         }, 5000);
     }
 
     const profileIcon = document.getElementById('profile-icon');
     const avatarDropdown = document.getElementById('avatar-dropdown');
-
     const customAvatars = ['👤', '🔴', '🔵', '🟢', '👾', '🐧', '😎', '🍿', '👻', '👑', '👽', '🤖', '🦊', '🐯', '🍕', '🎬', '🎮', '🔥', '💎', '🚀', '🐼', '🐉', '🎸', '🌮'];
 
     profileIcon.addEventListener('click', () => { avatarDropdown.style.display = avatarDropdown.style.display === 'flex' ? 'none' : 'flex'; });
@@ -677,20 +463,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnLogoutMobile = document.getElementById('btn-logout-mobile');
     const btnSurpriseMobile = document.getElementById('btn-surprise-mobile');
 
-    const homeView = document.getElementById('home-view');
     const searchInput = document.getElementById('search-input');
     const searchDropdown = document.getElementById('search-dropdown');
-
     const videoModal = document.getElementById('video-modal');
-    const videoPlayerFrame = document.getElementById('video-player-frame');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const btnPrevEp = document.getElementById('btn-prev-ep');
     const btnNextEp = document.getElementById('btn-next-ep');
     const btnMarkFinished = document.getElementById('btn-mark-finished');
     const episodeIndicatorText = document.getElementById('episode-indicator-text');
-    const serverSelect = document.getElementById('server-select');
+    const serverSelect = document.getElementById('server-select'); 
 
-    // 🖼️ MINI-PLAYER MODE TOGGLE
     const btnToggleMiniPlayer = document.getElementById('btn-toggle-mini-player');
     if (btnToggleMiniPlayer) {
         btnToggleMiniPlayer.addEventListener('click', () => {
@@ -707,53 +489,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const heroPlayerFrame = document.getElementById('hero-player-frame');
     const heroMuteBtn = document.getElementById('hero-mute-btn');
     let isHeroMuted = true;
-
     const heroPrev = document.getElementById('hero-prev');
     const heroNext = document.getElementById('hero-next');
     const heroDotsContainer = document.getElementById('hero-dots');
 
     async function fetchUserData() {
-        console.log("☁️ Requesting profile from Google Sheets...");
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
-                method: "POST",
-                mode: "cors",
-                redirect: "follow",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
+                method: "POST", mode: "cors", redirect: "follow",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify({ action: "fetch", uid: currentUserUid })
             });
-
             const result = await response.json();
 
             if (response.ok && result.exists) {
                 const data = result.data;
-
                 progressMap = data.progress || {};
                 const cloudDeviceId = progressMap['_active_device_'];
 
                 if (cloudDeviceId && cloudDeviceId !== myDeviceId) {
                     const takeOver = confirm("🚫 ACCOUNT IN USE\n\nThis account is currently active on another device.\n\nDo you want to log out the other device and take over?");
-
                     if (!takeOver) {
                         window.isKickedOut = true;
                         const overlay = document.createElement('div');
                         overlay.id = 'access-denied-overlay';
                         overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999999; text-align:center; padding:20px; font-family:sans-serif;';
-                        overlay.innerHTML = `
-                            <h1 style="color:#e50914; margin-bottom: 15px;">🚫 ACCESS DENIED</h1>
-                            <p style="font-size: 1.1rem; line-height: 1.5;">This account is currently in use on another device.<br>Logging out...</p>
-                        `;
+                        overlay.innerHTML = `<h1 style="color:#e50914; margin-bottom: 15px;">🚫 ACCESS DENIED</h1><p>Logging out...</p>`;
                         document.body.appendChild(overlay);
-
-                        setTimeout(() => {
-                            signOut(auth).then(() => {
-                                window.location.reload();
-                            }).catch(() => {
-                                window.location.reload();
-                            });
-                        }, 2000);
+                        setTimeout(() => { signOut(auth).then(() => { window.location.reload(); }).catch(() => { window.location.reload(); }); }, 2000);
                         return;
                     }
                 }
@@ -762,16 +525,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 myList = data.myList || [];
                 continueWatching = data.continueWatching || [];
                 alreadyWatched = data.alreadyWatched || [];
-
                 window.userTotalPoints = parseFloat(progressMap['_points_']) || 0.00;
                 updatePointsUI();
 
                 const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
                 const mobileMenuEmail = document.getElementById('mobile-menu-email');
-
                 if (mobileMenuAvatar) mobileMenuAvatar.innerText = data.avatar || '👤';
                 if (mobileMenuEmail) mobileMenuEmail.innerText = window.currentUserEmail || "Registered User";
-
                 dataLoadedFromCloud = true;
 
                 if (cloudDeviceId !== myDeviceId) {
@@ -779,7 +539,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     saveUserData();
                     setTimeout(() => { window.takeoverImmunity = false; }, 20000);
                 }
-
             } else if (response.ok && !result.exists) {
                 initializeFreshProfile();
                 dataLoadedFromCloud = true;
@@ -789,118 +548,63 @@ document.addEventListener("DOMContentLoaded", () => {
             globalCommunityMovies = result.communityList || [];
             globalReactionsMap = result.reactionsMap || {};
 
-            // 📊 UPDATE PAYOUT STATUS TRACKER IN DRAWER
             const trackerCard = document.getElementById('payout-tracker-card');
             const trackerAmount = document.getElementById('payout-tracker-amount');
             const trackerStatus = document.getElementById('payout-tracker-status');
-
             if (result.latestPayout && trackerCard) {
                 trackerCard.style.display = 'block';
                 trackerAmount.innerText = `$${parseFloat(result.latestPayout.amount || 0).toFixed(2)} BZD`;
-                
                 const statusText = String(result.latestPayout.status || 'Pending').trim();
                 
                 if (statusText.toLowerCase() === 'paid' || statusText.toLowerCase() === 'completed') {
-                    trackerStatus.innerText = '✅ Paid';
-                    trackerStatus.style.background = 'rgba(70, 211, 105, 0.2)';
-                    trackerStatus.style.color = '#46d369';
-                    trackerCard.style.borderLeftColor = '#46d369';
+                    trackerStatus.innerText = '✅ Paid'; trackerStatus.style.color = '#46d369';
+                    trackerStatus.style.background = 'rgba(70, 211, 105, 0.2)'; trackerCard.style.borderLeftColor = '#46d369';
                 } else if (statusText.toLowerCase() === 'rejected' || statusText.toLowerCase() === 'cancelled') {
-                    trackerStatus.innerText = '❌ Rejected';
-                    trackerStatus.style.background = 'rgba(229, 9, 20, 0.2)';
-                    trackerStatus.style.color = '#E50914';
-                    trackerCard.style.borderLeftColor = '#E50914';
+                    trackerStatus.innerText = '❌ Rejected'; trackerStatus.style.color = '#E50914';
+                    trackerStatus.style.background = 'rgba(229, 9, 20, 0.2)'; trackerCard.style.borderLeftColor = '#E50914';
                 } else {
-                    trackerStatus.innerText = '⏳ Pending';
-                    trackerStatus.style.background = 'rgba(255, 215, 0, 0.2)';
-                    trackerStatus.style.color = '#ffd700';
-                    trackerCard.style.borderLeftColor = '#ffd700';
+                    trackerStatus.innerText = '⏳ Pending'; trackerStatus.style.color = '#ffd700';
+                    trackerStatus.style.background = 'rgba(255, 215, 0, 0.2)'; trackerCard.style.borderLeftColor = '#ffd700';
                 }
-            } else if (trackerCard) {
-                trackerCard.style.display = 'none';
-            }
-
-        } catch (e) {
-            console.error("❌ Network glitch! Google Sheet didn't answer in time.");
-        }
+            } else if (trackerCard) { trackerCard.style.display = 'none'; }
+        } catch (e) { }
     }
 
     async function saveUserData() {
-        if (window.isKickedOut) return;
-        if (!currentUserUid || !dataLoadedFromCloud) return;
-
+        if (window.isKickedOut || !currentUserUid || !dataLoadedFromCloud) return;
         progressMap['_active_device_'] = myDeviceId;
-
         const payload = {
-            action: "save",
-            uid: currentUserUid,
-            email: window.currentUserEmail,
-            userData: {
-                avatar: profileIcon.innerText,
-                myList: myList,
-                continueWatching: continueWatching,
-                alreadyWatched: alreadyWatched,
-                progress: progressMap
-            }
+            action: "save", uid: currentUserUid, email: window.currentUserEmail,
+            userData: { avatar: profileIcon.innerText, myList: myList, continueWatching: continueWatching, alreadyWatched: alreadyWatched, progress: progressMap }
         };
-
-        try {
-            fetch(GOOGLE_SHEET_URL, {
-                method: "POST",
-                mode: "cors",
-                redirect: "follow",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-                body: JSON.stringify(payload)
-            });
-        } catch (e) { }
+        try { fetch(GOOGLE_SHEET_URL, { method: "POST", mode: "cors", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }); } catch (e) { }
     }
 
     async function shareMovieToCommunity(movieObj) {
         if (!currentUserUid || !movieObj) return;
         const payload = {
-            action: "addCommunity",
-            uid: currentUserUid,
-            movieData: {
-                id: movieObj.id,
-                title: movieObj.title || movieObj.name,
-                poster_path: movieObj.poster_path
-            }
+            action: "addCommunity", uid: currentUserUid,
+            movieData: { id: movieObj.id, title: movieObj.title || movieObj.name, poster_path: movieObj.poster_path }
         };
-
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
-                method: "POST",
-                mode: "cors",
-                redirect: "follow",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-                body: JSON.stringify(payload)
+                method: "POST", mode: "cors", redirect: "follow",
+                headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload)
             });
             if (response.ok) {
                 showCustomAlert(`"${movieObj.title || movieObj.name}" was shared directly to the Community Watch list!`);
-                await fetchUserData();
-                renderPersonalizedRows();
+                await fetchUserData(); renderPersonalizedRows();
             }
         } catch (e) { }
     }
 
     function initializeFreshProfile() {
-        profileIcon.innerText = '👤';
-        myList = [];
-        continueWatching = [];
-        alreadyWatched = [];
-        progressMap = {};
-
-        window.userTotalPoints = 0.00;
+        profileIcon.innerText = '👤'; myList = []; continueWatching = []; alreadyWatched = []; progressMap = {}; window.userTotalPoints = 0.00;
         updatePointsUI();
         const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
         const mobileMenuEmail = document.getElementById('mobile-menu-email');
         if (mobileMenuAvatar) mobileMenuAvatar.innerText = '👤';
         if (mobileMenuEmail) mobileMenuEmail.innerText = window.currentUserEmail || "Registered User";
-
         saveUserData();
     }
 
@@ -924,7 +628,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalSeasonSelect = document.getElementById('modal-season-select');
     const modalEpisodeSelect = document.getElementById('modal-episode-select');
     const modalSimilarRow = document.getElementById('modal-similar-row');
-
     const actorModal = document.getElementById('actor-modal');
     const closeActorBtn = document.getElementById('close-actor-btn');
     const actorNameEl = document.getElementById('actor-name');
@@ -943,39 +646,19 @@ document.addEventListener("DOMContentLoaded", () => {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             if (currentUserUid === user.uid) return;
-
-            currentUserUid = user.uid;
-            window.currentUserEmail = user.email || "Registered User";
-            loginView.style.display = 'none';
+            currentUserUid = user.uid; window.currentUserEmail = user.email || "Registered User"; loginView.style.display = 'none';
             loadCategoryView('home');
-
-            fetchUserData().then(() => {
-                renderPersonalizedRows();
-                syncProgressBars();
-            });
+            fetchUserData().then(() => { renderPersonalizedRows(); });
         } else {
-            currentUserUid = null;
-            window.currentUserEmail = null;
-            continueWatching = [];
-            alreadyWatched = [];
-            myList = [];
-            progressMap = {};
-            loginView.style.display = 'flex';
-            if (rotationIntervalId) clearInterval(rotationIntervalId);
+            currentUserUid = null; window.currentUserEmail = null; continueWatching = []; alreadyWatched = []; myList = []; progressMap = {};
+            loginView.style.display = 'flex'; if (rotationIntervalId) clearInterval(rotationIntervalId);
         }
     });
 
     authForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        authErrorMsg.style.color = "white";
-        authErrorMsg.innerText = "Checking credentials...";
-        try {
-            await signInWithEmailAndPassword(auth, authEmailInput.value, authPasswordInput.value);
-            authErrorMsg.innerText = "";
-        } catch (error) {
-            authErrorMsg.style.color = "#E50914";
-            authErrorMsg.innerText = "Incorrect email or password.";
-        }
+        e.preventDefault(); authErrorMsg.style.color = "white"; authErrorMsg.innerText = "Checking credentials...";
+        try { await signInWithEmailAndPassword(auth, authEmailInput.value, authPasswordInput.value); authErrorMsg.innerText = ""; } 
+        catch (error) { authErrorMsg.style.color = "#E50914"; authErrorMsg.innerText = "Incorrect email or password."; }
     });
 
     async function triggerSurprise() {
@@ -1001,32 +684,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 🔥 EMOJI REACTION CLICK HANDLERS
     document.querySelectorAll('.emoji-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             if (!currentUserUid || !currentModalData) return;
-
             const emojiType = btn.getAttribute('data-emoji');
             const movieId = currentModalData.id.toString();
-
             if (!globalReactionsMap[movieId]) globalReactionsMap[movieId] = { "🔥": 0, "🤯": 0, "😂": 0, "😴": 0 };
             globalReactionsMap[movieId][emojiType] = (globalReactionsMap[movieId][emojiType] || 0) + 1;
-
             updateEmojiUI(movieId);
-
             try {
                 fetch(GOOGLE_SHEET_URL, {
-                    method: "POST",
-                    mode: "cors",
-                    redirect: "follow",
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8"
-                    },
-                    body: JSON.stringify({
-                        action: "react",
-                        movieId: movieId,
-                        emoji: emojiType
-                    })
+                    method: "POST", mode: "cors", redirect: "follow",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action: "react", movieId: movieId, emoji: emojiType })
                 });
             } catch (err) { }
         });
@@ -1034,75 +704,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateEmojiUI(movieId) {
         const counts = globalReactionsMap[movieId] || { "🔥": 0, "🤯": 0, "😂": 0, "😴": 0 };
-        const elFire = document.getElementById('count-fire');
-        const elMind = document.getElementById('count-mindblown');
-        const elFunny = document.getElementById('count-funny');
-        const elBoring = document.getElementById('count-boring');
-
-        if (elFire) elFire.innerText = counts["🔥"] || 0;
-        if (elMind) elMind.innerText = counts["🤯"] || 0;
-        if (elFunny) elFunny.innerText = counts["😂"] || 0;
-        if (elBoring) elBoring.innerText = counts["😴"] || 0;
-    }
-
-    function syncProgressBars() {
-        if (!currentUserUid) return;
-        const cards = document.querySelectorAll('.movie-card, .top-10-wrapper');
-
-        cards.forEach(card => {
-            const id = card.getAttribute('data-id');
-            const isCommunityCard = card.getAttribute('data-community-item') === 'true';
-            const wasAddedByMe = card.getAttribute('data-added-by-me') === 'true';
-
-            let rawProgress = progressMap[id];
-            let savedProgress = null;
-
-            if (rawProgress) {
-                if (typeof rawProgress === 'object') {
-                    savedProgress = rawProgress.percent;
-                } else {
-                    savedProgress = rawProgress;
-                }
-            }
-
-            if (isCommunityCard && !wasAddedByMe) {
-                savedProgress = null;
-            }
-
-            let track = card.querySelector('.progress-track');
-
-            if (savedProgress) {
-                if (!track) {
-                    track = document.createElement('div');
-                    track.className = 'progress-track';
-
-                    if (card.classList.contains('top-10-wrapper')) {
-                        track.style.position = 'absolute';
-                        track.style.bottom = '0';
-                        track.style.left = '0';
-                        track.style.width = '140px';
-                        track.style.zIndex = '10';
-                        track.style.borderBottomLeftRadius = '5px';
-                        track.style.borderBottomRightRadius = '5px';
-                    }
-                    const fill = document.createElement('div');
-                    fill.className = 'progress-fill';
-                    track.appendChild(fill);
-                    card.appendChild(track);
-                }
-                const fill = track.querySelector('.progress-fill');
-                fill.style.width = `${savedProgress}%`;
-                fill.style.background = savedProgress === '100' ? '#46d369' : '#E50914';
-            } else if (track) { track.remove(); }
-        });
-
-        // 👈 NEW LOCAL PROGRESS SYNC INJECTED HERE
-        syncLocalProgressBars();
+        const elFire = document.getElementById('count-fire'); const elMind = document.getElementById('count-mindblown');
+        const elFunny = document.getElementById('count-funny'); const elBoring = document.getElementById('count-boring');
+        if (elFire) elFire.innerText = counts["🔥"] || 0; if (elMind) elMind.innerText = counts["🤯"] || 0;
+        if (elFunny) elFunny.innerText = counts["😂"] || 0; if (elBoring) elBoring.innerText = counts["😴"] || 0;
     }
 
     function renderSkeletons(container, count = 10, isTop10 = false) {
-        if (!container) return;
-        container.innerHTML = '';
+        if (!container) return; container.innerHTML = '';
         for (let i = 0; i < count; i++) {
             const div = document.createElement('div');
             div.className = isTop10 ? 'skeleton-top10' : 'skeleton-card';
@@ -1112,60 +721,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadCategoryView(viewType) {
         renderPersonalizedRows();
-
-        const top10Container = document.getElementById('top-10-container');
-        const top10Row = document.getElementById('top-10-row');
-        const row1 = document.getElementById('trending-row');
-        const row2 = document.getElementById('action-row');
-        const row3 = document.getElementById('comedy-row');
-        const row4 = document.getElementById('series-row');
-
-        const title1 = document.getElementById('row1-title');
-        const title2 = document.getElementById('row2-title');
-        const title3 = document.getElementById('row3-title');
-        const title4 = document.getElementById('row4-title');
-
+        const top10Container = document.getElementById('top-10-container'); const top10Row = document.getElementById('top-10-row');
+        const row1 = document.getElementById('trending-row'); const row2 = document.getElementById('action-row');
+        const row3 = document.getElementById('comedy-row'); const row4 = document.getElementById('series-row');
+        const title1 = document.getElementById('row1-title'); const title2 = document.getElementById('row2-title');
+        const title3 = document.getElementById('row3-title'); const title4 = document.getElementById('row4-title');
         renderSkeletons(row1); renderSkeletons(row2); renderSkeletons(row3); renderSkeletons(row4);
-
         try {
             if (viewType === 'home') {
-                top10Container.style.display = 'block';
-                renderSkeletons(top10Row, 10, true);
-
+                top10Container.style.display = 'block'; renderSkeletons(top10Row, 10, true);
                 const tData = await (await fetch(`${BASE_URL}/trending/all/day?api_key=${API_KEY}`)).json();
-                populateTop10Row(tData.results.slice(0, 10), top10Row);
-                populateRow(tData.results, row1, false);
-                setupHero(tData.results.slice(0, 5));
-
-                const aData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=28`)).json();
-                populateRow(aData.results, row2, false);
-
-                const cData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=35`)).json();
-                populateRow(cData.results, row3, false);
-
-                const sData = await (await fetch(`${BASE_URL}/trending/tv/day?api_key=${API_KEY}`)).json();
-                populateRow(sData.results, row4, true);
-
+                populateTop10Row(tData.results.slice(0, 10), top10Row); populateRow(tData.results, row1, false); setupHero(tData.results.slice(0, 5));
+                const aData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=28`)).json(); populateRow(aData.results, row2, false);
+                const cData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=35`)).json(); populateRow(cData.results, row3, false);
+                const sData = await (await fetch(`${BASE_URL}/trending/tv/day?api_key=${API_KEY}`)).json(); populateRow(sData.results, row4, true);
             } else if (viewType === 'animations') {
                 top10Container.style.display = 'none';
                 if (title1) title1.innerText = currentLang === 'es' ? "🍿 Top Películas de Animación" : "🍿 Top Animated Movies";
                 if (title2) title2.innerText = currentLang === 'es' ? "🎌 Anime y Series Animadas" : "🎌 Anime & Animated Series";
                 if (title3) title3.innerText = currentLang === 'es' ? "🧸 Animación Familiar" : "🧸 Family Animation";
                 if (title4) title4.innerText = currentLang === 'es' ? "🔥 Lanzamientos Animados" : "🔥 Trending Animated Releases";
-
                 const animMovData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16&sort_by=popularity.desc`)).json();
-                populateRow(animMovData.results, row1, false);
-                setupHero(animMovData.results.slice(0, 5));
-
-                const animTvData = await (await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=16&sort_by=popularity.desc`)).json();
-                populateRow(animTvData.results, row2, true);
-
-                const familyAnimData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16,10751&sort_by=popularity.desc`)).json();
-                populateRow(familyAnimData.results, row3, false);
-
-                const trendingAnimData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16&sort_by=vote_count.desc`)).json();
-                populateRow(trendingAnimData.results, row4, false);
-
+                populateRow(animMovData.results, row1, false); setupHero(animMovData.results.slice(0, 5));
+                const animTvData = await (await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=16&sort_by=popularity.desc`)).json(); populateRow(animTvData.results, row2, true);
+                const familyAnimData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16,10751&sort_by=popularity.desc`)).json(); populateRow(familyAnimData.results, row3, false);
+                const trendingAnimData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16&sort_by=vote_count.desc`)).json(); populateRow(trendingAnimData.results, row4, false);
             } else {
                 top10Container.style.display = 'none';
                 if (viewType === 'tv') {
@@ -1173,37 +753,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (title2) title2.innerText = currentLang === 'es' ? "🦸‍♂️ TV de Acción" : "🦸‍♂️ Action TV";
                     if (title3) title3.innerText = currentLang === 'es' ? "😂 TV de Comedia" : "😂 Comedy TV";
                     if (title4) title4.innerText = currentLang === 'es' ? "🎭 TV de Drama" : "🎭 Drama TV";
-
-                    const tData = await (await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`)).json();
-                    populateRow(tData.results, row1, true);
-                    setupHero(tData.results.slice(0, 5), true);
-                    const aData = await (await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=10759`)).json();
-                    populateRow(aData.results, row2, true);
-                    const cData = await (await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=35`)).json();
-                    populateRow(cData.results, row3, true);
-                    const dData = await (await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=18`)).json();
-                    populateRow(dData.results, row4, true);
-
+                    const tData = await (await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`)).json(); populateRow(tData.results, row1, true); setupHero(tData.results.slice(0, 5), true);
+                    const aData = await (await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=10759`)).json(); populateRow(aData.results, row2, true);
+                    const cData = await (await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=35`)).json(); populateRow(cData.results, row3, true);
+                    const dData = await (await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=18`)).json(); populateRow(dData.results, row4, true);
                 } else if (viewType === 'movies') {
                     if (title1) title1.innerText = currentLang === 'es' ? "🎬 Top Películas" : "🎬 Top Movies";
                     if (title2) title2.innerText = currentLang === 'es' ? "💥 Películas de Acción" : "💥 Action Movies";
                     if (title3) title3.innerText = currentLang === 'es' ? "😂 Películas de Comedia" : "😂 Comedy Movies";
                     if (title4) title4.innerText = currentLang === 'es' ? "👻 Películas de Terror" : "👻 Horror Movies";
-
-                    const tData = await (await fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`)).json();
-                    populateRow(tData.results, row1, false);
-                    setupHero(tData.results.slice(0, 5));
-                    const aData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=28`)).json();
-                    populateRow(aData.results, row2, false);
-                    const cData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=35`)).json();
-                    populateRow(cData.results, row3, false);
-                    const hData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=27`)).json();
-                    populateRow(hData.results, row4, false);
+                    const tData = await (await fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`)).json(); populateRow(tData.results, row1, false); setupHero(tData.results.slice(0, 5));
+                    const aData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=28`)).json(); populateRow(aData.results, row2, false);
+                    const cData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=35`)).json(); populateRow(cData.results, row3, false);
+                    const hData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=27`)).json(); populateRow(hData.results, row4, false);
                 }
             }
         } catch (error) { }
         setAppLanguage(currentLang);
-        syncProgressBars();
+        syncLocalProgressBars();
     }
 
     function renderHeroDots() {
@@ -1213,9 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
             dot.className = `hero-dot tv-focusable ${idx === currentHeroIndex ? 'active' : ''}`;
             dot.setAttribute('tabindex', '0');
             dot.onclick = () => {
-                currentHeroIndex = idx;
-                updateHeroBillboard(trendingMoviesList[currentHeroIndex]);
-                startHeroRotationLoop();
+                currentHeroIndex = idx; updateHeroBillboard(trendingMoviesList[currentHeroIndex]); startHeroRotationLoop();
             };
             heroDotsContainer.appendChild(dot);
         });
@@ -1224,152 +789,92 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupHero(results, isTV = false) {
         if (results && results.length > 0) {
             trendingMoviesList = results.map(item => ({ ...item, isTV: isTV }));
-            currentHeroIndex = 0;
-            updateHeroBillboard(trendingMoviesList[0]);
-            startHeroRotationLoop();
+            currentHeroIndex = 0; updateHeroBillboard(trendingMoviesList[0]); startHeroRotationLoop();
         }
     }
 
     async function renderPersonalizedRows() {
-        const myListContainer = document.getElementById('my-list-container');
-        const myListRow = document.getElementById('my-list-row');
-        const cwContainer = document.getElementById('continue-watching-container');
-        const cwRow = document.getElementById('continue-watching-row');
-        const awContainer = document.getElementById('already-watched-container');
-        const awRow = document.getElementById('already-watched-row');
-        const recContainer = document.getElementById('recommended-container');
-        const recRow = document.getElementById('recommended-row');
-        const communityContainer = document.getElementById('community-container');
-        const communityRow = document.getElementById('community-row');
+        const myListContainer = document.getElementById('my-list-container'); const myListRow = document.getElementById('my-list-row');
+        const cwContainer = document.getElementById('continue-watching-container'); const cwRow = document.getElementById('continue-watching-row');
+        const awContainer = document.getElementById('already-watched-container'); const awRow = document.getElementById('already-watched-row');
+        const recContainer = document.getElementById('recommended-container'); const recRow = document.getElementById('recommended-row');
+        const communityContainer = document.getElementById('community-container'); const communityRow = document.getElementById('community-row');
 
-        // 1. My List
-        if (myList.length > 0) {
-            myListContainer.style.display = 'block';
-            populateRow(myList, myListRow, false);
-        } else { myListContainer.style.display = 'none'; }
+        if (myList.length > 0) { myListContainer.style.display = 'block'; populateRow(myList, myListRow, false); } else { myListContainer.style.display = 'none'; }
+        if (alreadyWatched.length > 0) { awContainer.style.display = 'block'; populateRow(alreadyWatched, awRow, false); } else { awContainer.style.display = 'none'; }
 
-        // 2. Watch It Again
-        if (alreadyWatched.length > 0) {
-            awContainer.style.display = 'block';
-            populateRow(alreadyWatched, awRow, false);
-        } else { awContainer.style.display = 'none'; }
-
-        // 3. Community Row
         if (globalCommunityMovies.length > 0 && communityContainer && communityRow) {
-            communityContainer.style.display = 'block';
-            communityRow.innerHTML = '';
+            communityContainer.style.display = 'block'; communityRow.innerHTML = '';
             globalCommunityMovies.forEach(item => {
                 const movieId = item.id || item.movieId || item[0];
                 const movieTitle = item.title || item.movieTitle || item.name || item[1];
                 const moviePoster = item.poster_path || item.posterPath || item[2];
                 const addedByUser = item.addedBy || item.uid || item[3];
-
                 if (!movieId || !moviePoster) return;
 
                 const card = document.createElement('div');
-                card.className = 'movie-card tv-focusable';
-                card.setAttribute('data-id', movieId.toString());
-                card.setAttribute('tabindex', '0');
-                card.setAttribute('data-community-item', 'true');
+                card.className = 'movie-card tv-focusable'; card.setAttribute('data-id', movieId.toString());
+                card.setAttribute('tabindex', '0'); card.setAttribute('data-community-item', 'true');
                 card.setAttribute('data-added-by-me', (addedByUser === currentUserUid).toString());
-
-                card.innerHTML = `
-                    <img src="${IMAGE_BASE_URL}${moviePoster}" alt="${movieTitle}">
-                    <div class="card-info">
-                        <div class="card-title">${movieTitle}</div>
-                        <div class="card-meta"><span style="color:#e50914; font-weight:bold;">👥 Shared Party</span></div>
-                    </div>
-                `;
+                card.innerHTML = `<img src="${IMAGE_BASE_URL}${moviePoster}" alt="${movieTitle}"><div class="card-info"><div class="card-title">${movieTitle}</div><div class="card-meta"><span style="color:#e50914; font-weight:bold;">👥 Shared Party</span></div></div>`;
                 card.addEventListener('click', () => openDetailsModal(movieId, false));
                 communityRow.appendChild(card);
             });
-        } else if (communityContainer) {
-            communityContainer.style.display = 'none';
-        }
+        } else if (communityContainer) { communityContainer.style.display = 'none'; }
 
-        // 4. Continue Watching & Recommendations
         if (continueWatching.length > 0) {
-            cwContainer.style.display = 'block';
-            populateRow(continueWatching, cwRow, false);
+            cwContainer.style.display = 'block'; populateRow(continueWatching, cwRow, false);
             const lastWatched = continueWatching[0];
-            
             fetch(`${BASE_URL}/${lastWatched.media_type}/${lastWatched.id}/similar?api_key=${API_KEY}`)
-                .then(res => res.json())
-                .then(data => {
+                .then(res => res.json()).then(data => {
                     if (data.results && data.results.length > 0) {
-                        recContainer.style.display = 'block';
-                        const formattedRecs = data.results.map(item => ({ ...item, media_type: lastWatched.media_type }));
-                        populateRow(formattedRecs, recRow, lastWatched.media_type === 'tv');
-                        syncProgressBars();
+                        recContainer.style.display = 'block'; const formattedRecs = data.results.map(item => ({ ...item, media_type: lastWatched.media_type }));
+                        populateRow(formattedRecs, recRow, lastWatched.media_type === 'tv'); syncLocalProgressBars();
                     } else { recContainer.style.display = 'none'; }
                 }).catch(e => { recContainer.style.display = 'none'; });
-        } else {
-            cwContainer.style.display = 'none';
-            recContainer.style.display = 'none';
-        }
+        } else { cwContainer.style.display = 'none'; recContainer.style.display = 'none'; }
 
-        syncProgressBars();
+        syncLocalProgressBars();
     }
 
     function toggleMyList(data) {
         if (!data || !currentUserUid) return;
         const index = myList.findIndex(item => item.id === data.id);
         if (index > -1) { myList.splice(index, 1); }
-        else {
-            myList.unshift({ id: data.id, title: data.title || data.name, poster_path: data.poster_path, media_type: data.media_type, release_date: data.release_date || data.first_air_date, vote_average: data.vote_average });
-        }
-        saveUserData();
-        renderPersonalizedRows();
+        else { myList.unshift({ id: data.id, title: data.title || data.name, poster_path: data.poster_path, media_type: data.media_type, release_date: data.release_date || data.first_air_date, vote_average: data.vote_average }); }
+        saveUserData(); renderPersonalizedRows();
     }
 
     function addToContinueWatching(data) {
         if (!data || !currentUserUid) return;
-        const rawP = progressMap[data.id];
-        const isFinished = (rawP && typeof rawP === 'object') ? (rawP.percent === '100') : (rawP === '100');
-
-        if (isFinished) {
-            alreadyWatched = alreadyWatched.filter(item => item.id !== data.id);
-            alreadyWatched.unshift({ id: data.id, title: data.title || data.name, poster_path: data.poster_path, media_type: data.media_type, release_date: data.release_date || data.first_air_date, vote_average: data.vote_average });
-            if (alreadyWatched.length > 15) alreadyWatched.pop();
-            continueWatching = continueWatching.filter(item => item.id !== data.id);
-        } else {
-            continueWatching = continueWatching.filter(item => item.id !== data.id);
-            continueWatching.unshift({ id: data.id, title: data.title || data.name, poster_path: data.poster_path, media_type: data.media_type, release_date: data.release_date || data.first_air_date, vote_average: data.vote_average });
-            if (continueWatching.length > 10) continueWatching.pop();
-            alreadyWatched = alreadyWatched.filter(item => item.id !== data.id);
-        }
-
-        saveUserData();
-        renderPersonalizedRows();
+        continueWatching = continueWatching.filter(item => item.id !== data.id);
+        continueWatching.unshift({ id: data.id, title: data.title || data.name, poster_path: data.poster_path, media_type: data.media_type, release_date: data.release_date || data.first_air_date, vote_average: data.vote_average });
+        if (continueWatching.length > 10) continueWatching.pop();
+        alreadyWatched = alreadyWatched.filter(item => item.id !== data.id);
+        saveUserData(); renderPersonalizedRows();
     }
 
     async function openActorModal(personId) {
         try {
             const res = await fetch(`${BASE_URL}/person/${personId}?api_key=${API_KEY}&append_to_response=combined_credits`);
             const data = await res.json();
-            actorNameEl.innerText = data.name;
-            actorBioEl.innerText = data.biography || "No biography available.";
+            actorNameEl.innerText = data.name; actorBioEl.innerText = data.biography || "No biography available.";
             actorPhotoEl.src = data.profile_path ? `${IMAGE_BASE_URL}${data.profile_path}` : 'https://via.placeholder.com/200x300?text=No+Image';
             const sortedMovies = data.combined_credits.cast.sort((a, b) => b.popularity - a.popularity);
-            populateRow(sortedMovies, actorMoviesRow, false);
-            actorModal.style.display = 'block';
+            populateRow(sortedMovies, actorMoviesRow, false); actorModal.style.display = 'block';
         } catch (e) { }
     }
 
     async function openDetailsModal(id, isTV) {
         try {
             document.querySelector('.details-content').scrollTop = 0;
-            clearTimeout(modalTrailerTimeout);
-            modalTrailerFrame.src = "";
-            modalTrailerFrame.style.display = 'none';
+            clearTimeout(modalTrailerTimeout); modalTrailerFrame.src = ""; modalTrailerFrame.style.display = 'none';
 
             const type = isTV ? 'tv' : 'movie';
             const res = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}&append_to_response=credits,similar`);
             const data = await res.json();
 
-            data.media_type = type;
-            currentModalData = data;
-
+            data.media_type = type; currentModalData = data;
             document.getElementById('details-title').innerText = data.title || data.name;
             document.getElementById('details-desc').innerText = data.overview || "No description available.";
             document.getElementById('details-rating').innerText = `⭐ ${parseFloat(data.vote_average).toFixed(1)} Rating`;
@@ -1378,16 +883,12 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('details-year').innerText = releaseDate ? releaseDate.substring(0, 4) : "N/A";
             document.getElementById('details-hero').style.backgroundImage = `url('${HERO_IMAGE_BASE_URL}${data.backdrop_path || data.poster_path}')`;
 
-            const castContainer = document.getElementById('details-cast');
-            castContainer.innerHTML = '';
+            const castContainer = document.getElementById('details-cast'); castContainer.innerHTML = '';
             if (data.credits && data.credits.cast && data.credits.cast.length > 0) {
                 data.credits.cast.slice(0, 6).forEach((c, index) => {
-                    const span = document.createElement('span');
-                    span.innerText = c.name + (index < 5 ? ", " : "");
+                    const span = document.createElement('span'); span.innerText = c.name + (index < 5 ? ", " : "");
                     span.style.cssText = "cursor: pointer; color: #fff; text-decoration: underline; margin-right: 5px; transition: color 0.2s;";
-                    span.className = 'tv-focusable';
-                    span.setAttribute('tabindex', '0');
-                    span.onclick = () => openActorModal(c.id);
+                    span.className = 'tv-focusable'; span.setAttribute('tabindex', '0'); span.onclick = () => openActorModal(c.id);
                     castContainer.appendChild(span);
                 });
             } else { castContainer.innerText = "Cast information unavailable."; }
@@ -1400,10 +901,8 @@ document.addEventListener("DOMContentLoaded", () => {
             let isInList = myList.some(m => m.id === id);
             detailsMylistBtn.innerText = isInList ? "✔️ In My List" : "➕ My List";
             detailsMylistBtn.style.backgroundColor = isInList ? "#46d369" : "rgba(109, 109, 110, 0.7)";
-
             detailsMylistBtn.onclick = () => {
-                toggleMyList(currentModalData);
-                isInList = !isInList;
+                toggleMyList(currentModalData); isInList = !isInList;
                 detailsMylistBtn.innerText = isInList ? "✔️ In My List" : "➕ My List";
                 detailsMylistBtn.style.backgroundColor = isInList ? "#46d369" : "rgba(109, 109, 110, 0.7)";
             };
@@ -1411,11 +910,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const detailsBtnGroup = document.getElementById('details-btn-group') || detailsPlayBtn.parentElement;
             const oldShareBtn = document.getElementById('details-community-btn');
             if (oldShareBtn) oldShareBtn.remove();
-
             const communityShareBtn = document.createElement('button');
-            communityShareBtn.id = "details-community-btn";
-            communityShareBtn.className = "tv-focusable";
-            communityShareBtn.setAttribute('tabindex', '0');
+            communityShareBtn.id = "details-community-btn"; communityShareBtn.className = "tv-focusable"; communityShareBtn.setAttribute('tabindex', '0');
             communityShareBtn.style.cssText = "padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(229, 9, 20, 0.2); color: #fff; border: 1px solid #E50914; border-radius: 5px; cursor: pointer; transition: 0.2s;";
             communityShareBtn.innerText = "👥 Share to Community";
             communityShareBtn.onmouseover = () => communityShareBtn.style.background = "#E50914";
@@ -1425,65 +921,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
             modalTrailerTimeout = setTimeout(async () => {
                 const trailerKey = await fetchMovieTrailer(id, isTV);
-                if (trailerKey) {
-                    modalTrailerFrame.style.display = 'block';
-                    modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=0&controls=0&showinfo=0&rel=0`;
-                }
+                if (trailerKey) { modalTrailerFrame.style.display = 'block'; modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=0&controls=0&showinfo=0&rel=0`; }
             }, 500);
 
             detailsTrailerBtn.onclick = async () => {
                 clearTimeout(modalTrailerTimeout);
                 const trailerKey = await fetchMovieTrailer(id, isTV);
-                if (trailerKey) {
-                    modalTrailerFrame.style.display = 'block';
-                    modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=1&showinfo=0&rel=0`;
-                } else { showCustomAlert("Trailer not available for this title."); }
+                if (trailerKey) { modalTrailerFrame.style.display = 'block'; modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=1&showinfo=0&rel=0`; } 
+                else { showCustomAlert("Trailer not available for this title."); }
             };
 
             if (isTV) {
-                modalTvControls.style.display = 'flex';
-                modalSeasonSelect.innerHTML = '';
-
+                modalTvControls.style.display = 'flex'; modalSeasonSelect.innerHTML = '';
                 const tvMemory = progressMap[id] && typeof progressMap[id] === 'object' ? progressMap[id] : null;
-                const resumeSeason = tvMemory ? tvMemory.lastSeason : 1;
-                const resumeEpisode = tvMemory ? tvMemory.lastEpisode : 1;
+                const resumeSeason = tvMemory ? tvMemory.lastSeason : 1; const resumeEpisode = tvMemory ? tvMemory.lastEpisode : 1;
 
                 const validSeasons = data.seasons ? data.seasons.filter(s => s.season_number > 0) : [];
                 validSeasons.forEach(s => {
-                    const option = document.createElement('option');
-                    option.value = s.season_number;
-                    option.innerText = `Season ${s.season_number}`;
+                    const option = document.createElement('option'); option.value = s.season_number; option.innerText = `Season ${s.season_number}`;
                     if (parseInt(s.season_number) === parseInt(resumeSeason)) option.selected = true;
                     modalSeasonSelect.appendChild(option);
                 });
 
                 if (validSeasons.length > 0) { await populateModalEpisodes(id, modalSeasonSelect.value); }
                 if (modalEpisodeSelect.children.length >= resumeEpisode) { modalEpisodeSelect.value = resumeEpisode; }
-
                 modalSeasonSelect.onchange = async (e) => { await populateModalEpisodes(id, e.target.value); };
 
                 detailsPlayBtn.onclick = (e) => {
                     if (e) { e.preventDefault(); e.stopPropagation(); }
-                    clearTimeout(modalTrailerTimeout);
-                    detailsModal.style.display = 'none';
-                    modalTrailerFrame.src = "";
+                    clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
                     try { addToContinueWatching(currentModalData); } catch (err) { }
                     launchVideoStream(id, true, modalSeasonSelect.value, modalEpisodeSelect.value);
                 };
             } else {
                 modalTvControls.style.display = 'none';
-
                 detailsPlayBtn.onclick = (e) => {
                     if (e) { e.preventDefault(); e.stopPropagation(); }
-                    clearTimeout(modalTrailerTimeout);
-                    detailsModal.style.display = 'none';
-                    modalTrailerFrame.src = "";
+                    clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
                     try { addToContinueWatching(currentModalData); } catch (err) { }
                     launchVideoStream(id, false);
                 };
             }
-            detailsModal.style.display = 'block';
-            updateEmojiUI(id.toString());
+            detailsModal.style.display = 'block'; updateEmojiUI(id.toString());
 
         } catch (error) { console.error("Failed to load details modal:", error); }
     }
@@ -1495,91 +974,162 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
             modalEpisodeSelect.innerHTML = '';
             data.episodes.forEach(e => {
-                const option = document.createElement('option');
-                option.value = e.episode_number;
-                option.innerText = `Ep ${e.episode_number}: ${e.name}`;
+                const option = document.createElement('option'); option.value = e.episode_number; option.innerText = `Ep ${e.episode_number}: ${e.name}`;
                 modalEpisodeSelect.appendChild(option);
             });
         } catch (e) { }
     }
 
     closeDetailsBtn.addEventListener('click', () => {
-        clearTimeout(modalTrailerTimeout);
-        detailsModal.style.display = 'none';
-        modalTrailerFrame.src = "";
+        clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
     });
 
+    // 🚀 NEW STREAM LAUNCHER: FORCED LOCAL BACKEND ONLY
     async function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         try {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
-
             window.activeVideoStartTime = Date.now();
             window.rewardClaimedForSession = false;
 
             if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
+            if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); 
 
             if (isTV) {
-                if (!progressMap[id] || typeof progressMap[id] !== 'object') {
-                    progressMap[id] = {};
-                }
-                progressMap[id].percent = '10';
+                if (!progressMap[id] || typeof progressMap[id] !== 'object') progressMap[id] = {};
                 progressMap[id].lastSeason = parseInt(season);
                 progressMap[id].lastEpisode = parseInt(episode);
                 saveUserData();
-            } else {
-                let savedP = progressMap[id];
-                if (!savedP || typeof savedP === 'object') {
-                    progressMap[id] = '10';
-                    saveUserData();
-                }
             }
 
             requestWakeLock();
-
             try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch (e) { }
 
             if (isTV) {
                 btnPrevEp.style.display = currentTvState.episode > 1 ? 'inline-block' : 'none';
                 btnNextEp.style.display = 'inline-block';
-                episodeIndicatorText.innerText = `Playing: Season ${season}, Episode ${episode}`;
             } else {
                 btnPrevEp.style.display = 'none';
                 btnNextEp.style.display = 'none';
-                episodeIndicatorText.innerText = "Feature Film";
             }
 
+            episodeIndicatorText.innerHTML = "⏳ <b>Extracting stream via Home Server...</b>";
             btnMarkFinished.innerText = "✔️ Mark Finished";
 
-            if (serverSelect) {
-                serverSelect.disabled = true;
-            }
+            // Hide the server select dropdown entirely
+            if (serverSelect) serverSelect.style.display = 'none';
 
             videoModal.style.display = 'block';
             
             const nativePlayer = document.getElementById('native-video-player');
+            const iframe = document.getElementById('video-player-frame');
+
+            if (iframe) iframe.style.display = 'none';
             if (nativePlayer) {
-                nativePlayer.style.display = 'none';
+                nativePlayer.style.display = 'block';
+                nativePlayer.style.opacity = '0.3';
                 nativePlayer.pause();
             }
-            videoPlayerFrame.style.display = 'block';
 
-            const fastestServer = await getFastestServer();
+            try {
+                let imdbId = null;
+                try {
+                    const tmdbType = isTV ? 'tv' : 'movie';
+                    const idRes = await fetch(`${BASE_URL}/${tmdbType}/${id}/external_ids?api_key=${API_KEY}`);
+                    const idData = await idRes.json();
+                    imdbId = idData.imdb_id || null;
+                } catch (e) { }
 
-            if (serverSelect) {
-                serverSelect.value = fastestServer;
-                serverSelect.disabled = false;
+                const myScraperApiUrl = "https://tug-doctrine-greedily.ngrok-free.dev";
+                const streamType = isTV ? 'series' : 'movie';
+                let endpoint = `${myScraperApiUrl}/api/streams/${streamType}/${id}`;
+
+                if (isTV) endpoint += `?season=${season}&episode=${episode}`;
+
+                console.log("📡 Requesting streams from Home Server:", endpoint);
+
+                const streamRes = await fetch(endpoint, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const streamData = await streamRes.json();
+
+                if (!streamData || !streamData.streams || streamData.streams.length === 0) {
+                    throw new Error("Backend server returned 0 streams for this title.");
+                }
+
+                // Filter out unplayable .mkv files and explicit non-English tags
+                const playableStreams = streamData.streams.filter(s => {
+                    const link = (s.url || s.playlist || s.link || '').toLowerCase();
+                    const title = (s.title || s.name || '').toLowerCase();
+                    const isSpanish = title.includes('latino') || title.includes('spanish') || title.includes('esp') || title.includes('dubbed');
+                    const isPlayable = link.includes('m3u8') || link.includes('.mp4');
+                    return isPlayable && !isSpanish;
+                });
+
+                const chosenStream = playableStreams.length > 0 ? playableStreams[0] : streamData.streams[0];
+                const rawStreamUrl = chosenStream.url || chosenStream.playlist || chosenStream.link;
+
+                if (!rawStreamUrl) throw new Error("No playable stream URL found.");
+
+                episodeIndicatorText.innerText = isTV 
+                    ? `Playing: Season ${season}, Episode ${episode}` 
+                    : "Feature Film";
+
+                if (nativePlayer) {
+                    nativePlayer.addEventListener('loadedmetadata', async function resumeHandler() {
+                        nativePlayer.removeEventListener('loadedmetadata', resumeHandler);
+                        await checkAndResumeLocalVideo(nativePlayer, id);
+                    });
+                    startLocalProgressTracker(nativePlayer, id);
+
+                    if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
+                        const hls = new Hls({
+                            defaultAudioCodec: 'mp4a.40.2',
+                            xhrSetup: function(xhr, url) {
+                                xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
+                            }
+                        });
+                        
+                        hls.loadSource(rawStreamUrl);
+                        hls.attachMedia(nativePlayer);
+
+                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                            const audioTracks = hls.audioTracks;
+                            if (audioTracks && audioTracks.length > 0) {
+                                const englishTrackIndex = audioTracks.findIndex(track => {
+                                    const lang = (track.lang || track.name || '').toLowerCase();
+                                    return lang.includes('en') || lang.includes('eng') || lang.includes('english');
+                                });
+                                if (englishTrackIndex !== -1) hls.audioTrack = englishTrackIndex;
+                            }
+                            nativePlayer.play();
+                        });
+
+                        hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, function(event, data) {
+                            if (data.audioTracks && data.audioTracks.length > 0) {
+                                const englishTrackIndex = data.audioTracks.findIndex(track => {
+                                    const lang = (track.lang || track.name || '').toLowerCase();
+                                    return lang.includes('en') || lang.includes('eng') || lang.includes('english');
+                                });
+                                if (englishTrackIndex !== -1) hls.audioTrack = englishTrackIndex;
+                            }
+                        });
+
+                    } else {
+                        nativePlayer.src = rawStreamUrl;
+                        nativePlayer.play();
+                    }
+                    nativePlayer.style.opacity = '1';
+                }
+
+            } catch (error) {
+                console.warn("Home server extraction failed:", error);
+                episodeIndicatorText.innerHTML = "⚠️ <span style='color:red;'>Stream extraction failed on Home Server.</span>";
+                if (nativePlayer) nativePlayer.style.opacity = '1';
             }
 
-            const streamUrl = getServerStreamUrl(fastestServer, id, isTV, season, episode);
-
-            videoPlayerFrame.removeAttribute('sandbox');
-            videoPlayerFrame.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
-            videoPlayerFrame.setAttribute('allowfullscreen', 'true');
-            videoPlayerFrame.src = streamUrl;
-
+            // Google Sheets Points Tracker (Retained for rewards logic)
             window.watchTimerInterval = setInterval(() => {
                 if (!currentUserUid || window.rewardClaimedForSession) return;
-
                 const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
 
                 if (!currentTvState.isTV) {
@@ -1587,22 +1137,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         window.rewardClaimedForSession = true;
                         window.userTotalPoints = parseFloat((window.userTotalPoints + 0.25).toFixed(2));
                         progressMap['_points_'] = window.userTotalPoints;
-                        progressMap[currentTvState.id] = '100';
-
-                        updatePointsUI();
-                        saveUserData();
+                        updatePointsUI(); saveUserData();
                         showRewardToast("🍿 Reward Earned!", "You earned $0.25 BZD for watching 1 hour!");
                     }
                 } else {
                     if (elapsedMinutes >= 40) {
                         window.rewardClaimedForSession = true;
-
-                        if (!progressMap[currentTvState.id] || typeof progressMap[currentTvState.id] !== 'object') {
-                            progressMap[currentTvState.id] = {};
-                        }
-                        if (!Array.isArray(progressMap[currentTvState.id].completedEpisodes)) {
-                            progressMap[currentTvState.id].completedEpisodes = [];
-                        }
+                        if (!progressMap[currentTvState.id] || typeof progressMap[currentTvState.id] !== 'object') progressMap[currentTvState.id] = {};
+                        if (!Array.isArray(progressMap[currentTvState.id].completedEpisodes)) progressMap[currentTvState.id].completedEpisodes = [];
 
                         const currentEpKey = `S${currentTvState.season}E${currentTvState.episode}`;
                         if (!progressMap[currentTvState.id].completedEpisodes.includes(currentEpKey)) {
@@ -1610,9 +1152,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
 
                         let isSeriesFinale = false;
-                        let totalShowEpisodes = 0;
-                        let maxSeason = 1;
-                        let maxEpisode = 1;
+                        let totalShowEpisodes = 0; let maxSeason = 1; let maxEpisode = 1;
 
                         if (currentModalData && currentModalData.seasons) {
                             const validSeasons = currentModalData.seasons.filter(s => s.season_number > 0);
@@ -1620,10 +1160,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             validSeasons.forEach(s => { totalShowEpisodes += (s.episode_count || 0); });
                             const targetSeasonObj = validSeasons.find(s => s.season_number === maxSeason);
                             maxEpisode = targetSeasonObj ? targetSeasonObj.episode_count : 1;
-
-                            if (currentTvState.season === maxSeason && currentTvState.episode === maxEpisode) {
-                                isSeriesFinale = true;
-                            }
+                            if (currentTvState.season === maxSeason && currentTvState.episode === maxEpisode) isSeriesFinale = true;
                         }
 
                         const watchedCount = progressMap[currentTvState.id].completedEpisodes.length;
@@ -1632,14 +1169,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (isSeriesFinale && watchedCount >= requiredEpisodes) {
                             window.userTotalPoints = parseFloat((window.userTotalPoints + 1.00).toFixed(2));
                             progressMap['_points_'] = window.userTotalPoints;
-                            progressMap[currentTvState.id].percent = '100';
-
                             updatePointsUI();
                             showRewardToast("🎉 Series Complete!", "You earned $1.00 BZD!");
                         } else {
                             showRewardToast("✔️ Episode Recorded!", `Progress saved! (${watchedCount}/${totalShowEpisodes} Watched)`);
                         }
-
                         saveUserData();
                     }
                 }
@@ -1648,197 +1182,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (fatalError) {
             console.error("Launch Video Stream crashed:", fatalError);
         }
-    }
-
-    if (serverSelect) {
-        serverSelect.addEventListener('change', async (e) => {
-            if (currentTvState.id) {
-                const newServerKey = e.target.value;
-                const iframe = document.getElementById('video-player-frame');
-                const nativePlayer = document.getElementById('native-video-player');
-
-                if (newServerKey === 'native') {
-                    iframe.style.display = 'none';
-                    iframe.src = ""; // Stop iframe audio in background
-
-                    episodeIndicatorText.innerHTML = "⏳ <b>Extracting stream via Home Server...</b> (Searching providers)";
-                    if (iframe) iframe.style.opacity = '0.3';
-                    if (nativePlayer) nativePlayer.style.opacity = '0.3';
-
-                    try {
-                        let imdbId = null;
-                        try {
-                            const tmdbType = currentTvState.isTV ? 'tv' : 'movie';
-                            const idRes = await fetch(`${BASE_URL}/${tmdbType}/${currentTvState.id}/external_ids?api_key=${API_KEY}`);
-                            const idData = await idRes.json();
-                            imdbId = idData.imdb_id || null;
-                        } catch (e) { }
-
-                        const myScraperApiUrl = "https://tug-doctrine-greedily.ngrok-free.dev";
-                        const streamType = currentTvState.isTV ? 'series' : 'movie';
-                        let endpoint = `${myScraperApiUrl}/api/streams/${streamType}/${currentTvState.id}`;
-
-                        if (currentTvState.isTV) {
-                            endpoint += `?season=${currentTvState.season}&episode=${currentTvState.episode}`;
-                        }
-
-                        console.log("📡 Requesting streams from Home Server:", endpoint);
-
-                        const streamRes = await fetch(endpoint, {
-                            headers: {
-                                'ngrok-skip-browser-warning': 'true'
-                            }
-                        });
-                        const streamData = await streamRes.json();
-
-                        console.log("📦 Home Server Response:", streamData);
-
-                        if (!streamData || !streamData.streams || streamData.streams.length === 0) {
-                            throw new Error("Backend server returned 0 streams for this title.");
-                        }
-
-                        // Filter out unplayable .mkv files and explicit non-English tags
-                        const playableStreams = streamData.streams.filter(s => {
-                            const link = (s.url || s.playlist || s.link || '').toLowerCase();
-                            const title = (s.title || s.name || '').toLowerCase();
-                            const isSpanish = title.includes('latino') || title.includes('spanish') || title.includes('esp') || title.includes('dubbed');
-                            const isPlayable = link.includes('m3u8') || link.includes('.mp4');
-                            return isPlayable && !isSpanish;
-                        });
-
-                        const chosenStream = playableStreams.length > 0 ? playableStreams[0] : streamData.streams[0];
-                        const rawStreamUrl = chosenStream.url || chosenStream.playlist || chosenStream.link;
-
-                        if (!rawStreamUrl) {
-                            throw new Error("No playable stream URL found.");
-                        }
-
-                        console.log("🎬 Selected Stream URL:", rawStreamUrl);
-
-                        episodeIndicatorText.innerText = currentTvState.isTV 
-                            ? `Playing: Season ${currentTvState.season}, Episode ${currentTvState.episode}` 
-                            : "Feature Film";
-
-                        if (nativePlayer) {
-                            nativePlayer.style.display = 'block';
-                            iframe.style.display = 'none';
-
-                            // 👈 LOCAL DB TRACKER HOOKED IN HERE
-                            nativePlayer.addEventListener('loadedmetadata', async function resumeHandler() {
-                                nativePlayer.removeEventListener('loadedmetadata', resumeHandler);
-                                await checkAndResumeLocalVideo(nativePlayer, currentTvState.id);
-                            });
-                            startLocalProgressTracker(nativePlayer, currentTvState.id);
-                            // ---------------------------------
-
-                            if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
-                                const hls = new Hls({
-                                    defaultAudioCodec: 'mp4a.40.2',
-                                    // 🚀 INJECT NGROK BYPASS HEADER INTO HLS.JS REQUESTS
-                                    xhrSetup: function(xhr, url) {
-                                        xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
-                                    }
-                                });
-                                
-                                hls.loadSource(rawStreamUrl);
-                                hls.attachMedia(nativePlayer);
-
-                                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                                    // 🎧 AUTOMATIC AUDIO TRACK SWITCHER TO ENGLISH
-                                    const audioTracks = hls.audioTracks;
-                                    if (audioTracks && audioTracks.length > 0) {
-                                        console.log("🔊 Found Audio Tracks:", audioTracks);
-
-                                        const englishTrackIndex = audioTracks.findIndex(track => {
-                                            const lang = (track.lang || track.name || '').toLowerCase();
-                                            return lang.includes('en') || lang.includes('eng') || lang.includes('english');
-                                        });
-
-                                        if (englishTrackIndex !== -1) {
-                                            console.log(`✅ Switching to English audio track index: ${englishTrackIndex}`);
-                                            hls.audioTrack = englishTrackIndex;
-                                        } else {
-                                            console.warn("⚠️ No explicit English audio track label found, keeping track 0.");
-                                        }
-                                    }
-
-                                    nativePlayer.play();
-                                });
-
-                                hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, function(event, data) {
-                                    if (data.audioTracks && data.audioTracks.length > 0) {
-                                        const englishTrackIndex = data.audioTracks.findIndex(track => {
-                                            const lang = (track.lang || track.name || '').toLowerCase();
-                                            return lang.includes('en') || lang.includes('eng') || lang.includes('english');
-                                        });
-                                        if (englishTrackIndex !== -1) {
-                                            hls.audioTrack = englishTrackIndex;
-                                        }
-                                    }
-                                });
-
-                            } else {
-                                nativePlayer.src = rawStreamUrl;
-                                nativePlayer.play();
-                            }
-                        }
-
-                        if (iframe) iframe.style.opacity = '1';
-                        if (nativePlayer) nativePlayer.style.opacity = '1';
-
-                    } catch (error) {
-                        console.warn("Home server extraction yielded no stream. Fallback triggered:", error);
-
-                        if (nativePlayer) {
-                            nativePlayer.style.display = 'none';
-                            nativePlayer.pause();
-                            nativePlayer.style.opacity = '1';
-                        }
-                        iframe.style.display = 'block';
-                        iframe.style.opacity = '1';
-
-                        const fallbackServer = 'embedsu';
-                        if (serverSelect) serverSelect.value = fallbackServer;
-
-                        const fallbackUrl = getServerStreamUrl(
-                            fallbackServer,
-                            currentTvState.id,
-                            currentTvState.isTV,
-                            currentTvState.season,
-                            currentTvState.episode
-                        );
-
-                        iframe.removeAttribute('sandbox');
-                        iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
-                        iframe.setAttribute('allowfullscreen', 'true');
-                        iframe.src = fallbackUrl;
-                        episodeIndicatorText.innerText = "⚠️ Direct stream unavailable. Switched to Fallback Server.";
-                    }
-
-                } else {
-                    if (nativePlayer) {
-                        nativePlayer.style.display = 'none';
-                        nativePlayer.pause(); 
-                        nativePlayer.style.opacity = '1';
-                        if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); // Clear local tracker if switching back to iframe
-                    }
-                    iframe.style.display = 'block';
-                    iframe.style.opacity = '1';
-
-                    const newStreamUrl = getServerStreamUrl(
-                        newServerKey,
-                        currentTvState.id,
-                        currentTvState.isTV,
-                        currentTvState.season,
-                        currentTvState.episode
-                    );
-                    iframe.removeAttribute('sandbox');
-                    iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
-                    iframe.setAttribute('allowfullscreen', 'true');
-                    iframe.src = newStreamUrl;
-                }
-            }
-        });
     }
 
     btnNextEp.addEventListener('click', () => {
@@ -1855,40 +1198,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnMarkFinished.addEventListener('click', () => {
         if (currentUserUid && currentTvState.id) {
-
             const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
             let earnedPoints = 0;
             let btnFeedback = "";
 
             if (!currentTvState.isTV) {
-                progressMap[currentTvState.id] = '100';
-
                 if (elapsedMinutes >= 60) {
-                    earnedPoints = 0.25;
-                    btnFeedback = "⭐ +$0.25 BZD Earned!";
-                } else {
-                    btnFeedback = "✔️ Saved (Watch 1 hour for $0.25 BZD!)";
-                }
+                    earnedPoints = 0.25; btnFeedback = "⭐ +$0.25 BZD Earned!";
+                } else { btnFeedback = "✔️ Saved (Watch 1 hour for $0.25 BZD!)"; }
             } else {
-                if (!progressMap[currentTvState.id] || typeof progressMap[currentTvState.id] !== 'object') {
-                    progressMap[currentTvState.id] = {};
-                }
-                if (!Array.isArray(progressMap[currentTvState.id].completedEpisodes)) {
-                    progressMap[currentTvState.id].completedEpisodes = [];
-                }
+                if (!progressMap[currentTvState.id] || typeof progressMap[currentTvState.id] !== 'object') progressMap[currentTvState.id] = {};
+                if (!Array.isArray(progressMap[currentTvState.id].completedEpisodes)) progressMap[currentTvState.id].completedEpisodes = [];
 
                 const currentEpKey = `S${currentTvState.season}E${currentTvState.episode}`;
-
                 if (elapsedMinutes >= 40) {
-                    if (!progressMap[currentTvState.id].completedEpisodes.includes(currentEpKey)) {
-                        progressMap[currentTvState.id].completedEpisodes.push(currentEpKey);
-                    }
+                    if (!progressMap[currentTvState.id].completedEpisodes.includes(currentEpKey)) progressMap[currentTvState.id].completedEpisodes.push(currentEpKey);
                 }
 
-                let isSeriesFinale = false;
-                let totalShowEpisodes = 0;
-                let maxSeason = 1;
-                let maxEpisode = 1;
+                let isSeriesFinale = false; let totalShowEpisodes = 0; let maxSeason = 1; let maxEpisode = 1;
 
                 if (currentModalData && currentModalData.seasons) {
                     const validSeasons = currentModalData.seasons.filter(s => s.season_number > 0);
@@ -1896,88 +1223,64 @@ document.addEventListener("DOMContentLoaded", () => {
                     validSeasons.forEach(s => { totalShowEpisodes += (s.episode_count || 0); });
                     const targetSeasonObj = validSeasons.find(s => s.season_number === maxSeason);
                     maxEpisode = targetSeasonObj ? targetSeasonObj.episode_count : 1;
-
-                    if (currentTvState.season === maxSeason && currentTvState.episode === maxEpisode) {
-                        isSeriesFinale = true;
-                    }
+                    if (currentTvState.season === maxSeason && currentTvState.episode === maxEpisode) isSeriesFinale = true;
                 }
 
                 const watchedCount = progressMap[currentTvState.id].completedEpisodes.length;
                 const requiredEpisodes = Math.max(1, Math.floor(totalShowEpisodes * 0.8));
 
                 if (isSeriesFinale && elapsedMinutes >= 40 && watchedCount >= requiredEpisodes) {
-                    earnedPoints = 1.00;
-                    progressMap[currentTvState.id].percent = '100';
-                    btnFeedback = "⭐ Series Complete! +$1.00 BZD Earned!";
+                    earnedPoints = 1.00; btnFeedback = "⭐ Series Complete! +$1.00 BZD Earned!";
                 } else if (isSeriesFinale && elapsedMinutes >= 40 && watchedCount < requiredEpisodes) {
                     btnFeedback = `🚫 Watch ${requiredEpisodes - watchedCount} more episodes to unlock $1.00!`;
                 } else if (!isSeriesFinale && elapsedMinutes >= 40) {
                     btnFeedback = `✔️ Ep Saved! (${watchedCount}/${totalShowEpisodes} Watched)`;
-                } else {
-                    btnFeedback = "✔️ Saved (Watch 40m to record episode!)";
-                }
+                } else { btnFeedback = "✔️ Saved (Watch 40m to record episode!)"; }
             }
 
             if (earnedPoints > 0) {
                 window.userTotalPoints = parseFloat((window.userTotalPoints + earnedPoints).toFixed(2));
-                progressMap['_points_'] = window.userTotalPoints;
-                updatePointsUI();
+                progressMap['_points_'] = window.userTotalPoints; updatePointsUI();
             }
 
             btnMarkFinished.innerText = btnFeedback;
 
             if (!Array.isArray(continueWatching)) continueWatching = [];
             if (!Array.isArray(alreadyWatched)) alreadyWatched = [];
-
             continueWatching = continueWatching.filter(item => String(item.id) !== String(currentTvState.id));
 
             if (currentModalData) {
                 alreadyWatched = alreadyWatched.filter(item => String(item.id) !== String(currentModalData.id));
-                
                 alreadyWatched.unshift({
-                    id: currentModalData.id,
-                    title: currentModalData.title || currentModalData.name,
-                    poster_path: currentModalData.poster_path,
-                    media_type: currentModalData.media_type,
-                    release_date: currentModalData.release_date || currentModalData.first_air_date,
-                    vote_average: currentModalData.vote_average
+                    id: currentModalData.id, title: currentModalData.title || currentModalData.name,
+                    poster_path: currentModalData.poster_path, media_type: currentModalData.media_type,
+                    release_date: currentModalData.release_date || currentModalData.first_air_date, vote_average: currentModalData.vote_average
                 });
-                
                 if (alreadyWatched.length > 15) alreadyWatched.pop();
             }
 
-            saveUserData();
-            renderPersonalizedRows();
-            
+            saveUserData(); renderPersonalizedRows();
             setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 4000);
-            syncProgressBars();
+            syncLocalProgressBars();
         }
     });
 
     closeModalBtn.addEventListener('click', () => {
         if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
-        
-        // Clear local tracking interval when closing
         if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); 
 
         videoModal.style.display = 'none';
-        videoPlayerFrame.src = "";
-        
         const nativePlayer = document.getElementById('native-video-player');
         if (nativePlayer) {
-            nativePlayer.pause();
-            nativePlayer.src = "";
-            nativePlayer.style.opacity = '1';
+            nativePlayer.pause(); nativePlayer.src = ""; nativePlayer.style.opacity = '1';
         }
 
-        releaseWakeLock();
-        renderPersonalizedRows();
+        releaseWakeLock(); renderPersonalizedRows();
         try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); } catch (e) { }
     });
 
     heroMuteBtn.addEventListener('click', () => {
-        isHeroMuted = !isHeroMuted;
-        heroMuteBtn.innerText = isHeroMuted ? "..." : "...";
+        isHeroMuted = !isHeroMuted; heroMuteBtn.innerText = isHeroMuted ? "..." : "...";
         const command = isHeroMuted ? 'mute' : 'unMute';
         heroPlayerFrame.contentWindow.postMessage(`{"event":"command","func":"${command}","args":""}`, '*');
     });
@@ -2003,8 +1306,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function updateHeroBillboard(featuredMovie) {
         if (!featuredMovie) return;
-        renderHeroDots();
-        const type = featuredMovie.isTV ? 'tv' : 'movie';
+        renderHeroDots(); const type = featuredMovie.isTV ? 'tv' : 'movie';
         try {
             const imgRes = await fetch(`${BASE_URL}/${type}/${featuredMovie.id}/images?api_key=${API_KEY}`);
             const imgData = await imgRes.json();
@@ -2012,17 +1314,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const logoToUse = enLogo || (imgData.logos && imgData.logos.length > 0 ? imgData.logos[0] : null);
 
             if (logoToUse) {
-                heroDisplayTitle.style.display = 'none';
-                heroDisplayLogo.style.display = 'block';
+                heroDisplayTitle.style.display = 'none'; heroDisplayLogo.style.display = 'block';
                 heroDisplayLogo.src = `https://image.tmdb.org/t/p/w500${logoToUse.file_path}`;
             } else {
-                heroDisplayLogo.style.display = 'none';
-                heroDisplayTitle.style.display = 'block';
+                heroDisplayLogo.style.display = 'none'; heroDisplayTitle.style.display = 'block';
                 heroDisplayTitle.innerText = (featuredMovie.title || featuredMovie.name).toUpperCase();
             }
         } catch (e) {
-            heroDisplayLogo.style.display = 'none';
-            heroDisplayTitle.style.display = 'block';
+            heroDisplayLogo.style.display = 'none'; heroDisplayTitle.style.display = 'block';
             heroDisplayTitle.innerText = (featuredMovie.title || featuredMovie.name).toUpperCase();
         }
 
@@ -2036,60 +1335,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const trailerKey = await fetchMovieTrailer(featuredMovie.id, featuredMovie.isTV);
         if (trailerKey) {
-            heroPlayerFrame.style.display = 'block';
-            heroMuteBtn.style.display = 'flex';
+            heroPlayerFrame.style.display = 'block'; heroMuteBtn.style.display = 'flex';
             heroPlayerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerKey}&showinfo=0&rel=0&modestbranding=1&enablejsapi=1`;
-            isHeroMuted = true;
-            heroMuteBtn.innerText = "🔇";
+            isHeroMuted = true; heroMuteBtn.innerText = "🔇";
         } else {
-            heroPlayerFrame.src = "";
-            heroPlayerFrame.style.display = 'none';
-            heroMuteBtn.style.display = 'none';
+            heroPlayerFrame.src = ""; heroPlayerFrame.style.display = 'none'; heroMuteBtn.style.display = 'none';
         }
     }
 
     function populateTop10Row(movies, container) {
-        if (!container) return;
-        container.innerHTML = '';
+        if (!container) return; container.innerHTML = '';
         movies.forEach((item, index) => {
             if (!item.poster_path) return;
             const isTV = item.media_type === 'tv';
             const card = document.createElement('div');
-            card.className = 'top-10-wrapper tv-focusable';
-            card.setAttribute('data-id', item.id);
-            card.setAttribute('tabindex', '0');
-
-            card.innerHTML = `
-                <span class="top-10-number">${index + 1}</span>
-                <img src="${IMAGE_BASE_URL}${item.poster_path}" alt="${item.title || item.name}" class="top-10-poster">
-            `;
+            card.className = 'top-10-wrapper tv-focusable'; card.setAttribute('data-id', item.id); card.setAttribute('tabindex', '0');
+            card.innerHTML = `<span class="top-10-number">${index + 1}</span><img src="${IMAGE_BASE_URL}${item.poster_path}" alt="${item.title || item.name}" class="top-10-poster">`;
             card.addEventListener('click', () => openDetailsModal(item.id, isTV));
             container.appendChild(card);
         });
-        syncProgressBars();
+        syncLocalProgressBars();
     }
 
     function populateRow(movies, container, isTV = false) {
-        if (!container) return;
-        container.innerHTML = '';
+        if (!container) return; container.innerHTML = '';
         movies.forEach(item => {
             if (!item.poster_path) return;
             const isTvItem = item.media_type === 'tv' || isTV;
             const card = createMovieCard(item, isTvItem);
             container.appendChild(card);
         });
-        syncProgressBars();
+        syncLocalProgressBars();
     }
 
     async function fetchLiveSearch(query) {
-        if (query.trim().length < 2) {
-            searchDropdown.style.display = 'none';
-            return;
-        }
+        if (query.trim().length < 2) { searchDropdown.style.display = 'none'; return; }
         try {
             const response = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${query}`);
             const data = await response.json();
-
             searchDropdown.innerHTML = '';
             const validResults = data.results.filter(i => i.poster_path).slice(0, 8);
 
@@ -2097,23 +1380,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 searchDropdown.innerHTML = '<div style="padding: 10px; color: #aaa; text-align: center;">No results found</div>';
             } else {
                 validResults.forEach(item => {
-                    const isTV = (item.media_type === 'tv');
-                    const div = document.createElement('div');
-                    div.className = 'search-item tv-focusable';
-                    div.setAttribute('tabindex', '0');
+                    const isTV = (item.media_type === 'tv'); const div = document.createElement('div');
+                    div.className = 'search-item tv-focusable'; div.setAttribute('tabindex', '0');
                     const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
-                    div.innerHTML = `
-                        <img src="${IMAGE_BASE_URL}${item.poster_path}" alt="">
-                        <div class="search-item-info">
-                            <span class="search-item-title">${item.title || item.name}</span>
-                            <span class="search-item-meta">${isTV ? 'TV Series' : 'Movie'} • ${year}</span>
-                        </div>
-                    `;
-                    div.onclick = () => {
-                        searchDropdown.style.display = 'none';
-                        searchInput.value = '';
-                        openDetailsModal(item.id, isTV);
-                    };
+                    div.innerHTML = `<img src="${IMAGE_BASE_URL}${item.poster_path}" alt=""><div class="search-item-info"><span class="search-item-title">${item.title || item.name}</span><span class="search-item-meta">${isTV ? 'TV Series' : 'Movie'} • ${year}</span></div>`;
+                    div.onclick = () => { searchDropdown.style.display = 'none'; searchInput.value = ''; openDetailsModal(item.id, isTV); };
                     searchDropdown.appendChild(div);
                 });
             }
@@ -2122,43 +1393,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     searchInput.addEventListener('input', (e) => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => { fetchLiveSearch(e.target.value); }, 400);
+        clearTimeout(searchTimeout); searchTimeout = setTimeout(() => { fetchLiveSearch(e.target.value); }, 400);
     });
 
     document.addEventListener('click', (e) => {
-        if (e.target !== searchInput && e.target !== searchDropdown) {
-            searchDropdown.style.display = 'none';
-        }
+        if (e.target !== searchInput && e.target !== searchDropdown) { searchDropdown.style.display = 'none'; }
     });
 
     function createMovieCard(item, isTV = false) {
         const card = document.createElement('div');
-        card.className = 'movie-card tv-focusable';
-        card.setAttribute('data-id', item.id);
-        card.setAttribute('tabindex', '0');
-
+        card.className = 'movie-card tv-focusable'; card.setAttribute('data-id', item.id); card.setAttribute('tabindex', '0');
         const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
         const rating = parseFloat(item.vote_average || 0).toFixed(1);
-        card.innerHTML = `
-            <img src="${IMAGE_BASE_URL}${item.poster_path}" alt="${item.title || item.name}">
-            <div class="card-info">
-                <div class="card-title">${item.title || item.name}</div>
-                <div class="card-meta"><span>${year}</span> <span>⭐ ${rating}</span></div>
-            </div>
-        `;
-
-        card.addEventListener('click', () => {
-            openDetailsModal(item.id, isTV);
-        });
-
+        card.innerHTML = `<img src="${IMAGE_BASE_URL}${item.poster_path}" alt="${item.title || item.name}"><div class="card-info"><div class="card-title">${item.title || item.name}</div><div class="card-meta"><span>${year}</span> <span>⭐ ${rating}</span></div></div>`;
+        card.addEventListener('click', () => { openDetailsModal(item.id, isTV); });
         return card;
     }
 
     document.querySelectorAll('.brand-logo, #btn-home').forEach(btn => {
         btn.addEventListener('click', () => {
-            searchInput.value = '';
-            loadCategoryView('home');
+            searchInput.value = ''; loadCategoryView('home');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.querySelector('[data-view="home"]').classList.add('active');
         });
@@ -2166,40 +1420,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function checkSessionLock() {
         if (!currentUserUid || !dataLoadedFromCloud || window.isKickedOut || window.takeoverImmunity) return;
-
         try {
             const response = await fetch(GOOGLE_SHEET_URL, {
-                method: "POST",
-                mode: "cors",
-                redirect: "follow",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
+                method: "POST", mode: "cors", redirect: "follow",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify({ action: "fetch", uid: currentUserUid, cacheBust: Date.now() })
             });
             const result = await response.json();
-
             if (result.exists) {
                 const currentCloudDevice = (result.data.progress || {})['_active_device_'];
-
                 if (currentCloudDevice && currentCloudDevice !== myDeviceId) {
-
                     window.isKickedOut = true;
-
-                    document.body.innerHTML = `
-                        <div style="background:#000; color:#fff; position:fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999999; text-align:center; padding:20px; font-family:sans-serif;">
-                            <h1 style="color:#e50914; margin-bottom: 15px;">🚫 SESSION TERMINATED</h1>
-                            <p style="font-size: 1.1rem; line-height: 1.5;">The account owner just logged in on another device.<br>You have been kicked out.</p>
-                        </div>
-                    `;
-
-                    setTimeout(() => {
-                        signOut(auth).then(() => {
-                            window.location.reload();
-                        }).catch(() => {
-                            window.location.reload();
-                        });
-                    }, 4000);
+                    document.body.innerHTML = `<div style="background:#000; color:#fff; position:fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999999; text-align:center; padding:20px; font-family:sans-serif;"><h1 style="color:#e50914; margin-bottom: 15px;">🚫 SESSION TERMINATED</h1><p style="font-size: 1.1rem; line-height: 1.5;">The account owner just logged in on another device.<br>You have been kicked out.</p></div>`;
+                    setTimeout(() => { signOut(auth).then(() => { window.location.reload(); }).catch(() => { window.location.reload(); }); }, 4000);
                 }
             }
         } catch (e) { }
@@ -2209,13 +1442,10 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('focus', checkSessionLock);
     window.addEventListener('click', () => {
         if (!window.lockCheckThrottled) {
-            window.lockCheckThrottled = true;
-            checkSessionLock();
-            setTimeout(() => { window.lockCheckThrottled = false; }, 10000);
+            window.lockCheckThrottled = true; checkSessionLock(); setTimeout(() => { window.lockCheckThrottled = false; }, 10000);
         }
     });
 
-    // 🔑 PASSWORD RESET LOGIC
     const btnForgotPassword = document.getElementById('btn-forgot-password');
     const resetPasswordModal = document.getElementById('reset-password-modal');
     const resetEmailInput = document.getElementById('reset-email-input');
@@ -2225,9 +1455,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnForgotPassword) {
         btnForgotPassword.addEventListener('click', () => {
-            resetEmailInput.value = authEmailInput.value || ''; 
-            resetStatusMsg.innerText = '';
-            resetPasswordModal.style.display = 'flex';
+            resetEmailInput.value = authEmailInput.value || ''; resetStatusMsg.innerText = ''; resetPasswordModal.style.display = 'flex';
         });
     }
     if (resetCancelBtn) resetCancelBtn.addEventListener('click', () => { resetPasswordModal.style.display = 'none'; });
@@ -2235,36 +1463,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (resetSubmitBtn) {
         resetSubmitBtn.addEventListener('click', async () => {
             const email = resetEmailInput.value.trim();
-            if (!email) {
-                resetStatusMsg.style.color = '#E50914';
-                resetStatusMsg.innerText = 'Please enter a valid email.';
-                return;
-            }
+            if (!email) { resetStatusMsg.style.color = '#E50914'; resetStatusMsg.innerText = 'Please enter a valid email.'; return; }
             try {
-                resetStatusMsg.style.color = '#aaa';
-                resetStatusMsg.innerText = 'Sending link...';
+                resetStatusMsg.style.color = '#aaa'; resetStatusMsg.innerText = 'Sending link...';
                 await sendPasswordResetEmail(auth, email);
-                resetStatusMsg.style.color = '#46d369';
-                resetStatusMsg.innerText = '✅ Reset link sent to your email!';
+                resetStatusMsg.style.color = '#46d369'; resetStatusMsg.innerText = '✅ Reset link sent to your email!';
                 setTimeout(() => { resetPasswordModal.style.display = 'none'; }, 3000);
-            } catch (error) {
-                resetStatusMsg.style.color = '#E50914';
-                resetStatusMsg.innerText = '❌ Failed to send link. Try again.';
-            }
+            } catch (error) { resetStatusMsg.style.color = '#E50914'; resetStatusMsg.innerText = '❌ Failed to send link. Try again.'; }
         });
     }
 
-    // 🗑️ ACCOUNT DELETION LOGIC
     const btnDeleteAccountMobile = document.getElementById('btn-delete-account-mobile');
     const deleteAccountModal = document.getElementById('delete-account-modal');
     const deleteCancelBtn = document.getElementById('delete-cancel-btn');
     const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
 
     if (btnDeleteAccountMobile) {
-        btnDeleteAccountMobile.addEventListener('click', () => {
-            mobileMenu.style.right = '-100%';
-            deleteAccountModal.style.display = 'flex';
-        });
+        btnDeleteAccountMobile.addEventListener('click', () => { mobileMenu.style.right = '-100%'; deleteAccountModal.style.display = 'flex'; });
     }
     if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', () => { deleteAccountModal.style.display = 'none'; });
     
@@ -2274,31 +1489,19 @@ document.addEventListener("DOMContentLoaded", () => {
             if (user) {
                 try {
                     deleteConfirmBtn.innerText = "Deleting...";
-                    
                     await fetch(GOOGLE_SHEET_URL, {
-                        method: "POST",
-                        mode: "cors",
-                        redirect: "follow",
-                        headers: {
-                            "Content-Type": "text/plain;charset=utf-8"
-                        },
+                        method: "POST", mode: "cors", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" },
                         body: JSON.stringify({ action: "deleteAccount", uid: user.uid })
                     });
-
-                    await deleteUser(user);
-                    
-                    deleteAccountModal.style.display = 'none';
-                    window.location.reload(); 
+                    await deleteUser(user); deleteAccountModal.style.display = 'none'; window.location.reload(); 
                 } catch (error) {
                     alert("For security reasons, please Log Out and log back in before deleting your account.");
-                    deleteAccountModal.style.display = 'none';
-                    deleteConfirmBtn.innerText = "Yes, Delete";
+                    deleteAccountModal.style.display = 'none'; deleteConfirmBtn.innerText = "Yes, Delete";
                 }
             }
         });
     }
 
-    // 🤝 WHATSAPP REFERRAL LOGIC
     const btnSendReferral = document.getElementById('btn-send-referral');
     const referralFriendEmailInput = document.getElementById('referral-friend-email');
     const referralFriendPhoneInput = document.getElementById('referral-friend-phone');
@@ -2307,38 +1510,23 @@ document.addEventListener("DOMContentLoaded", () => {
         btnSendReferral.addEventListener('click', () => {
             const friendEmail = referralFriendEmailInput ? referralFriendEmailInput.value.trim() : '';
             const friendPhone = referralFriendPhoneInput ? referralFriendPhoneInput.value.trim() : '';
-
             let hasError = false;
 
-            if (!friendEmail) {
-                if (referralFriendEmailInput) referralFriendEmailInput.style.borderColor = '#E50914';
-                hasError = true;
-            } else {
-                if (referralFriendEmailInput) referralFriendEmailInput.style.borderColor = '#444';
-            }
+            if (!friendEmail) { if (referralFriendEmailInput) referralFriendEmailInput.style.borderColor = '#E50914'; hasError = true; } 
+            else { if (referralFriendEmailInput) referralFriendEmailInput.style.borderColor = '#444'; }
 
-            if (!friendPhone) {
-                if (referralFriendPhoneInput) referralFriendPhoneInput.style.borderColor = '#E50914';
-                hasError = true;
-            } else {
-                if (referralFriendPhoneInput) referralFriendPhoneInput.style.borderColor = '#444';
-            }
+            if (!friendPhone) { if (referralFriendPhoneInput) referralFriendPhoneInput.style.borderColor = '#E50914'; hasError = true; } 
+            else { if (referralFriendPhoneInput) referralFriendPhoneInput.style.borderColor = '#444'; }
 
             if (hasError) return;
 
-            const adminNumber = "5016542016";
-            const userEmail = window.currentUserEmail || "Unknown Email";
-
+            const adminNumber = "5016542016"; const userEmail = window.currentUserEmail || "Unknown Email";
             const message = `Hey Admin! I want to invite a friend to AYMovies!\n\n*My Account:* ${userEmail}\n\n*Friend's Details:*\n📧 Email: ${friendEmail}\n📱 Phone: ${friendPhone}\n\nPlease set up an account for my friend. Once they pay/join, please add $0.50 BZD to my Rewards Wallet, Thanks!`;
-
             const waUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(message)}`;
             const nativeWaUrl = `whatsapp://send?phone=${adminNumber}&text=${encodeURIComponent(message)}`;
 
-            if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-                window.AppInventor.setWebViewString(nativeWaUrl);
-            } else {
-                window.open(waUrl, '_blank');
-            }
+            if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') { window.AppInventor.setWebViewString(nativeWaUrl); } 
+            else { window.open(waUrl, '_blank'); }
         });
     }
 });
@@ -2352,7 +1540,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function getFocusableElements() {
         const selector = 'button, a, input, select, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot';
         const elements = Array.from(document.querySelectorAll(selector));
-        
         return elements.filter(el => {
             const rect = el.getBoundingClientRect();
             return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).display !== 'none';
@@ -2362,29 +1549,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function moveFocus(direction) {
         const elements = getFocusableElements();
         if (elements.length === 0) return;
-
         if (!currentFocus || !document.body.contains(currentFocus) || currentFocus.offsetParent === null) {
-            setFocus(elements[0]);
-            return;
+            setFocus(elements[0]); return;
         }
 
         const currentRect = currentFocus.getBoundingClientRect();
-        const currentCenter = {
-            x: currentRect.left + currentRect.width / 2,
-            y: currentRect.top + currentRect.height / 2
-        };
+        const currentCenter = { x: currentRect.left + currentRect.width / 2, y: currentRect.top + currentRect.height / 2 };
 
-        let bestMatch = null;
-        let minDistance = Infinity;
+        let bestMatch = null; let minDistance = Infinity;
 
         elements.forEach(el => {
             if (el === currentFocus) return;
             const rect = el.getBoundingClientRect();
-            const center = {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2
-            };
-
+            const center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
             let isDirectionMatch = false;
 
             if (direction === 'ArrowUp') isDirectionMatch = center.y < currentCenter.y;
@@ -2393,51 +1570,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (direction === 'ArrowRight') isDirectionMatch = center.x > currentCenter.x;
 
             if (isDirectionMatch) {
-                const dx = center.x - currentCenter.x;
-                const dy = center.y - currentCenter.y;
-
+                const dx = center.x - currentCenter.x; const dy = center.y - currentCenter.y;
                 let distance;
-                if (direction === 'ArrowUp' || direction === 'ArrowDown') {
-                    distance = Math.abs(dy) + (Math.abs(dx) * 4); 
-                } else {
-                    distance = Math.abs(dx) + (Math.abs(dy) * 4);
-                }
-
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    bestMatch = el;
-                }
+                if (direction === 'ArrowUp' || direction === 'ArrowDown') { distance = Math.abs(dy) + (Math.abs(dx) * 4); } 
+                else { distance = Math.abs(dx) + (Math.abs(dy) * 4); }
+                if (distance < minDistance) { minDistance = distance; bestMatch = el; }
             }
         });
 
-        if (bestMatch) {
-            setFocus(bestMatch);
-            bestMatch.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        }
+        if (bestMatch) { setFocus(bestMatch); bestMatch.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }
     }
 
     function setFocus(el) {
-        if (currentFocus) {
-            currentFocus.classList.remove('tv-focused'); 
-        }
-        currentFocus = el;
-        currentFocus.classList.add('tv-focused'); 
-        
-        currentFocus.focus({ preventScroll: true }); 
+        if (currentFocus) { currentFocus.classList.remove('tv-focused'); }
+        currentFocus = el; currentFocus.classList.add('tv-focused'); currentFocus.focus({ preventScroll: true }); 
     }
 
     document.addEventListener('keydown', (e) => {
         const allowedKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
-        
         if (allowedKeys.includes(e.key)) {
-            e.preventDefault(); 
-            moveFocus(e.key);
-            
+            e.preventDefault(); moveFocus(e.key);
         } else if (e.key === 'Enter' || e.key === 'Select' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.key === ' ') {
             e.preventDefault();
-            if (currentFocus) {
-                currentFocus.click(); 
-            }
+            if (currentFocus) { currentFocus.click(); }
         }
     });
 
