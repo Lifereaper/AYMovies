@@ -984,7 +984,7 @@ document.addEventListener("DOMContentLoaded", () => {
         clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
     });
 
-    // 🚀 NEW STREAM LAUNCHER: FORCED LOCAL BACKEND ONLY
+    // 🚀 STREAM LAUNCHER WITH "WATCH & EARN" LOADING BANNER
     async function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         try {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
@@ -1015,11 +1015,22 @@ document.addEventListener("DOMContentLoaded", () => {
             episodeIndicatorText.innerHTML = "⏳ <b>Extracting stream via Home Server...</b>";
             btnMarkFinished.innerText = "✔️ Mark Finished";
 
-            // Hide the server select dropdown entirely
             if (serverSelect) serverSelect.style.display = 'none';
 
             videoModal.style.display = 'block';
             
+            // 🍿 INJECT "WATCH & EARN" BANNER HERE
+            let loadingBanner = document.getElementById('loading-earn-banner');
+            if (!loadingBanner) {
+                loadingBanner = document.createElement('div');
+                loadingBanner.id = 'loading-earn-banner';
+                loadingBanner.style.cssText = 'position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 15, 15, 0.95); color: #ffd700; padding: 30px 50px; font-size: 1.8rem; font-weight: bold; border-radius: 12px; border: 2px solid #E50914; z-index: 99999; text-align: center; transition: opacity 0.5s ease; pointer-events: none; box-shadow: 0 0 30px rgba(229, 9, 20, 0.6);';
+                loadingBanner.innerHTML = '⏳ Fetching Secure Stream...<br><span style="font-size: 1.2rem; font-weight: normal; color: #fff; display: block; margin-top: 10px;">🍿 Watch & Earn Money!</span>';
+                videoModal.appendChild(loadingBanner);
+            }
+            loadingBanner.style.opacity = '1';
+            loadingBanner.style.display = 'block';
+
             const nativePlayer = document.getElementById('native-video-player');
             const iframe = document.getElementById('video-player-frame');
 
@@ -1056,7 +1067,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     throw new Error("Backend server returned 0 streams for this title.");
                 }
 
-                // Filter out unplayable .mkv files and explicit non-English tags
                 const playableStreams = streamData.streams.filter(s => {
                     const link = (s.url || s.playlist || s.link || '').toLowerCase();
                     const title = (s.title || s.name || '').toLowerCase();
@@ -1080,6 +1090,17 @@ document.addEventListener("DOMContentLoaded", () => {
                         await checkAndResumeLocalVideo(nativePlayer, id);
                     });
                     startLocalProgressTracker(nativePlayer, id);
+
+                    // 🎬 HIDE BANNER WHEN VIDEO ACTUALLY STARTS
+                    const hideBanner = () => {
+                        const banner = document.getElementById('loading-earn-banner');
+                        if (banner) {
+                            banner.style.opacity = '0';
+                            setTimeout(() => { if (banner) banner.style.display = 'none'; }, 500);
+                        }
+                        nativePlayer.removeEventListener('playing', hideBanner);
+                    };
+                    nativePlayer.addEventListener('playing', hideBanner);
 
                     if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
                         const hls = new Hls({
@@ -1125,9 +1146,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.warn("Home server extraction failed:", error);
                 episodeIndicatorText.innerHTML = "⚠️ <span style='color:red;'>Stream extraction failed on Home Server.</span>";
                 if (nativePlayer) nativePlayer.style.opacity = '1';
+                
+                // Hide banner on error
+                const banner = document.getElementById('loading-earn-banner');
+                if (banner) {
+                    banner.style.opacity = '0';
+                    setTimeout(() => { if (banner) banner.style.display = 'none'; }, 500);
+                }
             }
 
-            // Google Sheets Points Tracker (Retained for rewards logic)
             window.watchTimerInterval = setInterval(() => {
                 if (!currentUserUid || window.rewardClaimedForSession) return;
                 const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
@@ -1268,6 +1295,10 @@ document.addEventListener("DOMContentLoaded", () => {
     closeModalBtn.addEventListener('click', () => {
         if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
         if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); 
+        
+        // Hide banner immediately on close
+        const banner = document.getElementById('loading-earn-banner');
+        if (banner) banner.style.display = 'none';
 
         videoModal.style.display = 'none';
         const nativePlayer = document.getElementById('native-video-player');
