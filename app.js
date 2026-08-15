@@ -474,7 +474,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const episodeIndicatorText = document.getElementById('episode-indicator-text');
     const serverSelect = document.getElementById('server-select'); 
 
-    // Hide or remove old "Mark Finished" button if present in DOM
     const btnMarkFinished = document.getElementById('btn-mark-finished');
     if (btnMarkFinished) btnMarkFinished.style.display = 'none';
 
@@ -1017,7 +1016,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 btnNextEp.style.display = 'none';
             }
 
-            episodeIndicatorText.innerHTML = "⏳ <b>Extracting stream via Home Server...</b>";
+            episodeIndicatorText.innerText = isTV ? `Playing: Season ${season}, Episode ${episode}` : "";
 
             if (serverSelect) serverSelect.style.display = 'none';
 
@@ -1036,7 +1035,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formattedSecs = String(elapsedSeconds).padStart(2, '0');
                 loadingBanner.innerHTML = `
                     <div style="font-size: 2.2rem; margin-bottom: 8px;">🎬 🍿 🎥</div>
-                    <div style="color: #ffd700; font-size: 1.5rem;">Fetching Secure Stream... <span style="font-size: 1.2rem; color: #e50914;">(${formattedSecs}s)</span></div>
+                    <div style="color: #ffd700; font-size: 1.5rem;">Fetching Stream... <span style="font-size: 1.2rem; color: #e50914;">(${formattedSecs}s)</span></div>
                     <div style="font-size: 1.2rem; font-weight: normal; color: #fff; margin-top: 8px;">🍿 Watch & Earn Money!</div>
                     <div style="font-size: 1.0rem; font-weight: bold; color: #46d369; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px;">Your movie will start soon</div>
                 `;
@@ -1076,15 +1075,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (isTV) endpoint += `?season=${season}&episode=${episode}`;
 
-                console.log("📡 Requesting streams from Home Server:", endpoint);
-
                 const streamRes = await fetch(endpoint, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const streamData = await streamRes.json();
 
                 if (!streamData || !streamData.streams || streamData.streams.length === 0) {
-                    throw new Error("Backend server returned 0 streams for this title.");
+                    throw new Error("0 streams found.");
                 }
 
                 const playableStreams = streamData.streams.filter(s => {
@@ -1099,10 +1096,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const rawStreamUrl = chosenStream.url || chosenStream.playlist || chosenStream.link;
 
                 if (!rawStreamUrl) throw new Error("No playable stream URL found.");
-
-                episodeIndicatorText.innerText = isTV 
-                    ? `Playing: Season ${season}, Episode ${episode}` 
-                    : "Feature Film";
 
                 if (nativePlayer) {
                     nativePlayer.addEventListener('loadedmetadata', async function resumeHandler() {
@@ -1163,8 +1156,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
             } catch (error) {
-                console.warn("Home server extraction failed:", error);
-                episodeIndicatorText.innerHTML = "⚠️ <span style='color:red;'>Stream extraction failed on Home Server.</span>";
+                console.warn("Stream extraction failed:", error);
+                episodeIndicatorText.innerHTML = "⚠️ <span style='color:red;'>Stream loading failed.</span>";
                 if (nativePlayer) nativePlayer.style.opacity = '1';
                 
                 if (loadingBannerTimer) clearInterval(loadingBannerTimer);
