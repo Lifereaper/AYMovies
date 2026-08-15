@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.rewardClaimedForSession = false;
     
     let localProgressTrackerInterval = null;
-    let loadingBannerTimer = null; // ⏱️ Live loading timer reference
+    let loadingBannerTimer = null;
     const LOCAL_API_URL = "https://tug-doctrine-greedily.ngrok-free.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
@@ -343,8 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
             rowMyList: "➕ My List", rowContinue: "🍿 Continue Watching", rowWatchAgain: "🔁 Watch It Again",
             rowRecommended: "💡 Recommended For You", rowTop10: "🏆 Top 10 Today",
             rowCommunity: "👥 Shared Watch Party Community", rowTrending: "🔥 Trending Now",
-            rowAction: "💥 Action Movies", rowComedy: "😂 Comedy Movies", rowSeries: "📺 Trending Series",
-            btnMarkFinished: "✔️ Mark Finished"
+            rowAction: "💥 Action Movies", rowComedy: "😂 Comedy Movies", rowSeries: "📺 Trending Series"
         },
         es: {
             navHome: "Inicio", navTv: "Series TV", navMovies: "Películas", navAnimations: "Animación",
@@ -352,8 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
             rowMyList: "Mi Lista", rowContinue: "🍿 Continuar Viendo", rowWatchAgain: "🔁 Volver a Ver",
             rowRecommended: "💡 Recomendado para Ti", rowTop10: "🏆 Top 10 Hoy",
             rowCommunity: "👥 Comunidad Watch Party", rowTrending: "🔥 Tendencias Ahora",
-            rowAction: "💥 Películas de Acción", rowComedy: "😂 Películas de Comedia", rowSeries: "📺 Series en Tendencia",
-            btnMarkFinished: "✔️ Marcar Terminado"
+            rowAction: "💥 Películas de Acción", rowComedy: "😂 Películas de Comedia", rowSeries: "📺 Series en Tendencia"
         }
     };
 
@@ -407,7 +405,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setAppLanguage(currentLang);
 
-    // 💰 REWARD TOAST LOGIC (NON-STOPPING 3-SECOND OVERLAY)
     function showRewardToast(title, message) {
         let toast = document.getElementById('reward-toast');
         if (!toast) {
@@ -474,9 +471,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeModalBtn = document.getElementById('close-modal-btn');
     const btnPrevEp = document.getElementById('btn-prev-ep');
     const btnNextEp = document.getElementById('btn-next-ep');
-    const btnMarkFinished = document.getElementById('btn-mark-finished');
     const episodeIndicatorText = document.getElementById('episode-indicator-text');
     const serverSelect = document.getElementById('server-select'); 
+
+    // Hide or remove old "Mark Finished" button if present in DOM
+    const btnMarkFinished = document.getElementById('btn-mark-finished');
+    if (btnMarkFinished) btnMarkFinished.style.display = 'none';
 
     const btnToggleMiniPlayer = document.getElementById('btn-toggle-mini-player');
     if (btnToggleMiniPlayer) {
@@ -989,7 +989,6 @@ document.addEventListener("DOMContentLoaded", () => {
         clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
     });
 
-    // 🚀 STREAM LAUNCHER WITH ENHANCED "WATCH & EARN" BANNER + MOVIE ACTION & TIMER
     async function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         try {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
@@ -1019,13 +1018,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             episodeIndicatorText.innerHTML = "⏳ <b>Extracting stream via Home Server...</b>";
-            btnMarkFinished.innerText = "✔️ Mark Finished";
 
             if (serverSelect) serverSelect.style.display = 'none';
 
             videoModal.style.display = 'block';
             
-            // 🍿 ENHANCED WATCH & EARN LOADING BANNER (WITH ACTION EMOJIS & LIVE TIMER)
             let loadingBanner = document.getElementById('loading-earn-banner');
             if (!loadingBanner) {
                 loadingBanner = document.createElement('div');
@@ -1244,75 +1241,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!currentTvState.isTV || currentTvState.episode <= 1) return;
         currentTvState.episode -= 1;
         launchVideoStream(currentTvState.id, true, currentTvState.season, currentTvState.episode);
-    });
-
-    btnMarkFinished.addEventListener('click', () => {
-        if (currentUserUid && currentTvState.id) {
-            const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
-            let earnedPoints = 0;
-            let btnFeedback = "";
-
-            if (!currentTvState.isTV) {
-                if (elapsedMinutes >= 60) {
-                    earnedPoints = 0.25; btnFeedback = "⭐ +$0.25 BZD Earned!";
-                } else { btnFeedback = "✔️ Saved (Watch 1 hour for $0.25 BZD!)"; }
-            } else {
-                if (!progressMap[currentTvState.id] || typeof progressMap[currentTvState.id] !== 'object') progressMap[currentTvState.id] = {};
-                if (!Array.isArray(progressMap[currentTvState.id].completedEpisodes)) progressMap[currentTvState.id].completedEpisodes = [];
-
-                const currentEpKey = `S${currentTvState.season}E${currentTvState.episode}`;
-                if (elapsedMinutes >= 40) {
-                    if (!progressMap[currentTvState.id].completedEpisodes.includes(currentEpKey)) progressMap[currentTvState.id].completedEpisodes.push(currentEpKey);
-                }
-
-                let isSeriesFinale = false; let totalShowEpisodes = 0; let maxSeason = 1; let maxEpisode = 1;
-
-                if (currentModalData && currentModalData.seasons) {
-                    const validSeasons = currentModalData.seasons.filter(s => s.season_number > 0);
-                    maxSeason = Math.max(...validSeasons.map(s => s.season_number));
-                    validSeasons.forEach(s => { totalShowEpisodes += (s.episode_count || 0); });
-                    const targetSeasonObj = validSeasons.find(s => s.season_number === maxSeason);
-                    maxEpisode = targetSeasonObj ? targetSeasonObj.episode_count : 1;
-                    if (currentTvState.season === maxSeason && currentTvState.episode === maxEpisode) isSeriesFinale = true;
-                }
-
-                const watchedCount = progressMap[currentTvState.id].completedEpisodes.length;
-                const requiredEpisodes = Math.max(1, Math.floor(totalShowEpisodes * 0.8));
-
-                if (isSeriesFinale && elapsedMinutes >= 40 && watchedCount >= requiredEpisodes) {
-                    earnedPoints = 0.50; btnFeedback = "⭐ Series Complete! +$0.50 BZD Earned!";
-                } else if (isSeriesFinale && elapsedMinutes >= 40 && watchedCount < requiredEpisodes) {
-                    btnFeedback = `🚫 Watch ${requiredEpisodes - watchedCount} more episodes to unlock $0.50!`;
-                } else if (!isSeriesFinale && elapsedMinutes >= 40) {
-                    btnFeedback = `✔️ Ep Saved! (${watchedCount}/${totalShowEpisodes} Watched)`;
-                } else { btnFeedback = "✔️ Saved (Watch 40m to record episode!)"; }
-            }
-
-            if (earnedPoints > 0) {
-                window.userTotalPoints = parseFloat((window.userTotalPoints + earnedPoints).toFixed(2));
-                progressMap['_points_'] = window.userTotalPoints; updatePointsUI();
-            }
-
-            btnMarkFinished.innerText = btnFeedback;
-
-            if (!Array.isArray(continueWatching)) continueWatching = [];
-            if (!Array.isArray(alreadyWatched)) alreadyWatched = [];
-            continueWatching = continueWatching.filter(item => String(item.id) !== String(currentTvState.id));
-
-            if (currentModalData) {
-                alreadyWatched = alreadyWatched.filter(item => String(item.id) !== String(currentModalData.id));
-                alreadyWatched.unshift({
-                    id: currentModalData.id, title: currentModalData.title || currentModalData.name,
-                    poster_path: currentModalData.poster_path, media_type: currentModalData.media_type,
-                    release_date: currentModalData.release_date || currentModalData.first_air_date, vote_average: currentModalData.vote_average
-                });
-                if (alreadyWatched.length > 15) alreadyWatched.pop();
-            }
-
-            saveUserData(); renderPersonalizedRows();
-            setTimeout(() => { btnMarkFinished.innerText = "✔️ Mark Finished"; }, 4000);
-            syncLocalProgressBars();
-        }
     });
 
     closeModalBtn.addEventListener('click', () => {
