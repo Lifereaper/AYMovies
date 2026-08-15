@@ -110,6 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.rewardClaimedForSession = false;
     
     let localProgressTrackerInterval = null;
+    let loadingBannerTimer = null; // ⏱️ Live loading timer reference
     const LOCAL_API_URL = "https://tug-doctrine-greedily.ngrok-free.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
@@ -413,12 +414,10 @@ document.addEventListener("DOMContentLoaded", () => {
             toast = document.createElement('div');
             toast.id = 'reward-toast';
             
-            // Attach directly to video modal so it shows over full-screen video
             const videoModal = document.getElementById('video-modal') || document.body;
             videoModal.appendChild(toast);
         }
 
-        // Extreme z-index to overlay full-screen elements
         toast.style.cssText = `
             position: fixed; top: 20%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(15, 15, 15, 0.95); border: 3px solid #ffd700; box-shadow: 0 0 35px rgba(255, 215, 0, 0.9);
@@ -431,7 +430,6 @@ document.addEventListener("DOMContentLoaded", () => {
         toast.style.opacity = '1';
         toast.style.display = 'block';
 
-        // Stays for 3 seconds then disappears without pausing the movie
         setTimeout(() => {
             if (toast) { 
                 toast.style.opacity = '0'; 
@@ -991,7 +989,7 @@ document.addEventListener("DOMContentLoaded", () => {
         clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
     });
 
-    // 🚀 STREAM LAUNCHER WITH REWARD TRACKING
+    // 🚀 STREAM LAUNCHER WITH ENHANCED "WATCH & EARN" BANNER + MOVIE ACTION & TIMER
     async function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         try {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
@@ -1000,6 +998,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
             if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); 
+            if (loadingBannerTimer) clearInterval(loadingBannerTimer);
 
             if (isTV) {
                 if (!progressMap[id] || typeof progressMap[id] !== 'object') progressMap[id] = {};
@@ -1026,16 +1025,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
             videoModal.style.display = 'block';
             
+            // 🍿 ENHANCED WATCH & EARN LOADING BANNER (WITH ACTION EMOJIS & LIVE TIMER)
             let loadingBanner = document.getElementById('loading-earn-banner');
             if (!loadingBanner) {
                 loadingBanner = document.createElement('div');
                 loadingBanner.id = 'loading-earn-banner';
-                loadingBanner.style.cssText = 'position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 15, 15, 0.95); color: #ffd700; padding: 30px 50px; font-size: 1.8rem; font-weight: bold; border-radius: 12px; border: 2px solid #E50914; z-index: 99999; text-align: center; transition: opacity 0.5s ease; pointer-events: none; box-shadow: 0 0 30px rgba(229, 9, 20, 0.6);';
-                loadingBanner.innerHTML = '⏳ Fetching Secure Stream...<br><span style="font-size: 1.2rem; font-weight: normal; color: #fff; display: block; margin-top: 10px;">🍿 Watch & Earn Money!</span>';
+                loadingBanner.style.cssText = 'position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 15, 15, 0.96); color: #ffd700; padding: 25px 40px; font-size: 1.6rem; font-weight: bold; border-radius: 12px; border: 2px solid #E50914; z-index: 99999; text-align: center; transition: opacity 0.5s ease; pointer-events: none; box-shadow: 0 0 35px rgba(229, 9, 20, 0.7); font-family: Arial, sans-serif;';
                 videoModal.appendChild(loadingBanner);
             }
+
+            let elapsedSeconds = 0;
+            const updateBannerContent = () => {
+                const formattedSecs = String(elapsedSeconds).padStart(2, '0');
+                loadingBanner.innerHTML = `
+                    <div style="font-size: 2.2rem; margin-bottom: 8px;">🎬 🍿 🎥</div>
+                    <div style="color: #ffd700; font-size: 1.5rem;">Fetching Secure Stream... <span style="font-size: 1.2rem; color: #e50914;">(${formattedSecs}s)</span></div>
+                    <div style="font-size: 1.2rem; font-weight: normal; color: #fff; margin-top: 8px;">🍿 Watch & Earn Money!</div>
+                    <div style="font-size: 1.0rem; font-weight: bold; color: #46d369; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px;">Your movie will start soon</div>
+                `;
+            };
+
+            updateBannerContent();
             loadingBanner.style.opacity = '1';
             loadingBanner.style.display = 'block';
+
+            loadingBannerTimer = setInterval(() => {
+                elapsedSeconds++;
+                updateBannerContent();
+            }, 1000);
 
             const nativePlayer = document.getElementById('native-video-player');
             const iframe = document.getElementById('video-player-frame');
@@ -1098,6 +1115,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     startLocalProgressTracker(nativePlayer, id);
 
                     const hideBanner = () => {
+                        if (loadingBannerTimer) clearInterval(loadingBannerTimer);
                         const banner = document.getElementById('loading-earn-banner');
                         if (banner) {
                             banner.style.opacity = '0';
@@ -1152,6 +1170,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 episodeIndicatorText.innerHTML = "⚠️ <span style='color:red;'>Stream extraction failed on Home Server.</span>";
                 if (nativePlayer) nativePlayer.style.opacity = '1';
                 
+                if (loadingBannerTimer) clearInterval(loadingBannerTimer);
                 const banner = document.getElementById('loading-earn-banner');
                 if (banner) {
                     banner.style.opacity = '0';
@@ -1299,7 +1318,8 @@ document.addEventListener("DOMContentLoaded", () => {
     closeModalBtn.addEventListener('click', () => {
         if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
         if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); 
-        
+        if (loadingBannerTimer) clearInterval(loadingBannerTimer);
+
         const banner = document.getElementById('loading-earn-banner');
         if (banner) banner.style.display = 'none';
 
