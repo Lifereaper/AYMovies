@@ -1164,7 +1164,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
 
                 if (!currentTvState.isTV) {
-                    if (elapsedMinutes >= 0.1) {
+                    if (elapsedMinutes >= 60) {
                         window.rewardClaimedForSession = true;
                         window.userTotalPoints = parseFloat((window.userTotalPoints + 0.25).toFixed(2));
                         progressMap['_points_'] = window.userTotalPoints;
@@ -1234,7 +1234,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let btnFeedback = "";
 
             if (!currentTvState.isTV) {
-                if (elapsedMinutes >= 0.1) {
+                if (elapsedMinutes >= 60) {
                     earnedPoints = 0.25; btnFeedback = "⭐ +$0.25 BZD Earned!";
                 } else { btnFeedback = "✔️ Saved (Watch 1 hour for $0.25 BZD!)"; }
             } else {
