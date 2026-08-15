@@ -187,8 +187,88 @@ document.addEventListener("DOMContentLoaded", () => {
     window.activeVideoStartTime = 0;
     window.watchTimerInterval = null;
     window.rewardClaimedForSession = false;
+    
+    // --- LOCAL DATABASE TRACKER VARIABLES ---
+    let localProgressTrackerInterval = null;
+    const LOCAL_API_URL = "https://tug-doctrine-greedily.ngrok-free.dev/api/progress";
 
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
+
+    // --- LOCAL DB PROGRESS FUNCTIONS (NEW) ---
+    function startLocalProgressTracker(videoElement, currentMovieId) {
+        if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval);
+        
+        localProgressTrackerInterval = setInterval(() => {
+            if (!videoElement.paused && videoElement.currentTime > 0 && videoElement.duration) {
+                fetch(LOCAL_API_URL, { 
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        movieId: currentMovieId.toString(),
+                        currentTime: videoElement.currentTime,
+                        duration: videoElement.duration
+                    })
+                }).catch(err => console.log('Local sync error:', err));
+            }
+        }, 10000); 
+    }
+
+    async function checkAndResumeLocalVideo(videoElement, currentMovieId) {
+        try {
+            const response = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true' }});
+            const history = await response.json();
+            
+            if (history[currentMovieId]) {
+                videoElement.currentTime = history[currentMovieId].currentTime;
+            }
+        } catch (error) {
+            console.error('Could not load local history:', error);
+        }
+    }
+
+    async function syncLocalProgressBars() {
+        try {
+            const historyResponse = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true' }});
+            const watchHistory = await historyResponse.json();
+
+            const cards = document.querySelectorAll('.movie-card, .top-10-wrapper');
+            cards.forEach(card => {
+                const id = card.getAttribute('data-id');
+                if (watchHistory[id]) {
+                    const savedTime = watchHistory[id].currentTime;
+                    const totalTime = watchHistory[id].duration;
+                    
+                    let percentage = (savedTime / totalTime) * 100;
+                    if (percentage > 100) percentage = 100; 
+
+                    let track = card.querySelector('.local-progress-track');
+                    if (!track) {
+                        track = document.createElement('div');
+                        track.className = 'local-progress-track';
+                        // Clean styling that overlays at the very bottom
+                        track.style.cssText = 'width: 100%; height: 5px; background-color: rgba(255,255,255,0.2); position: absolute; bottom: 0; left: 0; z-index: 20; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; overflow: hidden;';
+                        
+                        const fill = document.createElement('div');
+                        fill.className = 'local-progress-fill';
+                        fill.style.cssText = 'height: 100%; background-color: #E50914; transition: width 0.3s ease;';
+                        
+                        track.appendChild(fill);
+                        card.appendChild(track);
+                        card.style.position = 'relative'; // Ensure absolute positioning binds to the card
+                    }
+                    
+                    const fill = track.querySelector('.local-progress-fill');
+                    fill.style.width = `${percentage}%`;
+                }
+            });
+        } catch (e) {
+            // Fail silently if server is offline
+        }
+    }
+    // ----------------------------------------
 
     // 🔔 CUSTOM ALERT LOGIC
     function showCustomAlert(message) {
@@ -1015,6 +1095,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 fill.style.background = savedProgress === '100' ? '#46d369' : '#E50914';
             } else if (track) { track.remove(); }
         });
+
+        // 👈 NEW LOCAL PROGRESS SYNC INJECTED HERE
+        syncLocalProgressBars();
     }
 
     function renderSkeletons(container, count = 10, isTop10 = false) {
@@ -1640,6 +1723,14 @@ document.addEventListener("DOMContentLoaded", () => {
                             nativePlayer.style.display = 'block';
                             iframe.style.display = 'none';
 
+                            // 👈 LOCAL DB TRACKER HOOKED IN HERE
+                            nativePlayer.addEventListener('loadedmetadata', async function resumeHandler() {
+                                nativePlayer.removeEventListener('loadedmetadata', resumeHandler);
+                                await checkAndResumeLocalVideo(nativePlayer, currentTvState.id);
+                            });
+                            startLocalProgressTracker(nativePlayer, currentTvState.id);
+                            // ---------------------------------
+
                             if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
                                 const hls = new Hls({
                                     defaultAudioCodec: 'mp4a.40.2',
@@ -1729,6 +1820,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         nativePlayer.style.display = 'none';
                         nativePlayer.pause(); 
                         nativePlayer.style.opacity = '1';
+                        if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); // Clear local tracker if switching back to iframe
                     }
                     iframe.style.display = 'block';
                     iframe.style.opacity = '1';
@@ -1864,6 +1956,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     closeModalBtn.addEventListener('click', () => {
         if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
+        
+        // Clear local tracking interval when closing
+        if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); 
+
         videoModal.style.display = 'none';
         videoPlayerFrame.src = "";
         
