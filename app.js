@@ -406,31 +406,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setAppLanguage(currentLang);
 
+    // 💰 REWARD TOAST LOGIC (NON-STOPPING 3-SECOND OVERLAY)
     function showRewardToast(title, message) {
         let toast = document.getElementById('reward-toast');
         if (!toast) {
             toast = document.createElement('div');
             toast.id = 'reward-toast';
-            toast.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: rgba(15, 15, 15, 0.98); border: 3px solid #ffd700; box-shadow: 0 0 35px rgba(255, 215, 0, 0.8);
-                color: white; padding: 25px 45px; border-radius: 12px; z-index: 9999999; text-align: center;
-                font-family: Arial, sans-serif; pointer-events: none; transition: opacity 0.5s ease-in-out;
-            `;
-            document.body.appendChild(toast);
+            
+            // Attach directly to video modal so it shows over full-screen video
+            const videoModal = document.getElementById('video-modal') || document.body;
+            videoModal.appendChild(toast);
         }
-        toast.innerHTML = `<div style="font-size: 1.8rem; font-weight: bold; color: #ffd700; margin-bottom: 8px;">${title}</div>
-            <div style="font-size: 1.2rem; color: #ffffff;">${message}</div>`;
+
+        // Extreme z-index to overlay full-screen elements
+        toast.style.cssText = `
+            position: fixed; top: 20%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(15, 15, 15, 0.95); border: 3px solid #ffd700; box-shadow: 0 0 35px rgba(255, 215, 0, 0.9);
+            color: white; padding: 20px 40px; border-radius: 12px; z-index: 2147483647; text-align: center;
+            font-family: Arial, sans-serif; pointer-events: none; transition: opacity 0.4s ease-in-out;
+        `;
+
+        toast.innerHTML = `<div style="font-size: 1.6rem; font-weight: bold; color: #ffd700; margin-bottom: 6px;">${title}</div>
+            <div style="font-size: 1.1rem; color: #ffffff;">${message}</div>`;
         toast.style.opacity = '1';
         toast.style.display = 'block';
 
-        const player = document.getElementById('native-video-player');
-        if (player) player.pause();
-
+        // Stays for 3 seconds then disappears without pausing the movie
         setTimeout(() => {
-            if (toast) { toast.style.opacity = '0'; setTimeout(() => { toast.style.display = 'none'; }, 500); }
-            if (player) player.play();
-        }, 5000);
+            if (toast) { 
+                toast.style.opacity = '0'; 
+                setTimeout(() => { toast.style.display = 'none'; }, 400); 
+            }
+        }, 3000);
     }
 
     const profileIcon = document.getElementById('profile-icon');
@@ -984,7 +991,7 @@ document.addEventListener("DOMContentLoaded", () => {
         clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
     });
 
-    // 🚀 STREAM LAUNCHER WITH "WATCH & EARN" LOADING BANNER
+    // 🚀 STREAM LAUNCHER WITH REWARD TRACKING
     async function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         try {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
@@ -1019,7 +1026,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             videoModal.style.display = 'block';
             
-            // 🍿 INJECT "WATCH & EARN" BANNER HERE
             let loadingBanner = document.getElementById('loading-earn-banner');
             if (!loadingBanner) {
                 loadingBanner = document.createElement('div');
@@ -1091,7 +1097,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                     startLocalProgressTracker(nativePlayer, id);
 
-                    // 🎬 HIDE BANNER WHEN VIDEO ACTUALLY STARTS
                     const hideBanner = () => {
                         const banner = document.getElementById('loading-earn-banner');
                         if (banner) {
@@ -1147,7 +1152,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 episodeIndicatorText.innerHTML = "⚠️ <span style='color:red;'>Stream extraction failed on Home Server.</span>";
                 if (nativePlayer) nativePlayer.style.opacity = '1';
                 
-                // Hide banner on error
                 const banner = document.getElementById('loading-earn-banner');
                 if (banner) {
                     banner.style.opacity = '0';
@@ -1194,10 +1198,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         const requiredEpisodes = Math.max(1, Math.floor(totalShowEpisodes * 0.8));
 
                         if (isSeriesFinale && watchedCount >= requiredEpisodes) {
-                            window.userTotalPoints = parseFloat((window.userTotalPoints + 1.00).toFixed(2));
+                            window.userTotalPoints = parseFloat((window.userTotalPoints + 0.50).toFixed(2));
                             progressMap['_points_'] = window.userTotalPoints;
                             updatePointsUI();
-                            showRewardToast("🎉 Series Complete!", "You earned $1.00 BZD!");
+                            showRewardToast("🎉 Series Complete!", "You earned $0.50 BZD!");
                         } else {
                             showRewardToast("✔️ Episode Recorded!", `Progress saved! (${watchedCount}/${totalShowEpisodes} Watched)`);
                         }
@@ -1257,9 +1261,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 const requiredEpisodes = Math.max(1, Math.floor(totalShowEpisodes * 0.8));
 
                 if (isSeriesFinale && elapsedMinutes >= 40 && watchedCount >= requiredEpisodes) {
-                    earnedPoints = 1.00; btnFeedback = "⭐ Series Complete! +$1.00 BZD Earned!";
+                    earnedPoints = 0.50; btnFeedback = "⭐ Series Complete! +$0.50 BZD Earned!";
                 } else if (isSeriesFinale && elapsedMinutes >= 40 && watchedCount < requiredEpisodes) {
-                    btnFeedback = `🚫 Watch ${requiredEpisodes - watchedCount} more episodes to unlock $1.00!`;
+                    btnFeedback = `🚫 Watch ${requiredEpisodes - watchedCount} more episodes to unlock $0.50!`;
                 } else if (!isSeriesFinale && elapsedMinutes >= 40) {
                     btnFeedback = `✔️ Ep Saved! (${watchedCount}/${totalShowEpisodes} Watched)`;
                 } else { btnFeedback = "✔️ Saved (Watch 40m to record episode!)"; }
@@ -1296,7 +1300,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
         if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); 
         
-        // Hide banner immediately on close
         const banner = document.getElementById('loading-earn-banner');
         if (banner) banner.style.display = 'none';
 
