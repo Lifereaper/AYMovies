@@ -1611,13 +1611,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('keydown', (e) => {
-        const allowedKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
-        if (allowedKeys.includes(e.key)) {
-            e.preventDefault(); 
-            moveFocus(e.key);
-        } else if (e.key === 'Enter' || e.key === 'Select' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.key === ' ') {
+        const key = e.key;
+        const keyCode = e.keyCode || e.which;
+
+        // Support both modern keys and legacy Android TV numeric keycodes
+        if (key === 'ArrowUp' || keyCode === 38) {
             e.preventDefault();
-            if (currentFocus) { currentFocus.click(); }
+            moveFocus('ArrowUp');
+        } else if (key === 'ArrowDown' || keyCode === 40) {
+            e.preventDefault();
+            moveFocus('ArrowDown');
+        } else if (key === 'ArrowLeft' || keyCode === 37) {
+            e.preventDefault();
+            moveFocus('ArrowLeft');
+        } else if (key === 'ArrowRight' || keyCode === 39) {
+            e.preventDefault();
+            moveFocus('ArrowRight');
+        } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66 || key === ' ') {
+            e.preventDefault();
+            if (currentFocus) {
+                currentFocus.click();
+            }
         }
     });
 
