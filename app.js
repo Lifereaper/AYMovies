@@ -1513,10 +1513,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFocus = null;
 
     function getFocusableElements() {
-        // 1. Trap focus inside whichever modal or drawer is currently active
         const activeModal = [
-            document.getElementById('login-view'),
             document.getElementById('splash-dmca-view'),
+            document.getElementById('login-view'),
             document.getElementById('video-modal'),
             document.getElementById('details-modal'),
             document.getElementById('rewards-drawer'),
@@ -1532,10 +1531,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return style.display !== 'none' && style.visibility !== 'hidden' && style.right !== '-100%';
         });
 
-        // 2. Select all interactive items + elements marked with .tv-focusable
         const selector = 'button, a, input, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable';
-        
-        // 3. Search only inside the active modal if open; otherwise scan full document
         const searchArea = activeModal ? activeModal : document;
         const elements = Array.from(searchArea.querySelectorAll(selector));
 
@@ -1551,7 +1547,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements.length === 0) return;
         
         if (!currentFocus || !document.body.contains(currentFocus) || currentFocus.offsetParent === null) {
-            // Auto-fallback to currently focused element or first valid focusable element
             const activeEl = document.activeElement;
             if (activeEl && elements.includes(activeEl)) {
                 setFocus(activeEl);
@@ -1604,25 +1599,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setFocus(el) {
         if (!el) return;
-        if (currentFocus) { currentFocus.classList.remove('tv-focused'); }
+        if (currentFocus && currentFocus !== el) { 
+            currentFocus.classList.remove('tv-focused'); 
+        }
         currentFocus = el; 
         currentFocus.classList.add('tv-focused'); 
-        
-        // Prevent inputs from opening the TV virtual keyboard just by arrowing over them
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-            currentFocus.focus({ preventScroll: true });
-            // Immediately blur so the TV virtual keyboard doesn't automatically pop up on arrow focus
-            el.blur();
-        } else {
-            currentFocus.focus({ preventScroll: true });
-        }
+        currentFocus.focus({ preventScroll: true }); 
     }
 
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
 
-        // D-Pad Arrow Navigation
+        // If currently typing in an input field, allow Arrow Up/Down to navigate away to buttons
         if (key === 'ArrowUp' || keyCode === 38) {
             e.preventDefault();
             moveFocus('ArrowUp');
@@ -1630,36 +1619,41 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             moveFocus('ArrowDown');
         } else if (key === 'ArrowLeft' || keyCode === 37) {
-            e.preventDefault();
-            moveFocus('ArrowLeft');
+            // Only capture Left/Right if not actively typing inside a text box
+            if (document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                moveFocus('ArrowLeft');
+            }
         } else if (key === 'ArrowRight' || keyCode === 39) {
-            e.preventDefault();
-            moveFocus('ArrowRight');
-        } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66 || key === ' ') {
-            e.preventDefault();
+            if (document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                moveFocus('ArrowRight');
+            }
+        } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             if (currentFocus) {
-                // If the current focused element is an input, explicitly open the keyboard when Enter is pressed
-                if (currentFocus.tagName === 'INPUT' || currentFocus.tagName === 'TEXTAREA') {
+                // If it's a form input, trigger click/focus to pop open virtual keyboard
+                if (currentFocus.tagName === 'INPUT') {
                     currentFocus.focus();
                 } else {
+                    e.preventDefault();
                     currentFocus.click();
                 }
             }
         }
     });
 
-    // Smart Initial Focus Startup
+    // Auto-focus the Disclaimer button or the Email Input on Startup
     setTimeout(() => {
         const disclaimerBtn = document.getElementById('btn-accept-dmca');
-        const loginBtn = document.querySelector('#auth-form button[type="submit"]');
+        const emailInput = document.getElementById('auth-email');
 
         if (disclaimerBtn && window.getComputedStyle(document.getElementById('splash-dmca-view')).display !== 'none') {
             setFocus(disclaimerBtn);
-        } else if (loginBtn && window.getComputedStyle(document.getElementById('login-view')).display !== 'none') {
-            // Default focus to the "Sign In" button on login screen so arrowing down doesn't open the keyboard
-            setFocus(loginBtn);
+        } else if (emailInput && window.getComputedStyle(document.getElementById('login-view')).display !== 'none') {
+            setFocus(emailInput);
         } else {
             const elements = getFocusableElements();
             if (elements.length > 0) setFocus(elements[0]);
         }
-    }, 600);
+    }, 600); 
+});
