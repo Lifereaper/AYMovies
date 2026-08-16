@@ -1513,8 +1513,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFocus = null;
 
     function getFocusableElements() {
-        const selector = 'button, a, input, select, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot';
-        const elements = Array.from(document.querySelectorAll(selector));
+        // 1. Trap focus inside whichever modal or drawer is currently active
+        const activeModal = [
+            document.getElementById('video-modal'),
+            document.getElementById('details-modal'),
+            document.getElementById('rewards-drawer'),
+            document.getElementById('actor-modal'),
+            document.getElementById('mobile-menu'),
+            document.getElementById('custom-prompt-modal'),
+            document.getElementById('custom-alert-modal'),
+            document.getElementById('reset-password-modal'),
+            document.getElementById('delete-account-modal')
+        ].find(el => {
+            if (!el) return false;
+            const style = window.getComputedStyle(el);
+            return style.display !== 'none' && style.visibility !== 'hidden' && style.right !== '-100%';
+        });
+
+        // 2. Select all interactive items + elements marked with .tv-focusable
+        const selector = 'button, a, input, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable';
+        
+        // 3. Search only inside the active modal if open; otherwise scan full document
+        const searchArea = activeModal ? activeModal : document;
+        const elements = Array.from(searchArea.querySelectorAll(selector));
+
         return elements.filter(el => {
             const rect = el.getBoundingClientRect();
             return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).display !== 'none';
@@ -1531,7 +1553,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentRect = currentFocus.getBoundingClientRect();
         const currentCenter = { x: currentRect.left + currentRect.width / 2, y: currentRect.top + currentRect.height / 2 };
 
-        let bestMatch = null; let minDistance = Infinity;
+        let bestMatch = null; 
+        let minDistance = Infinity;
 
         elements.forEach(el => {
             if (el === currentFocus) return;
@@ -1539,21 +1562,33 @@ document.addEventListener('DOMContentLoaded', () => {
             const center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
             let isDirectionMatch = false;
 
-            if (direction === 'ArrowUp') isDirectionMatch = center.y < currentCenter.y;
-            if (direction === 'ArrowDown') isDirectionMatch = center.y > currentCenter.y;
-            if (direction === 'ArrowLeft') isDirectionMatch = center.x < currentCenter.x;
-            if (direction === 'ArrowRight') isDirectionMatch = center.x > currentCenter.x;
+            if (direction === 'ArrowUp') isDirectionMatch = center.y < currentCenter.y - 5;
+            if (direction === 'ArrowDown') isDirectionMatch = center.y > currentCenter.y + 5;
+            if (direction === 'ArrowLeft') isDirectionMatch = center.x < currentCenter.x - 5;
+            if (direction === 'ArrowRight') isDirectionMatch = center.x > currentCenter.x + 5;
 
             if (isDirectionMatch) {
-                const dx = center.x - currentCenter.x; const dy = center.y - currentCenter.y;
+                const dx = Math.abs(center.x - currentCenter.x);
+                const dy = Math.abs(center.y - currentCenter.y);
                 let distance;
-                if (direction === 'ArrowUp' || direction === 'ArrowDown') { distance = Math.abs(dy) + (Math.abs(dx) * 4); } 
-                else { distance = Math.abs(dx) + (Math.abs(dy) * 4); }
-                if (distance < minDistance) { minDistance = distance; bestMatch = el; }
+                
+                if (direction === 'ArrowUp' || direction === 'ArrowDown') { 
+                    distance = dy + (dx * 10); 
+                } else { 
+                    distance = dx + (dy * 25); 
+                }
+                
+                if (distance < minDistance) { 
+                    minDistance = distance; 
+                    bestMatch = el; 
+                }
             }
         });
 
-        if (bestMatch) { setFocus(bestMatch); bestMatch.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }
+        if (bestMatch) { 
+            setFocus(bestMatch); 
+            bestMatch.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); 
+        }
     }
 
     function setFocus(el) {
