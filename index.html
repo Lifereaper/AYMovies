@@ -464,7 +464,7 @@
                 <button type="submit" style="padding: 15px; background: #E50914; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1.1rem;">Sign In</button>
             </form>
             <div style="text-align: center; margin-top: 15px;">
-                <span id="btn-forgot-password" style="color: #aaa; font-size: 0.9rem; cursor: pointer; text-decoration: underline; transition: color 0.2s;">Forgot Password?</span>
+                <button id="btn-forgot-password" class="tv-focusable" tabindex="0" style="background: transparent; border: none; color: #aaa; font-size: 0.9rem; cursor: pointer; text-decoration: underline; transition: color 0.2s;">Forgot Password?</button>
             </div>
             <p id="auth-error-message" style="color: #E50914; text-align: center; margin-top: 15px;"></p>
         </div>
@@ -484,30 +484,30 @@
 
         <div style="display: flex; gap: 8px; align-items: center;">
             <!-- 💰 REWARDS BUTTON (DESKTOP) -->
-            <button id="btn-rewards-desktop" style="background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.9rem;" class="hide-mobile">
+            <button id="btn-rewards-desktop" style="background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.9rem;" class="hide-mobile tv-focusable" tabindex="0">
                 💰 $<span class="header-points-val">0.00</span> BZD
             </button>
 
             <!-- 🌐 LANGUAGE SELECTOR (DESKTOP) -->
-            <select id="lang-select" class="hide-mobile" style="background: #000; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
+            <select id="lang-select" class="hide-mobile tv-focusable" tabindex="0" style="background: #000; color: #fff; border: 1px solid #444; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
                 <option value="en">🇺🇸 EN</option>
                 <option value="es">🇲🇽 ES</option>
             </select>
 
             <div style="position: relative;">
-                <input type="text" id="search-input" placeholder="Search..." style="padding: 8px 12px; border-radius: 20px; border: 1px solid #444; background: #000; color: white; outline: none;">
+                <input type="text" id="search-input" class="tv-focusable" tabindex="0" placeholder="Search..." style="padding: 8px 12px; border-radius: 20px; border: 1px solid #444; background: #000; color: white; outline: none;">
                 <div id="search-dropdown" class="search-dropdown" style="display: none;"></div>
             </div>
 
-            <button id="btn-surprise" class="hide-mobile" style="padding: 8px 15px; background: #E50914; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">🎲 Surprise Me</button>
+            <button id="btn-surprise" class="hide-mobile tv-focusable" tabindex="0" style="padding: 8px 15px; background: #E50914; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">🎲 Surprise Me</button>
             
             <div style="position: relative;">
-                <div id="profile-icon" style="width: 35px; height: 35px; background: #E50914; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;" title="Change Avatar">👤</div>
+                <div id="profile-icon" class="tv-focusable" tabindex="0" style="width: 35px; height: 35px; background: #E50914; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;" title="Change Avatar">👤</div>
                 <div id="avatar-dropdown" style="display: none; position: absolute; top: 45px; right: 0; background: #181818; border: 1px solid #333; border-radius: 5px; padding: 10px; width: 150px; box-shadow: 0 5px 15px rgba(0,0,0,0.8); z-index: 2000; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
             </div>
 
-            <button id="btn-logout" class="hide-mobile" style="padding: 8px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
-            <button id="mobile-menu-btn" class="show-mobile" style="display: none; background: transparent; border: none; color: white; font-size: 28px; cursor: pointer; margin-left: 5px;">☰</button>
+            <button id="btn-logout" class="hide-mobile tv-focusable" tabindex="0" style="padding: 8px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
+            <button id="mobile-menu-btn" class="show-mobile tv-focusable" tabindex="0" style="display: none; background: transparent; border: none; color: white; font-size: 28px; cursor: pointer; margin-left: 5px;">☰</button>
         </div>
     </header>
 
@@ -515,7 +515,7 @@
     <div id="rewards-drawer">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
             <h2 style="margin: 0; font-size: 1.4rem; color: #ffd700; display: flex; align-items: center; gap: 8px;">💰 Rewards Wallet</h2>
-            <span id="close-rewards-btn" style="font-size: 28px; cursor: pointer; color: #aaa;">&times;</span>
+            <button id="close-rewards-btn" tabindex="0" class="tv-focusable" style="background: transparent; border: none; font-size: 28px; cursor: pointer; color: #aaa;">&times;</button>
         </div>
 
         <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; border: 1px solid #ffd700; text-align: center; margin-bottom: 25px;">
@@ -528,22 +528,22 @@
         <form id="payout-form" style="display: flex; flex-direction: column; gap: 12px;">
             <div>
                 <label style="font-size: 0.8rem; color: #aaa; display: block; margin-bottom: 4px;">Payment Method</label>
-                <select id="payout-method" style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; font-weight: bold;">
+                <select id="payout-method" tabindex="0" class="tv-focusable" style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; font-weight: bold;">
                     <option value="DigiWallet">📱 DigiWallet</option>
                 </select>
             </div>
 
             <div>
                 <label style="font-size: 0.8rem; color: #aaa; display: block; margin-bottom: 4px;">Phone / Account #</label>
-                <input type="text" id="payout-account" placeholder="e.g. 501-610-1234" required style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box;">
+                <input type="text" id="payout-account" tabindex="0" class="tv-focusable" placeholder="e.g. 501-610-1234" required style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box;">
             </div>
 
             <div>
                 <label style="font-size: 0.8rem; color: #aaa; display: block; margin-bottom: 4px;">Amount (Min. $5.00 BZD)</label>
-                <input type="number" id="payout-amount" step="0.50" min="5.00" placeholder="5.00" required style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box;">
+                <input type="number" id="payout-amount" tabindex="0" class="tv-focusable" step="0.50" min="5.00" placeholder="5.00" required style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box;">
             </div>
 
-            <button type="submit" style="width: 100%; padding: 12px; background: #ffd700; color: black; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px;">
+            <button type="submit" tabindex="0" class="tv-focusable" style="width: 100%; padding: 12px; background: #ffd700; color: black; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px;">
                 Submit Payout Request
             </button>
         </form>
@@ -563,9 +563,9 @@
         <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
             <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: #fff;">🤝 Refer & Earn $0.50 BZD</h3>
             <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 15px;">Send your friend's details to the Admin to set up their account!</p>
-            <input type="email" id="referral-friend-email" placeholder="Friend's Email Address" style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box; margin-bottom: 10px;">
-            <input type="text" id="referral-friend-phone" placeholder="Friend's Phone Number" style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box; margin-bottom: 10px;">
-            <button id="btn-send-referral" style="width: 100%; padding: 12px; background: #25D366; color: black; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem;">
+            <input type="email" id="referral-friend-email" tabindex="0" class="tv-focusable" placeholder="Friend's Email Address" style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box; margin-bottom: 10px;">
+            <input type="text" id="referral-friend-phone" tabindex="0" class="tv-focusable" placeholder="Friend's Phone Number" style="width: 100%; padding: 10px; background: #222; color: white; border: 1px solid #444; border-radius: 5px; outline: none; box-sizing: border-box; margin-bottom: 10px;">
+            <button id="btn-send-referral" tabindex="0" class="tv-focusable" style="width: 100%; padding: 12px; background: #25D366; color: black; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1rem;">
                 💬 Send to Admin
             </button>
         </div>
@@ -573,13 +573,13 @@
 
     <!-- 📱 MOBILE MENU -->
     <div id="mobile-menu" style="position: fixed; top: 0; right: -100%; width: 250px; height: 100vh; background: rgba(20,20,20,0.95); backdrop-filter: blur(10px); z-index: 2000; transition: right 0.3s ease; padding: 30px 20px; box-shadow: -5px 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 20px;">
-        <button id="close-mobile-menu" style="align-self: flex-end; background: transparent; border: none; color: white; font-size: 35px; cursor: pointer;">&times;</button>
+        <button id="close-mobile-menu" tabindex="0" class="tv-focusable" style="align-self: flex-end; background: transparent; border: none; color: white; font-size: 35px; cursor: pointer;">&times;</button>
 
         <div style="display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; padding-bottom: 15px; margin-top: -10px;">
             <div id="mobile-menu-avatar" style="font-size: 2.5rem;">👤</div>
             <div style="display: flex; flex-direction: column;">
                 <span id="mobile-menu-email" style="color: #aaa; font-size: 0.8rem; word-break: break-all;">user@email.com</span>
-                <div id="btn-rewards-mobile" style="color: #ffd700; font-weight: bold; font-size: 1.1rem; margin-top: 5px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                <div id="btn-rewards-mobile" tabindex="0" class="tv-focusable" style="color: #ffd700; font-weight: bold; font-size: 1.1rem; margin-top: 5px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
                     ⭐ $<span id="mobile-menu-points">0.00</span> BZD ➔
                 </div>
             </div>
@@ -587,7 +587,7 @@
 
         <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #333;">
             <span style="color: #aaa; font-size: 1rem; font-weight: bold;">🌐 Language:</span>
-            <select id="lang-select-mobile" style="background: #000; color: #fff; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
+            <select id="lang-select-mobile" tabindex="0" class="tv-focusable" style="background: #000; color: #fff; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; outline: none;">
                 <option value="en">🇺🇸 English</option>
                 <option value="es">🇲🇽 Español</option>
             </select>
@@ -598,9 +598,9 @@
         <span class="nav-link" data-view="movies" style="font-size: 1.2rem;">Movies</span>
         <span class="nav-link" data-view="animations" style="font-size: 1.2rem;">Animations</span>
         <hr style="border-color: #333; width: 100%;">
-        <span id="btn-surprise-mobile" style="font-size: 1.2rem; color: #E50914; font-weight: bold; cursor: pointer;">🎲 Surprise Me</span>
-        <span id="btn-delete-account-mobile" style="font-size: 1.2rem; color: #E50914; font-weight: bold; cursor: pointer;">🗑️ Delete Account</span>
-        <span id="btn-logout-mobile" style="font-size: 1.2rem; color: #aaa; cursor: pointer;">Logout</span>
+        <span id="btn-surprise-mobile" tabindex="0" class="tv-focusable" style="font-size: 1.2rem; color: #E50914; font-weight: bold; cursor: pointer;">🎲 Surprise Me</span>
+        <span id="btn-delete-account-mobile" tabindex="0" class="tv-focusable" style="font-size: 1.2rem; color: #E50914; font-weight: bold; cursor: pointer;">🗑️ Delete Account</span>
+        <span id="btn-logout-mobile" tabindex="0" class="tv-focusable" style="font-size: 1.2rem; color: #aaa; cursor: pointer;">Logout</span>
     </div>
 
     <!-- 🏠 HOME VIEW -->
@@ -608,17 +608,17 @@
         <div id="hero-poster-bg" style="height: 60vh; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 50px; position: relative;">
             <iframe id="hero-player-frame" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; pointer-events: none;" allow="autoplay"></iframe>
 
-            <button id="hero-prev" class="hero-nav-arrow">❮</button>
-            <button id="hero-next" class="hero-nav-arrow">❯</button>
+            <button id="hero-prev" class="hero-nav-arrow tv-focusable" tabindex="0">❮</button>
+            <button id="hero-next" class="hero-nav-arrow tv-focusable" tabindex="0">❯</button>
             <div id="hero-dots"></div>
 
-            <button id="hero-mute-btn" style="position: absolute; bottom: 30px; right: 50px; background: rgba(0,0,0,0.5); border: 1px solid white; color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.2rem; cursor: pointer; z-index: 10; display: none; align-items: center; justify-content: center;">🔇</button>
+            <button id="hero-mute-btn" class="tv-focusable" tabindex="0" style="position: absolute; bottom: 30px; right: 50px; background: rgba(0,0,0,0.5); border: 1px solid white; color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.2rem; cursor: pointer; z-index: 10; display: none; align-items: center; justify-content: center;">🔇</button>
 
             <div style="position: relative; z-index: 2; color: white; max-width: 600px;">
                 <img id="hero-display-logo" src="" alt="Movie Logo" style="display: none; max-width: 400px; max-height: 150px; margin-bottom: 15px; object-fit: contain;">
                 <h1 id="hero-display-title" style="font-size: 3.5rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);"></h1>
                 <p id="hero-display-desc" style="font-size: 1.2rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); margin-bottom: 20px;"></p>
-                <button id="hero-play-btn" type="button" style="padding: 10px 30px; font-size: 1.3rem; font-weight: bold; cursor: pointer; background: white; color: black; border: none; border-radius: 5px;">▶ Play</button>
+                <button id="hero-play-btn" type="button" class="tv-focusable" tabindex="0" style="padding: 10px 30px; font-size: 1.3rem; font-weight: bold; cursor: pointer; background: white; color: black; border: none; border-radius: 5px;">▶ Play</button>
             </div>
         </div>
 
@@ -635,90 +635,90 @@
         <div id="my-list-container" class="row-container" style="display: none;">
             <h2 class="row-title">➕ My List</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('my-list-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('my-list-row', 'left')">❮</button>
                 <div id="my-list-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('my-list-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('my-list-row', 'right')">❯</button>
             </div>
         </div>
 
         <div id="continue-watching-container" class="row-container" style="display: none;">
             <h2 class="row-title">🍿 Continue Watching</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('continue-watching-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('continue-watching-row', 'left')">❮</button>
                 <div id="continue-watching-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('continue-watching-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('continue-watching-row', 'right')">❯</button>
             </div>
         </div>
 
         <div id="already-watched-container" class="row-container" style="display: none;">
             <h2 class="row-title">🔁 Watch It Again</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('already-watched-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('already-watched-row', 'left')">❮</button>
                 <div id="already-watched-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('already-watched-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('already-watched-row', 'right')">❯</button>
             </div>
         </div>
 
         <div id="recommended-container" class="row-container" style="display: none;">
             <h2 class="row-title">💡 Recommended For You</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('recommended-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('recommended-row', 'left')">❮</button>
                 <div id="recommended-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('recommended-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('recommended-row', 'right')">❯</button>
             </div>
         </div>
 
         <div id="top-10-container" class="row-container" style="display: none;">
             <h2 class="row-title">🏆 Top 10 Today</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('top-10-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('top-10-row', 'left')">❮</button>
                 <div id="top-10-row" class="movie-row" style="padding-left: 30px; overflow-y: hidden;"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('top-10-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('top-10-row', 'right')">❯</button>
             </div>
         </div>
 
         <div class="row-container">
             <h2 id="row1-title" class="row-title">🔥 Trending Now</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('trending-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('trending-row', 'left')">❮</button>
                 <div id="trending-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('trending-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('trending-row', 'right')">❯</button>
             </div>
         </div>
 
         <div class="row-container">
             <h2 id="row2-title" class="row-title">💥 Action Movies</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('action-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('action-row', 'left')">❮</button>
                 <div id="action-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('action-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('action-row', 'right')">❯</button>
             </div>
         </div>
 
         <div class="row-container">
             <h2 id="row3-title" class="row-title">😂 Comedy Movies</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('comedy-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('comedy-row', 'left')">❮</button>
                 <div id="comedy-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('comedy-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('comedy-row', 'right')">❯</button>
             </div>
         </div>
 
         <div class="row-container">
             <h2 id="row4-title" class="row-title">📺 Trending Series</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('series-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('series-row', 'left')">❮</button>
                 <div id="series-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('series-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('series-row', 'right')">❯</button>
             </div>
         </div>
 
         <div id="community-container" class="row-container" style="display: none;">
             <h2 class="row-title">👥 Shared Watch Party Community</h2>
             <div class="row-wrapper">
-                <button class="row-arrow left-arrow" onclick="scrollRow('community-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('community-row', 'left')">❮</button>
                 <div id="community-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('community-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('community-row', 'right')">❯</button>
             </div>
         </div>
 
@@ -727,19 +727,19 @@
     <!-- 🎬 DETAILS POP-UP -->
     <div id="details-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; overflow-y: auto;">
         <div class="details-content" style="background: #181818; width: 90%; max-width: 850px; margin: 5% auto; border-radius: 10px; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.8); overflow: hidden;">
-            <span id="close-details-btn" style="position: absolute; top: 15px; right: 25px; font-size: 35px; color: white; cursor: pointer; z-index: 10; text-shadow: 0 0 10px black;">&times;</span>
+            <button id="close-details-btn" tabindex="0" class="tv-focusable" style="position: absolute; top: 15px; right: 25px; background: transparent; border: none; font-size: 35px; color: white; cursor: pointer; z-index: 10; text-shadow: 0 0 10px black;">&times;</button>
             <div id="details-hero" style="height: 400px; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 30px; position: relative;">
                 <iframe id="modal-trailer-frame" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 1;" allowfullscreen allow="autoplay"></iframe>
                 <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, #181818 0%, rgba(24,24,24,0) 100%); z-index: 2; pointer-events: none;"></div>
                 <div style="position: relative; z-index: 3; width: 100%;">
                     <h2 id="details-title" style="margin: 0 0 20px 0; font-size: 2.5rem; color: white;">Movie Title</h2>
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;" id="details-btn-group">
-                        <button id="details-play-btn" type="button" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: white; color: black; border: none; border-radius: 5px; cursor: pointer;">▶ Play Now</button>
-                        <button id="details-trailer-btn" type="button" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer;">📺 Trailer</button>
-                        <button id="details-mylist-btn" type="button" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s;">➕ My List</button>
+                        <button id="details-play-btn" type="button" class="tv-focusable" tabindex="0" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: white; color: black; border: none; border-radius: 5px; cursor: pointer;">▶ Play Now</button>
+                        <button id="details-trailer-btn" type="button" class="tv-focusable" tabindex="0" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer;">📺 Trailer</button>
+                        <button id="details-mylist-btn" type="button" class="tv-focusable" tabindex="0" style="padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(109, 109, 110, 0.7); color: white; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s;">➕ My List</button>
                         <div id="modal-tv-controls" style="display: none; gap: 10px;">
-                            <select id="modal-season-select" style="background: #141414; color: white; border: 1px solid #E50914; padding: 12px; border-radius: 5px; font-size: 1rem; cursor: pointer; outline: none;"></select>
-                            <select id="modal-episode-select" style="background: #141414; color: white; border: 1px solid #E50914; padding: 12px; border-radius: 5px; font-size: 1rem; cursor: pointer; outline: none;"></select>
+                            <select id="modal-season-select" class="tv-focusable" tabindex="0" style="background: #141414; color: white; border: 1px solid #E50914; padding: 12px; border-radius: 5px; font-size: 1rem; cursor: pointer; outline: none;"></select>
+                            <select id="modal-episode-select" class="tv-focusable" tabindex="0" style="background: #141414; color: white; border: 1px solid #E50914; padding: 12px; border-radius: 5px; font-size: 1rem; cursor: pointer; outline: none;"></select>
                         </div>
                     </div>
                 </div>
@@ -748,10 +748,10 @@
                 <!-- 🔥 COMMUNITY EMOJI REACTIONS BAR -->
                 <div id="emoji-reactions-bar" style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;">
                     <span style="color: #aaa; font-size: 0.85rem; font-weight: bold;">Community Vibe:</span>
-                    <button class="emoji-btn" data-emoji="🔥">🔥 <span id="count-fire">0</span></button>
-                    <button class="emoji-btn" data-emoji="🤯">🤯 <span id="count-mindblown">0</span></button>
-                    <button class="emoji-btn" data-emoji="😂">😂 <span id="count-funny">0</span></button>
-                    <button class="emoji-btn" data-emoji="😴">😴 <span id="count-boring">0</span></button>
+                    <button class="emoji-btn tv-focusable" tabindex="0" data-emoji="🔥">🔥 <span id="count-fire">0</span></button>
+                    <button class="emoji-btn tv-focusable" tabindex="0" data-emoji="🤯">🤯 <span id="count-mindblown">0</span></button>
+                    <button class="emoji-btn tv-focusable" tabindex="0" data-emoji="😂">😂 <span id="count-funny">0</span></button>
+                    <button class="emoji-btn tv-focusable" tabindex="0" data-emoji="😴">😴 <span id="count-boring">0</span></button>
                 </div>
 
                 <div style="display: flex; gap: 15px; margin-bottom: 15px; color: #aaa; font-weight: bold; font-size: 1.1rem;">
@@ -763,9 +763,9 @@
                 <p id="details-cast" style="font-size: 1.1rem; line-height: 1.6;"></p>
                 <h3 style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; font-size: 1.2rem; color: #aaa;">Similar Picks</h3>
                 <div class="row-wrapper">
-                    <button class="row-arrow left-arrow" onclick="scrollRow('modal-similar-row', 'left')">❮</button>
+                    <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('modal-similar-row', 'left')">❮</button>
                     <div id="modal-similar-row" class="movie-row" style="padding-top: 10px; margin-bottom: 20px;"></div>
-                    <button class="row-arrow right-arrow" onclick="scrollRow('modal-similar-row', 'right')">❯</button>
+                    <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('modal-similar-row', 'right')">❯</button>
                 </div>
             </div>
         </div>
@@ -774,7 +774,7 @@
     <!-- 🌟 ACTOR PROFILE MODAL -->
     <div id="actor-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10005; overflow-y: auto;">
         <div class="details-content" style="background: #181818; width: 90%; max-width: 800px; margin: 5% auto; border-radius: 10px; padding: 30px; position: relative; color: white; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
-            <span id="close-actor-btn" style="position: absolute; top: 15px; right: 25px; font-size: 35px; cursor: pointer; color: white;">&times;</span>
+            <button id="close-actor-btn" tabindex="0" class="tv-focusable" style="position: absolute; top: 15px; right: 25px; background: transparent; border: none; font-size: 35px; cursor: pointer; color: white;">&times;</button>
             <div style="display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 30px;">
                 <img id="actor-photo" src="" alt="Actor" style="width: 200px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
                 <div style="flex: 1; min-width: 250px;">
@@ -784,9 +784,9 @@
             </div>
             <h3 style="border-top: 1px solid #333; padding-top: 20px; font-size: 1.5rem; color: white;">Known For</h3>
             <div class="row-wrapper" style="margin-top: 15px;">
-                <button class="row-arrow left-arrow" onclick="scrollRow('actor-movies-row', 'left')">❮</button>
+                <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('actor-movies-row', 'left')">❮</button>
                 <div id="actor-movies-row" class="movie-row"></div>
-                <button class="row-arrow right-arrow" onclick="scrollRow('actor-movies-row', 'right')">❯</button>
+                <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('actor-movies-row', 'right')">❯</button>
             </div>
         </div>
     </div>
@@ -796,18 +796,18 @@
         
         <!-- ❌ CLOSE BUTTON -->
         <div style="position: absolute; top: 15px; left: 65px; z-index: 10;">
-            <span id="close-modal-btn" style="color: white; font-size: 30px; cursor: pointer; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.8);">&times;</span>
+            <button id="close-modal-btn" tabindex="0" class="tv-focusable" style="background: transparent; border: none; color: white; font-size: 30px; cursor: pointer; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.8);">&times;</button>
         </div>
 
         <!-- 🔽 MINI PLAYER BUTTON -->
         <div style="position: absolute; top: 20px; right: 25px; z-index: 10;">
-            <button id="btn-toggle-mini-player" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid #666; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem;" title="Minimize Player">🔽 Mini</button>
+            <button id="btn-toggle-mini-player" tabindex="0" class="tv-focusable" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid #666; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem;" title="Minimize Player">🔽 Mini</button>
         </div>
         
         <iframe id="video-player-frame" style="width: 100%; height: 75%; border: none; margin-top: 60px;" allowfullscreen></iframe>
         
         <!-- 🌟 NEW: NATIVE VIDEO PLAYER (Hidden by default) -->
-        <video id="native-video-player" controls playsinline style="display: none; width: 100%; height: 75%; margin-top: 60px; background: #000; outline: none;"></video>
+        <video id="native-video-player" tabindex="0" class="tv-focusable" controls playsinline style="display: none; width: 100%; height: 75%; margin-top: 60px; background: #000; outline: none;"></video>
         
         <div class="video-modal-controls" style="text-align: center; color: white; margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <h3 id="episode-indicator-text" style="font-size: 1.2rem; margin: 0; color: #aaa;">Feature Film</h3>
@@ -816,7 +816,7 @@
             <div style="display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 10px;">
                 <div style="display: flex; align-items: center; gap: 8px; background: rgba(30, 30, 30, 0.8); padding: 7px 12px; border-radius: 6px; border: 1px solid #333;">
                     <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.85rem;">📡 Server:</label>
-                    <select id="server-select" style="background: #111; color: #fff; border: 1px solid #ffd700; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; outline: none; font-size: 0.85rem;">
+                    <select id="server-select" tabindex="0" class="tv-focusable" style="background: #111; color: #fff; border: 1px solid #ffd700; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; outline: none; font-size: 0.85rem;">
                         <option value="native" style="color: #46d369;">🌟 Server 8 (Fast Native Player)</option>
                         <option value="vidsrc">Server 1 (VidSrc Main)</option>
                         <option value="vidlink">Server 2 (VidLink HD)</option>
@@ -828,9 +828,9 @@
                     </select>
                 </div>
 
-                <button id="btn-prev-ep" style="display: none; padding: 8px 16px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">⏮ Prev Ep</button>
-                <button id="btn-next-ep" style="display: none; padding: 8px 16px; background: #E50914; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Up Next ⏭</button>
-                <button id="btn-mark-finished" style="padding: 8px 16px; background: #46d369; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">✔️ Mark Finished</button>
+                <button id="btn-prev-ep" tabindex="0" class="tv-focusable" style="display: none; padding: 8px 16px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">⏮ Prev Ep</button>
+                <button id="btn-next-ep" tabindex="0" class="tv-focusable" style="display: none; padding: 8px 16px; background: #E50914; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Up Next ⏭</button>
+                <button id="btn-mark-finished" tabindex="0" class="tv-focusable" style="padding: 8px 16px; background: #46d369; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">✔️ Mark Finished</button>
             </div>
         </div>
     </div>
@@ -840,10 +840,10 @@
         <div style="background: #181818; width: 90%; max-width: 400px; padding: 25px; border-radius: 10px; border: 1px solid #333; box-shadow: 0 10px 25px rgba(0,0,0,0.9); text-align: center;">
             <h3 style="color: white; margin-top: 0; font-size: 1.3rem;">Contact Support</h3>
             <p style="color: #aaa; font-size: 0.95rem; margin-bottom: 15px;">Please describe the issue you are experiencing:</p>
-            <textarea id="prompt-input" rows="4" placeholder="Type your issue here..." style="width: 100%; padding: 10px; background: #000; color: white; border: 1px solid #444; border-radius: 5px; outline: none; resize: none; margin-bottom: 20px; box-sizing: border-box;"></textarea>
+            <textarea id="prompt-input" tabindex="0" class="tv-focusable" rows="4" placeholder="Type your issue here..." style="width: 100%; padding: 10px; background: #000; color: white; border: 1px solid #444; border-radius: 5px; outline: none; resize: none; margin-bottom: 20px; box-sizing: border-box;"></textarea>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="prompt-cancel-btn" style="padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Cancel</button>
-                <button id="prompt-submit-btn" style="padding: 10px 20px; background: #25D366; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Send</button>
+                <button id="prompt-cancel-btn" tabindex="0" class="tv-focusable" style="padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Cancel</button>
+                <button id="prompt-submit-btn" tabindex="0" class="tv-focusable" style="padding: 10px 20px; background: #25D366; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Send</button>
             </div>
         </div>
     </div>
@@ -853,7 +853,7 @@
         <div style="background: #181818; width: 90%; max-width: 350px; padding: 25px; border-radius: 10px; border: 1px solid #ffd700; box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2); text-align: center;">
             <div style="font-size: 3rem; margin-bottom: 10px;">✨</div>
             <h3 style="color: white; margin-top: 0; font-size: 1.2rem; line-height: 1.4;" id="alert-message">Success!</h3>
-            <button id="alert-ok-btn" style="padding: 10px 30px; background: #ffd700; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 20px; font-size: 1rem;">Awesome</button>
+            <button id="alert-ok-btn" tabindex="0" class="tv-focusable" style="padding: 10px 30px; background: #ffd700; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 20px; font-size: 1rem;">Awesome</button>
         </div>
     </div>
 
@@ -862,11 +862,11 @@
         <div style="background: #181818; width: 90%; max-width: 400px; padding: 25px; border-radius: 10px; border: 1px solid #333; box-shadow: 0 10px 25px rgba(0,0,0,0.9); text-align: center;">
             <h3 style="color: white; margin-top: 0; font-size: 1.3rem;">Reset Password</h3>
             <p style="color: #aaa; font-size: 0.95rem; margin-bottom: 15px;">Enter your email to receive a reset link:</p>
-            <input type="email" id="reset-email-input" placeholder="Email Address" style="width: 100%; padding: 10px; background: #000; color: white; border: 1px solid #444; border-radius: 5px; outline: none; margin-bottom: 20px; box-sizing: border-box;">
+            <input type="email" id="reset-email-input" tabindex="0" class="tv-focusable" placeholder="Email Address" style="width: 100%; padding: 10px; background: #000; color: white; border: 1px solid #444; border-radius: 5px; outline: none; margin-bottom: 20px; box-sizing: border-box;">
             <p id="reset-status-msg" style="font-size: 0.85rem; margin-top: -10px; margin-bottom: 15px; height: 15px; color: #25D366;"></p>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="reset-cancel-btn" style="padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Cancel</button>
-                <button id="reset-submit-btn" style="padding: 10px 20px; background: #E50914; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Send Link</button>
+                <button id="reset-cancel-btn" tabindex="0" class="tv-focusable" style="padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Cancel</button>
+                <button id="reset-submit-btn" tabindex="0" class="tv-focusable" style="padding: 10px 20px; background: #E50914; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Send Link</button>
             </div>
         </div>
     </div>
@@ -878,13 +878,13 @@
             <h3 style="color: white; margin-top: 0; font-size: 1.3rem;">Delete Account?</h3>
             <p style="color: #aaa; font-size: 0.95rem; margin-bottom: 20px;">This action is permanent and cannot be undone. All your progress, rewards, and watch history will be lost forever.</p>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="delete-cancel-btn" style="padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Cancel</button>
-                <button id="delete-confirm-btn" style="padding: 10px 20px; background: #E50914; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Yes, Delete</button>
+                <button id="delete-cancel-btn" tabindex="0" class="tv-focusable" style="padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Cancel</button>
+                <button id="delete-confirm-btn" tabindex="0" class="tv-focusable" style="padding: 10px 20px; background: #E50914; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">Yes, Delete</button>
             </div>
         </div>
     </div>
 
-    <button id="whatsappFloatingBtn" class="whatsapp-float" title="Contact Support" onclick="showWhatsAppPrompt()">
+    <button id="whatsappFloatingBtn" class="whatsapp-float tv-focusable" tabindex="0" title="Contact Support" onclick="showWhatsAppPrompt()">
         <svg viewBox="0 0 32 32" class="whatsapp-icon">
             <path d="M16 0c-8.837 0-16 7.163-16 16 0 2.825.733 5.483 2.017 7.792l-2.017 7.371 7.542-1.98c2.254 1.221 4.833 1.912 7.575 1.912 8.837 0 16-7.163 16-16s-7.163-16-16-16zm8.933 22.842c-.367 1.033-1.808 1.908-2.5 1.975-.6.058-1.383.275-3.958-.783-3.292-1.358-5.383-4.733-5.55-4.958-.158-.225-1.317-1.758-1.317-3.358s.833-2.383 1.133-2.692c.3-.3.65-.375.867-.375.208 0 .425.008.608.017.192.008.45-.075.7-.108.275-.033.567-.033.808.458.267.658.917 2.242.992 2.392.083.15.133.325.033.525-.1.2-.15.317-.3.492-.15.175-.317.392-.45.525-.15.15-.308.317-.133.617.175.3.775 1.283 1.658 2.067.142.125 2.65 2.342 5.083 3.325.333.133.592.117.808-.092.275-.267.925-1.075 1.183-1.442.258-.367.517-.3.867-.175.35.133 2.225 1.05 2.608 1.242.383.192.642.283.733.442.092.158.092.908-.275 1.942z" />
         </svg>
