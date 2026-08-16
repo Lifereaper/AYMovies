@@ -1515,6 +1515,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function getFocusableElements() {
         // 1. Trap focus inside whichever modal or drawer is currently active
         const activeModal = [
+            document.getElementById('login-view'),
+            document.getElementById('splash-dmca-view'),
             document.getElementById('video-modal'),
             document.getElementById('details-modal'),
             document.getElementById('rewards-drawer'),
@@ -1539,15 +1541,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return elements.filter(el => {
             const rect = el.getBoundingClientRect();
-            return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).display !== 'none';
+            const style = window.getComputedStyle(el);
+            return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
         });
     }
 
     function moveFocus(direction) {
         const elements = getFocusableElements();
         if (elements.length === 0) return;
+        
         if (!currentFocus || !document.body.contains(currentFocus) || currentFocus.offsetParent === null) {
-            setFocus(elements[0]); return;
+            // Auto-fallback to currently focused element or first valid focusable element
+            const activeEl = document.activeElement;
+            if (activeEl && elements.includes(activeEl)) {
+                setFocus(activeEl);
+            } else {
+                setFocus(elements[0]);
+            }
+            return;
         }
 
         const currentRect = currentFocus.getBoundingClientRect();
@@ -1592,14 +1603,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setFocus(el) {
+        if (!el) return;
         if (currentFocus) { currentFocus.classList.remove('tv-focused'); }
-        currentFocus = el; currentFocus.classList.add('tv-focused'); currentFocus.focus({ preventScroll: true }); 
+        currentFocus = el; 
+        currentFocus.classList.add('tv-focused'); 
+        currentFocus.focus({ preventScroll: true }); 
     }
 
     document.addEventListener('keydown', (e) => {
         const allowedKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
         if (allowedKeys.includes(e.key)) {
-            e.preventDefault(); moveFocus(e.key);
+            e.preventDefault(); 
+            moveFocus(e.key);
         } else if (e.key === 'Enter' || e.key === 'Select' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.key === ' ') {
             e.preventDefault();
             if (currentFocus) { currentFocus.click(); }
@@ -1614,5 +1629,5 @@ document.addEventListener('DOMContentLoaded', () => {
             const elements = getFocusableElements();
             if (elements.length > 0) setFocus(elements[0]);
         }
-    }, 800); 
+    }, 500); 
 });
