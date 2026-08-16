@@ -336,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
+    // 🚀 UPDATED DICTIONARY WITH ALL MODAL & LOGIN TRANSLATIONS
     const translations = {
         en: {
             navHome: "Home", navTv: "TV Shows", navMovies: "Movies", navAnimations: "Animations",
@@ -343,7 +344,28 @@ document.addEventListener("DOMContentLoaded", () => {
             rowMyList: "➕ My List", rowContinue: "🍿 Continue Watching", rowWatchAgain: "🔁 Watch It Again",
             rowRecommended: "💡 Recommended For You", rowTop10: "🏆 Top 10 Today",
             rowCommunity: "👥 Shared Watch Party Community", rowTrending: "🔥 Trending Now",
-            rowAction: "💥 Action Movies", rowComedy: "😂 Comedy Movies", rowSeries: "📺 Trending Series"
+            rowAction: "💥 Action Movies", rowComedy: "😂 Comedy Movies", rowSeries: "📺 Trending Series",
+            
+            // Login & Auth
+            loginTitle: "Sign In", emailPlaceholder: "Email or phone number", passwordPlaceholder: "Password",
+            loginBtn: "Sign In", forgotPassword: "Forgot password?", newToApp: "New to AYMovies?", signupNow: "Sign up now.",
+            
+            // Modals & Details
+            playBtn: "▶ Play", trailerBtn: "🎬 Trailer", myListAdd: "➕ My List", myListAdded: "✔️ In My List",
+            shareCommunityBtn: "👥 Share to Community", castLabel: "Cast:", similarLabel: "More Like This",
+            
+            // Rewards & Payouts
+            rewardsTitle: "💰 Rewards Wallet", balanceLabel: "Available Balance:", payoutHeader: "Request DigiWallet Payout",
+            methodLabel: "Payout Method", accountLabel: "DigiWallet Number / Account", amountLabel: "Amount (Min $5.00 BZD)",
+            requestBtn: "Request Payout", minNotice: "Minimum payout is $5.00 BZD",
+            
+            // Referrals & Settings
+            referralTitle: "👥 Invite a Friend", refEmailPlaceholder: "Friend's Email", refPhonePlaceholder: "Friend's Phone",
+            sendRefBtn: "Send WhatsApp Invite", logoutBtn: "🚪 Logout", deleteAccBtn: "⚠️ Delete Account",
+            
+            // Video Player & Loading
+            loadingStream: "Fetching Stream...", watchEarn: "🍿 Watch & Earn Money!", movieStartSoon: "Your movie will start soon",
+            playingLabel: "Playing: Season", episodeLabel: "Episode"
         },
         es: {
             navHome: "Inicio", navTv: "Series TV", navMovies: "Películas", navAnimations: "Animación",
@@ -351,7 +373,28 @@ document.addEventListener("DOMContentLoaded", () => {
             rowMyList: "Mi Lista", rowContinue: "🍿 Continuar Viendo", rowWatchAgain: "🔁 Volver a Ver",
             rowRecommended: "💡 Recomendado para Ti", rowTop10: "🏆 Top 10 Hoy",
             rowCommunity: "👥 Comunidad Watch Party", rowTrending: "🔥 Tendencias Ahora",
-            rowAction: "💥 Películas de Acción", rowComedy: "😂 Películas de Comedia", rowSeries: "📺 Series en Tendencia"
+            rowAction: "💥 Películas de Acción", rowComedy: "😂 Películas de Comedia", rowSeries: "📺 Series en Tendencia",
+            
+            // Login & Auth
+            loginTitle: "Iniciar sesión", emailPlaceholder: "Correo electrónico o número de teléfono", passwordPlaceholder: "Contraseña",
+            loginBtn: "Iniciar sesión", forgotPassword: "¿Olvidaste tu contraseña?", newToApp: "¿Nuevo en AYMovies?", signupNow: "Suscríbete ahora.",
+            
+            // Modals & Details
+            playBtn: "▶ Reproducir", trailerBtn: "🎬 Tráiler", myListAdd: "➕ Mi Lista", myListAdded: "✔️ En Mi Lista",
+            shareCommunityBtn: "👥 Compartir a la Comunidad", castLabel: "Reparto:", similarLabel: "Más títulos similares",
+            
+            // Rewards & Payouts
+            rewardsTitle: "💰 Billetera de Recompensas", balanceLabel: "Saldo disponible:", payoutHeader: "Solicitar Pago de DigiWallet",
+            methodLabel: "Método de Pago", accountLabel: "Número / Cuenta de DigiWallet", amountLabel: "Monto (Mín. $5.00 BZD)",
+            requestBtn: "Solicitar Pago", minNotice: "El pago mínimo es de $5.00 BZD",
+            
+            // Referrals & Settings
+            referralTitle: "👥 Invitar a un Amigo", refEmailPlaceholder: "Correo del amigo", refPhonePlaceholder: "Teléfono del amigo",
+            sendRefBtn: "Enviar Invitación por WhatsApp", logoutBtn: "🚪 Cerrar Sesión", deleteAccBtn: "⚠️ Eliminar Cuenta",
+            
+            // Video Player & Loading
+            loadingStream: "Cargando...", watchEarn: "🍿 ¡Mira y Gana Dinero!", movieStartSoon: "Tu película comenzará pronto",
+            playingLabel: "Reproduciendo: Temporada", episodeLabel: "Episodio"
         }
     };
 
@@ -367,14 +410,47 @@ document.addEventListener("DOMContentLoaded", () => {
         if (langMobile) langMobile.value = lang;
 
         const dict = translations[lang] || translations.en;
+        
+        // Navigation
         document.querySelectorAll('[data-view="home"]').forEach(el => el.innerText = dict.navHome);
         document.querySelectorAll('[data-view="tv"]').forEach(el => el.innerText = dict.navTv);
         document.querySelectorAll('[data-view="movies"]').forEach(el => el.innerText = dict.navMovies);
         document.querySelectorAll('[data-view="animations"]').forEach(el => el.innerText = dict.navAnimations);
 
+        // Search & Inputs
         const searchInp = document.getElementById('search-input');
         if (searchInp) searchInp.placeholder = dict.searchPlaceholder;
+        
+        const emailInp = document.getElementById('auth-email');
+        if (emailInp) emailInp.placeholder = dict.emailPlaceholder;
+        
+        const passInp = document.getElementById('auth-password');
+        if (passInp) passInp.placeholder = dict.passwordPlaceholder;
 
+        // Buttons & Modals
+        const loginBtn = document.querySelector('#auth-form button[type="submit"]');
+        if (loginBtn) loginBtn.innerText = dict.loginBtn;
+
+        const detailsPlay = document.getElementById('details-play-btn');
+        if (detailsPlay) detailsPlay.innerHTML = dict.playBtn;
+
+        const detailsTrailer = document.getElementById('details-trailer-btn');
+        if (detailsTrailer) detailsTrailer.innerHTML = dict.trailerBtn;
+
+        const detailsShare = document.getElementById('details-community-btn');
+        if (detailsShare) detailsShare.innerText = dict.shareCommunityBtn;
+
+        // My List Text Updater
+        const detailsMylistBtn = document.getElementById('details-mylist-btn');
+        if(detailsMylistBtn) {
+           if(detailsMylistBtn.innerText.includes('✔️')) {
+               detailsMylistBtn.innerText = dict.myListAdded;
+           } else {
+               detailsMylistBtn.innerText = dict.myListAdd;
+           }
+        }
+
+        // Row Titles
         const rowTitles = {
             'row1-title': dict.rowTrending, 'row2-title': dict.rowAction,
             'row3-title': dict.rowComedy, 'row4-title': dict.rowSeries
@@ -921,12 +997,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 populateRow(formattedSimilar, modalSimilarRow, isTV);
             } else { modalSimilarRow.innerHTML = "<p style='color: #aaa;'>No similar shows found.</p>"; }
 
+            const dict = translations[currentLang] || translations.en;
+
             let isInList = myList.some(m => m.id === id);
-            detailsMylistBtn.innerText = isInList ? "✔️ In My List" : "➕ My List";
+            detailsMylistBtn.innerText = isInList ? dict.myListAdded : dict.myListAdd;
             detailsMylistBtn.style.backgroundColor = isInList ? "#46d369" : "rgba(109, 109, 110, 0.7)";
             detailsMylistBtn.onclick = () => {
                 toggleMyList(currentModalData); isInList = !isInList;
-                detailsMylistBtn.innerText = isInList ? "✔️ In My List" : "➕ My List";
+                detailsMylistBtn.innerText = isInList ? dict.myListAdded : dict.myListAdd;
                 detailsMylistBtn.style.backgroundColor = isInList ? "#46d369" : "rgba(109, 109, 110, 0.7)";
             };
 
@@ -936,7 +1014,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const communityShareBtn = document.createElement('button');
             communityShareBtn.id = "details-community-btn"; communityShareBtn.className = "tv-focusable"; communityShareBtn.setAttribute('tabindex', '0');
             communityShareBtn.style.cssText = "padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(229, 9, 20, 0.2); color: #fff; border: 1px solid #E50914; border-radius: 5px; cursor: pointer; transition: 0.2s;";
-            communityShareBtn.innerText = "👥 Share to Community";
+            
+            communityShareBtn.innerText = dict.shareCommunityBtn; 
+            
             communityShareBtn.onmouseover = () => communityShareBtn.style.background = "#E50914";
             communityShareBtn.onmouseout = () => communityShareBtn.style.background = "rgba(229, 9, 20, 0.2)";
             communityShareBtn.onclick = () => { shareMovieToCommunity(currentModalData); };
@@ -1045,7 +1125,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 btnNextEp.style.display = 'none';
             }
 
-            episodeIndicatorText.innerText = isTV ? `Playing: Season ${season}, Episode ${episode}` : "";
+            const dict = translations[currentLang] || translations.en;
+            episodeIndicatorText.innerText = isTV ? `${dict.playingLabel} ${season}, ${dict.episodeLabel} ${episode}` : "";
 
             if (serverSelect) serverSelect.style.display = 'none';
 
@@ -1064,9 +1145,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formattedSecs = String(elapsedSeconds).padStart(2, '0');
                 loadingBanner.innerHTML = `
                     <div style="font-size: 2.2rem; margin-bottom: 8px;">🎬 🍿 🎥</div>
-                    <div style="color: #ffd700; font-size: 1.5rem;">Fetching Stream... <span style="font-size: 1.2rem; color: #e50914;">(${formattedSecs}s)</span></div>
-                    <div style="font-size: 1.2rem; font-weight: normal; color: #fff; margin-top: 8px;">🍿 Watch & Earn Money!</div>
-                    <div style="font-size: 1.0rem; font-weight: bold; color: #46d369; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px;">Your movie will start soon</div>
+                    <div style="color: #ffd700; font-size: 1.5rem;">${dict.loadingStream} <span style="font-size: 1.2rem; color: #e50914;">(${formattedSecs}s)</span></div>
+                    <div style="font-size: 1.2rem; font-weight: normal; color: #fff; margin-top: 8px;">${dict.watchEarn}</div>
+                    <div style="font-size: 1.0rem; font-weight: bold; color: #46d369; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px;">${dict.movieStartSoon}</div>
                 `;
             };
 
