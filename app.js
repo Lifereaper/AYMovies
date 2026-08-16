@@ -474,9 +474,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const episodeIndicatorText = document.getElementById('episode-indicator-text');
     const serverSelect = document.getElementById('server-select'); 
 
-    const btnMarkFinished = document.getElementById('btn-mark-finished');
-    if (btnMarkFinished) btnMarkFinished.style.display = 'none';
-
     const btnToggleMiniPlayer = document.getElementById('btn-toggle-mini-player');
     if (btnToggleMiniPlayer) {
         btnToggleMiniPlayer.addEventListener('click', () => {
@@ -688,19 +685,41 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // 🚀 NEW: ANTI-SPAM EMOJI FILTER
     document.querySelectorAll('.emoji-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             if (!currentUserUid || !currentModalData) return;
             const emojiType = btn.getAttribute('data-emoji');
             const movieId = currentModalData.id.toString();
+            
+            if (!progressMap[movieId] || typeof progressMap[movieId] !== 'object') progressMap[movieId] = {};
+            
+            const previousEmoji = progressMap[movieId].userEmoji;
+            if (previousEmoji === emojiType) return; // Prevent spamming the exact same emoji
+
             if (!globalReactionsMap[movieId]) globalReactionsMap[movieId] = { "🔥": 0, "🤯": 0, "😂": 0, "😴": 0 };
+            
+            // Subtract old vote if changing emojis
+            if (previousEmoji && globalReactionsMap[movieId][previousEmoji] > 0) {
+                globalReactionsMap[movieId][previousEmoji]--;
+            }
+
+            // Add new vote
             globalReactionsMap[movieId][emojiType] = (globalReactionsMap[movieId][emojiType] || 0) + 1;
+            progressMap[movieId].userEmoji = emojiType;
+            saveUserData();
+            
             updateEmojiUI(movieId);
+
+            // Visually highlight the button they just clicked
+            document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('user-reacted'));
+            btn.classList.add('user-reacted');
+
             try {
                 fetch(GOOGLE_SHEET_URL, {
                     method: "POST", mode: "cors", redirect: "follow",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "react", movieId: movieId, emoji: emojiType })
+                    body: JSON.stringify({ action: "react", movieId: movieId, emoji: emojiType, oldEmoji: previousEmoji })
                 });
             } catch (err) { }
         });
@@ -966,6 +985,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     launchVideoStream(id, false);
                 };
             }
+            
+            // Highlight existing user reaction when opening details
+            document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('user-reacted'));
+            const userMemory = progressMap[id] && typeof progressMap[id] === 'object' ? progressMap[id] : null;
+            if (userMemory && userMemory.userEmoji) {
+                const activeBtn = document.querySelector(`.emoji-btn[data-emoji="${userMemory.userEmoji}"]`);
+                if (activeBtn) activeBtn.classList.add('user-reacted');
+            }
+
             detailsModal.style.display = 'block'; updateEmojiUI(id.toString());
 
         } catch (error) { console.error("Failed to load details modal:", error); }
@@ -1008,6 +1036,7 @@ document.addEventListener("DOMContentLoaded", () => {
             requestWakeLock();
             try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch (e) { }
 
+            // Episode navigation buttons
             if (isTV) {
                 btnPrevEp.style.display = currentTvState.episode > 1 ? 'inline-block' : 'none';
                 btnNextEp.style.display = 'inline-block';
@@ -1115,6 +1144,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     };
                     nativePlayer.addEventListener('playing', hideBanner);
 
+                    // 🚀 DETECT WHEN MOVIE FINISHES (AUTO "WATCH IT AGAIN")
+                    nativePlayer.addEventListener('ended', () => {
+                        // Move to "Watch It Again" Row automatically when done
+                        if (currentModalData) {
+                            continueWatching = continueWatching.filter(item => item.id !== currentModalData.id);
+                            alreadyWatched = alreadyWatched.filter(item => item.id !== currentModalData.id);
+                            
+                            alreadyWatched.unshift({ 
+                                id: currentModalData.id, 
+                                title: currentModalData.title || currentModalData.name, 
+                                poster_path: currentModalData.poster_path, 
+                                media_type: currentModalData.media_type, 
+                                release_date: currentModalData.release_date || currentModalData.first_air_date, 
+                                vote_average: currentModalData.vote_average 
+                            });
+                            
+                            if (alreadyWatched.length > 15) alreadyWatched.pop(); 
+                            saveUserData();
+                            renderPersonalizedRows();
+                        }
+                    });
+
                     if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
                         const hls = new Hls({
                             defaultAudioCodec: 'mp4a.40.2',
@@ -1168,6 +1219,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
+            // ⏱️ STRICT 60 MINUTE REWARD TIMER 
             window.watchTimerInterval = setInterval(() => {
                 if (!currentUserUid || window.rewardClaimedForSession) return;
                 const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
@@ -1611,7 +1663,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
 
-        // If currently typing in an input field, allow Arrow Up/Down to navigate away to buttons
         if (key === 'ArrowUp' || keyCode === 38) {
             e.preventDefault();
             moveFocus('ArrowUp');
@@ -1619,7 +1670,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             moveFocus('ArrowDown');
         } else if (key === 'ArrowLeft' || keyCode === 37) {
-            // Only capture Left/Right if not actively typing inside a text box
             if (document.activeElement.tagName !== 'INPUT') {
                 e.preventDefault();
                 moveFocus('ArrowLeft');
@@ -1631,7 +1681,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             if (currentFocus) {
-                // If it's a form input, trigger click/focus to pop open virtual keyboard
                 if (currentFocus.tagName === 'INPUT') {
                     currentFocus.focus();
                 } else {
@@ -1642,7 +1691,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Auto-focus the Disclaimer button or the Email Input on Startup
     setTimeout(() => {
         const disclaimerBtn = document.getElementById('btn-accept-dmca');
         const emailInput = document.getElementById('auth-email');
