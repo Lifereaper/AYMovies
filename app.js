@@ -1607,14 +1607,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentFocus) { currentFocus.classList.remove('tv-focused'); }
         currentFocus = el; 
         currentFocus.classList.add('tv-focused'); 
-        currentFocus.focus({ preventScroll: true }); 
+        
+        // Prevent inputs from opening the TV virtual keyboard just by arrowing over them
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            currentFocus.focus({ preventScroll: true });
+            // Immediately blur so the TV virtual keyboard doesn't automatically pop up on arrow focus
+            el.blur();
+        } else {
+            currentFocus.focus({ preventScroll: true });
+        }
     }
 
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
 
-        // Support both modern keys and legacy Android TV numeric keycodes
+        // D-Pad Arrow Navigation
         if (key === 'ArrowUp' || keyCode === 38) {
             e.preventDefault();
             moveFocus('ArrowUp');
@@ -1630,18 +1638,28 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66 || key === ' ') {
             e.preventDefault();
             if (currentFocus) {
-                currentFocus.click();
+                // If the current focused element is an input, explicitly open the keyboard when Enter is pressed
+                if (currentFocus.tagName === 'INPUT' || currentFocus.tagName === 'TEXTAREA') {
+                    currentFocus.focus();
+                } else {
+                    currentFocus.click();
+                }
             }
         }
     });
 
+    // Smart Initial Focus Startup
     setTimeout(() => {
         const disclaimerBtn = document.getElementById('btn-accept-dmca');
-        if (disclaimerBtn && window.getComputedStyle(disclaimerBtn).display !== 'none') {
+        const loginBtn = document.querySelector('#auth-form button[type="submit"]');
+
+        if (disclaimerBtn && window.getComputedStyle(document.getElementById('splash-dmca-view')).display !== 'none') {
             setFocus(disclaimerBtn);
+        } else if (loginBtn && window.getComputedStyle(document.getElementById('login-view')).display !== 'none') {
+            // Default focus to the "Sign In" button on login screen so arrowing down doesn't open the keyboard
+            setFocus(loginBtn);
         } else {
             const elements = getFocusableElements();
             if (elements.length > 0) setFocus(elements[0]);
         }
-    }, 500); 
-});
+    }, 600);
