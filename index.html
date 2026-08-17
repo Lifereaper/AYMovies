@@ -18,9 +18,6 @@
     <!-- 🚀 HLS STREAMING ENGINE -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-    <!-- 📡 GOOGLE CAST SDK FOR GOOGLE TV / CHROMECAST -->
-    <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
-
     <!-- 🚀 PRE-CONNECT & DNS PREFETCH FOR STREAMING SERVERS -->
     <link rel="preconnect" href="https://vidsrc.me" crossorigin>
     <link rel="dns-prefetch" href="https://vidsrc.me">
@@ -422,8 +419,7 @@
         .nav-link:focus-visible,
         .chip-btn:focus-visible,
         input:focus-visible,
-        select:focus-visible,
-        google-cast-button:focus-visible {
+        select:focus-visible {
             outline: 4px solid #ffcc00 !important;
             transform: scale(1.05);
             box-shadow: 0px 0px 15px #ffcc00;
@@ -437,18 +433,8 @@
         .nav-link:focus:not(:focus-visible),
         .chip-btn:focus:not(:focus-visible),
         input:focus:not(:focus-visible),
-        select:focus:not(:focus-visible),
-        google-cast-button:focus:not(:focus-visible) {
+        select:focus:not(:focus-visible) {
             outline: none !important;
-        }
-
-        /* Styling for Google Cast element */
-        google-cast-button {
-            --connected-color: #ffd700;
-            --disconnected-color: #ffffff;
-            width: 28px;
-            height: 28px;
-            vertical-align: middle;
         }
     </style>
 </head>
@@ -812,18 +798,8 @@
             <button id="close-modal-btn" tabindex="0" class="tv-focusable" style="background: transparent; border: none; color: white; font-size: 30px; cursor: pointer; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.8);">&times;</button>
         </div>
 
-        <!-- 🚀 TOP-RIGHT ACTION CONTROLS (CAST + MINI PLAYER) -->
-        <div style="position: absolute; top: 20px; right: 25px; z-index: 10; display: flex; gap: 10px; align-items: center;">
-            
-            <!-- 📡 GOOGLE CAST SDK BUTTON (GOOGLE TV / CHROMECAST) -->
-            <button is="google-cast-button" id="castbutton" class="tv-focusable" tabindex="0" title="Cast to Google TV / Chromecast" style="display: none; background: rgba(255,255,255,0.2); border: 1px solid #666; border-radius: 6px; padding: 2px 6px; cursor: pointer;"></button>
-
-            <!-- 📺 UNIVERSAL CAST BUTTON (FIRE TV / SAMSUNG / LG / ROKU) -->
-            <button id="btn-cast-to-tv" tabindex="0" class="tv-focusable" style="background: rgba(255, 215, 0, 0.2); color: #ffd700; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem;" title="Cast to Fire TV / Smart TV">
-                📺 Universal Cast
-            </button>
-
-            <!-- 🔽 MINI PLAYER BUTTON -->
+        <!-- 🔽 MINI PLAYER BUTTON -->
+        <div style="position: absolute; top: 20px; right: 25px; z-index: 10;">
             <button id="btn-toggle-mini-player" tabindex="0" class="tv-focusable" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid #666; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem;" title="Minimize Player">🔽 Mini</button>
         </div>
         
