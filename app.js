@@ -372,7 +372,7 @@ document.addEventListener("DOMContentLoaded", () => {
         es: {
             navHome: "Inicio", navTv: "Series TV", navMovies: "Películas", navAnimations: "Animación",
             navSurprise: "🎲 Sorpréndeme", navLogout: "Cerrar sesión", searchPlaceholder: "Buscar...",
-            rowMyList: "Mi Lista", rowContinue: "🍿 Continuar Viendo", rowWatchAgain: "🔁 Volver a Ver",
+            rowMyList: "Mi Lista", rowContinue: "🍿 Continuar Viendo", rowWatchAgain: "Volver a Ver",
             rowRecommended: "💡 Recomendado para Ti", rowTop10: "🏆 Top 10 Hoy",
             rowCommunity: "👥 Comunidad Watch Party", rowTrending: "🔥 Tendencias Ahora",
             rowAction: "💥 Películas de Acción", rowComedy: "😂 Películas de Comedia", rowSeries: "📺 Series en Tendencia",
@@ -1185,12 +1185,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (nativePlayer) {
                     
-                    // 🚀 CLEAR OLD SUBTITLES
                     while (nativePlayer.firstChild) {
                         nativePlayer.removeChild(nativePlayer.firstChild);
                     }
 
-                    // 🚀 INJECT NEW SUBTITLES FROM SCRAPER
                     let subtitlesArray = streamData.subtitles || streamData.captions || chosenStream.subtitles || [];
                     if (subtitlesArray && subtitlesArray.length > 0) {
                         subtitlesArray.forEach(sub => {
@@ -1211,7 +1209,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         });
                     }
                     
-                    // 🚀 UNIQUE ID FOR EPISODE TRACKING
                     const trackingId = isTV ? `${id}-S${season}E${episode}` : id.toString();
 
                     nativePlayer.addEventListener('loadedmetadata', async function resumeHandler() {
@@ -1231,7 +1228,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     };
                     nativePlayer.addEventListener('playing', hideBanner);
 
-                    // 🚀 DETECT WHEN VIDEO FINISHES
                     nativePlayer.addEventListener('ended', () => {
                         if (currentTvState.isTV) {
                             let nextSeason = currentTvState.season;
@@ -1340,7 +1336,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // ⏱️ STRICT 60 MINUTE REWARD TIMER 
             window.watchTimerInterval = setInterval(() => {
                 if (!currentUserUid || window.rewardClaimedForSession) return;
                 const elapsedMinutes = (Date.now() - window.activeVideoStartTime) / 60000;
@@ -1504,28 +1499,88 @@ document.addEventListener("DOMContentLoaded", () => {
         syncLocalProgressBars();
     }
 
+    // 🚀 UPDATED LIVE SEARCH WITH "SEE ALL RESULTS" OPTION
     async function fetchLiveSearch(query) {
-        if (query.trim().length < 2) { searchDropdown.style.display = 'none'; return; }
+        const trimmed = query.trim();
+        if (trimmed.length < 2) { searchDropdown.style.display = 'none'; return; }
         try {
-            const response = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${query}`);
+            const response = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(trimmed)}`);
             const data = await response.json();
             searchDropdown.innerHTML = '';
-            const validResults = data.results.filter(i => i.poster_path).slice(0, 8);
+            const validResults = data.results.filter(i => i.poster_path);
 
             if (validResults.length === 0) {
-                searchDropdown.innerHTML = '<div style="padding: 10px; color: #aaa; text-align: center;">No results found</div>';
+                searchDropdown.innerHTML = '<div style="padding: 12px; color: #aaa; text-align: center;">No results found</div>';
             } else {
-                validResults.forEach(item => {
-                    const isTV = (item.media_type === 'tv'); const div = document.createElement('div');
-                    div.className = 'search-item tv-focusable'; div.setAttribute('tabindex', '0');
+                // Display top 6 quick results
+                validResults.slice(0, 6).forEach(item => {
+                    const isTV = (item.media_type === 'tv'); 
+                    const div = document.createElement('div');
+                    div.className = 'search-item tv-focusable'; 
+                    div.setAttribute('tabindex', '0');
                     const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
                     div.innerHTML = `<img src="${IMAGE_BASE_URL}${item.poster_path}" alt=""><div class="search-item-info"><span class="search-item-title">${item.title || item.name}</span><span class="search-item-meta">${isTV ? 'TV Series' : 'Movie'} • ${year}</span></div>`;
                     div.onclick = () => { searchDropdown.style.display = 'none'; searchInput.value = ''; openDetailsModal(item.id, isTV); };
                     searchDropdown.appendChild(div);
                 });
+
+                // 🚀 "SEE ALL RESULTS" OPTION
+                const seeAllBtn = document.createElement('div');
+                seeAllBtn.className = 'search-item tv-focusable';
+                seeAllBtn.setAttribute('tabindex', '0');
+                seeAllBtn.style.cssText = "background: rgba(229, 9, 20, 0.2); border-top: 1px solid #E50914; color: #ffd700; font-weight: bold; text-align: center; justify-content: center; padding: 12px;";
+                seeAllBtn.innerHTML = `🔍 See all ${validResults.length} results for "${trimmed}"`;
+                seeAllBtn.onclick = () => {
+                    searchDropdown.style.display = 'none';
+                    renderAllSearchResultsRow(trimmed, validResults);
+                };
+                searchDropdown.appendChild(seeAllBtn);
             }
             searchDropdown.style.display = 'block';
         } catch (error) { }
+    }
+
+    // 🚀 FUNCTION TO RENDER ALL SEARCH RESULTS AT THE TOP OF THE HOME VIEW
+    function renderAllSearchResultsRow(query, results) {
+        let searchContainer = document.getElementById('search-results-container');
+        let searchRow = document.getElementById('search-results-row');
+        const homeView = document.getElementById('home-view');
+
+        if (!searchContainer) {
+            searchContainer = document.createElement('div');
+            searchContainer.id = 'search-results-container';
+            searchContainer.className = 'row-container';
+            searchContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 40px;">
+                    <h2 class="row-title" id="search-results-title">🔍 Search Results</h2>
+                    <button id="close-search-results" class="tv-focusable" style="background: transparent; border: none; color: #E50914; font-weight: bold; font-size: 1rem; cursor: pointer;">&times; Clear Search</button>
+                </div>
+                <div class="row-wrapper">
+                    <button class="row-arrow left-arrow tv-focusable" tabindex="0" onclick="scrollRow('search-results-row', 'left')">❮</button>
+                    <div id="search-results-row" class="movie-row"></div>
+                    <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('search-results-row', 'right')">❯</button>
+                </div>
+            `;
+            // Insert search row right below the billboard hero section
+            const heroSection = document.getElementById('hero-poster-bg');
+            if (heroSection && heroSection.nextSibling) {
+                homeView.insertBefore(searchContainer, heroSection.nextSibling);
+            } else {
+                homeView.prepend(searchContainer);
+            }
+
+            document.getElementById('close-search-results').onclick = () => {
+                searchContainer.style.display = 'none';
+                searchInput.value = '';
+            };
+        }
+
+        document.getElementById('search-results-title').innerText = `🔍 Search Results for "${query}" (${results.length})`;
+        searchRow = document.getElementById('search-results-row');
+        populateRow(results, searchRow, false);
+        searchContainer.style.display = 'block';
+
+        searchContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     searchInput.addEventListener('input', (e) => {
@@ -1551,6 +1606,8 @@ document.addEventListener("DOMContentLoaded", () => {
             searchInput.value = ''; loadCategoryView('home');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.querySelector('[data-view="home"]').classList.add('active');
+            const searchContainer = document.getElementById('search-results-container');
+            if (searchContainer) searchContainer.style.display = 'none';
         });
     });
 
