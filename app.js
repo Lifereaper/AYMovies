@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const LOCAL_API_URL = "https://tug-doctrine-greedily.ngrok-free.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
-    function startLocalProgressTracker(videoElement, currentMovieId) {
+    function startLocalProgressTracker(videoElement, trackingId) {
         if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval);
         localProgressTrackerInterval = setInterval(() => {
             if (!videoElement.paused && videoElement.currentTime > 0 && videoElement.duration) {
@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         'ngrok-skip-browser-warning': 'true'
                     },
                     body: JSON.stringify({
-                        movieId: currentMovieId.toString(),
+                        movieId: trackingId.toString(),
                         currentTime: videoElement.currentTime,
                         duration: videoElement.duration
                     })
@@ -134,18 +134,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 10000); 
     }
 
-    async function checkAndResumeLocalVideo(videoElement, currentMovieId) {
+    async function checkAndResumeLocalVideo(videoElement, trackingId) {
         try {
             const response = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true' }});
             const history = await response.json();
-            if (history[currentMovieId]) {
-                videoElement.currentTime = history[currentMovieId].currentTime;
+            if (history[trackingId]) {
+                videoElement.currentTime = history[trackingId].currentTime;
             }
         } catch (error) {
             console.error('Could not load local history:', error);
         }
     }
 
+    // 🚀 NEW: UPDATED PROGRESS BAR SYNC FOR EPISODE SPECIFIC TRACKING
     async function syncLocalProgressBars() {
         try {
             const historyResponse = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true' }});
@@ -154,9 +155,18 @@ document.addEventListener("DOMContentLoaded", () => {
             const cards = document.querySelectorAll('.movie-card, .top-10-wrapper');
             cards.forEach(card => {
                 const id = card.getAttribute('data-id');
-                if (watchHistory[id]) {
-                    const savedTime = watchHistory[id].currentTime;
-                    const totalTime = watchHistory[id].duration;
+                let trackingId = id;
+                
+                // If it's a TV show, check the exact episode they left off on
+                if (progressMap[id] && progressMap[id].lastSeason) {
+                    trackingId = `${id}-S${progressMap[id].lastSeason}E${progressMap[id].lastEpisode}`;
+                }
+                
+                const historyData = watchHistory[trackingId] || watchHistory[id];
+
+                if (historyData) {
+                    const savedTime = historyData.currentTime;
+                    const totalTime = historyData.duration;
                     
                     let percentage = (savedTime / totalTime) * 100;
                     if (percentage > 100) percentage = 100; 
@@ -545,8 +555,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchDropdown = document.getElementById('search-dropdown');
     const videoModal = document.getElementById('video-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
-    const btnPrevEp = document.getElementById('btn-prev-ep');
-    const btnNextEp = document.getElementById('btn-next-ep');
     const episodeIndicatorText = document.getElementById('episode-indicator-text');
     const serverSelect = document.getElementById('server-select'); 
 
@@ -1116,15 +1124,6 @@ document.addEventListener("DOMContentLoaded", () => {
             requestWakeLock();
             try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch (e) { }
 
-            // Episode navigation buttons
-            if (isTV) {
-                btnPrevEp.style.display = currentTvState.episode > 1 ? 'inline-block' : 'none';
-                btnNextEp.style.display = 'inline-block';
-            } else {
-                btnPrevEp.style.display = 'none';
-                btnNextEp.style.display = 'none';
-            }
-
             const dict = translations[currentLang] || translations.en;
             episodeIndicatorText.innerText = isTV ? `${dict.playingLabel} ${season}, ${dict.episodeLabel} ${episode}` : "";
 
@@ -1208,11 +1207,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!rawStreamUrl) throw new Error("No playable stream URL found.");
 
                 if (nativePlayer) {
+                    
+                    // 🚀 CREATE UNIQUE ID FOR EPISODES SO THEY DON'T OVERLAP
+                    const trackingId = isTV ? `${id}-S${season}E${episode}` : id.toString();
+
                     nativePlayer.addEventListener('loadedmetadata', async function resumeHandler() {
                         nativePlayer.removeEventListener('loadedmetadata', resumeHandler);
-                        await checkAndResumeLocalVideo(nativePlayer, id);
+                        await checkAndResumeLocalVideo(nativePlayer, trackingId);
                     });
-                    startLocalProgressTracker(nativePlayer, id);
+                    startLocalProgressTracker(nativePlayer, trackingId);
 
                     const hideBanner = () => {
                         if (loadingBannerTimer) clearInterval(loadingBannerTimer);
@@ -1397,30 +1400,6 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Launch Video Stream crashed:", fatalError);
         }
     }
-
-    btnNextEp.addEventListener('click', () => {
-        if (!currentTvState.isTV) return;
-        
-        let nextSeason = currentTvState.season;
-        let nextEpisode = currentTvState.episode + 1;
-
-        if (currentModalData && currentModalData.seasons) {
-            const currentSeasonData = currentModalData.seasons.find(s => s.season_number === nextSeason);
-            // If they click 'Next' on the season finale, jump to next season!
-            if (currentSeasonData && nextEpisode > currentSeasonData.episode_count) {
-                nextSeason += 1;
-                nextEpisode = 1;
-            }
-        }
-        
-        launchVideoStream(currentTvState.id, true, nextSeason, nextEpisode);
-    });
-
-    btnPrevEp.addEventListener('click', () => {
-        if (!currentTvState.isTV || currentTvState.episode <= 1) return;
-        currentTvState.episode -= 1;
-        launchVideoStream(currentTvState.id, true, currentTvState.season, currentTvState.episode);
-    });
 
     closeModalBtn.addEventListener('click', () => {
         if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
