@@ -1499,7 +1499,7 @@ document.addEventListener("DOMContentLoaded", () => {
         syncLocalProgressBars();
     }
 
-    // 🚀 UPDATED LIVE SEARCH WITH "SEE ALL RESULTS" OPTION
+    // 🚀 LIVE SEARCH WITH STICKY "SEE ALL RESULTS" BANNER
     async function fetchLiveSearch(query) {
         const trimmed = query.trim();
         if (trimmed.length < 2) { searchDropdown.style.display = 'none'; return; }
@@ -1512,7 +1512,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (validResults.length === 0) {
                 searchDropdown.innerHTML = '<div style="padding: 12px; color: #aaa; text-align: center;">No results found</div>';
             } else {
-                // Display top 6 quick results
+                const resultsContainer = document.createElement('div');
+                resultsContainer.style.cssText = "max-height: 320px; overflow-y: auto;";
+
                 validResults.slice(0, 6).forEach(item => {
                     const isTV = (item.media_type === 'tv'); 
                     const div = document.createElement('div');
@@ -1521,14 +1523,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
                     div.innerHTML = `<img src="${IMAGE_BASE_URL}${item.poster_path}" alt=""><div class="search-item-info"><span class="search-item-title">${item.title || item.name}</span><span class="search-item-meta">${isTV ? 'TV Series' : 'Movie'} • ${year}</span></div>`;
                     div.onclick = () => { searchDropdown.style.display = 'none'; searchInput.value = ''; openDetailsModal(item.id, isTV); };
-                    searchDropdown.appendChild(div);
+                    resultsContainer.appendChild(div);
                 });
 
-                // 🚀 "SEE ALL RESULTS" OPTION
+                searchDropdown.appendChild(resultsContainer);
+
+                // 🚀 STICKY BOTTOM BANNER FOR "SEE ALL"
                 const seeAllBtn = document.createElement('div');
                 seeAllBtn.className = 'search-item tv-focusable';
                 seeAllBtn.setAttribute('tabindex', '0');
-                seeAllBtn.style.cssText = "background: rgba(229, 9, 20, 0.2); border-top: 1px solid #E50914; color: #ffd700; font-weight: bold; text-align: center; justify-content: center; padding: 12px;";
+                seeAllBtn.style.cssText = "position: sticky; bottom: 0; background: #E50914; color: #ffffff; font-weight: bold; text-align: center; justify-content: center; padding: 12px; z-index: 10; border-top: 1px solid #ff4d4d; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); cursor: pointer;";
                 seeAllBtn.innerHTML = `🔍 See all ${validResults.length} results for "${trimmed}"`;
                 seeAllBtn.onclick = () => {
                     searchDropdown.style.display = 'none';
@@ -1540,7 +1544,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) { }
     }
 
-    // 🚀 FUNCTION TO RENDER ALL SEARCH RESULTS AT THE TOP OF THE HOME VIEW
     function renderAllSearchResultsRow(query, results) {
         let searchContainer = document.getElementById('search-results-container');
         let searchRow = document.getElementById('search-results-row');
@@ -1561,7 +1564,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="row-arrow right-arrow tv-focusable" tabindex="0" onclick="scrollRow('search-results-row', 'right')">❯</button>
                 </div>
             `;
-            // Insert search row right below the billboard hero section
             const heroSection = document.getElementById('hero-poster-bg');
             if (heroSection && heroSection.nextSibling) {
                 homeView.insertBefore(searchContainer, heroSection.nextSibling);
