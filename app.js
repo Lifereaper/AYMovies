@@ -146,7 +146,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 🚀 NEW: UPDATED PROGRESS BAR SYNC FOR EPISODE SPECIFIC TRACKING
     async function syncLocalProgressBars() {
         try {
             const historyResponse = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true' }});
@@ -157,7 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const id = card.getAttribute('data-id');
                 let trackingId = id;
                 
-                // If it's a TV show, check the exact episode they left off on
                 if (progressMap[id] && progressMap[id].lastSeason) {
                     trackingId = `${id}-S${progressMap[id].lastSeason}E${progressMap[id].lastEpisode}`;
                 }
@@ -346,7 +344,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-    // 🚀 UPDATED DICTIONARY WITH ALL MODAL & LOGIN TRANSLATIONS
     const translations = {
         en: {
             navHome: "Home", navTv: "TV Shows", navMovies: "Movies", navAnimations: "Animations",
@@ -356,24 +353,19 @@ document.addEventListener("DOMContentLoaded", () => {
             rowCommunity: "👥 Shared Watch Party Community", rowTrending: "🔥 Trending Now",
             rowAction: "💥 Action Movies", rowComedy: "😂 Comedy Movies", rowSeries: "📺 Trending Series",
             
-            // Login & Auth
             loginTitle: "Sign In", emailPlaceholder: "Email or phone number", passwordPlaceholder: "Password",
             loginBtn: "Sign In", forgotPassword: "Forgot password?", newToApp: "New to AYMovies?", signupNow: "Sign up now.",
             
-            // Modals & Details
             playBtn: "▶ Play", trailerBtn: "🎬 Trailer", myListAdd: "➕ My List", myListAdded: "✔️ In My List",
             shareCommunityBtn: "👥 Share to Community", castLabel: "Cast:", similarLabel: "More Like This",
             
-            // Rewards & Payouts
             rewardsTitle: "💰 Rewards Wallet", balanceLabel: "Available Balance:", payoutHeader: "Request DigiWallet Payout",
             methodLabel: "Payout Method", accountLabel: "DigiWallet Number / Account", amountLabel: "Amount (Min $5.00 BZD)",
             requestBtn: "Request Payout", minNotice: "Minimum payout is $5.00 BZD",
             
-            // Referrals & Settings
             referralTitle: "👥 Invite a Friend", refEmailPlaceholder: "Friend's Email", refPhonePlaceholder: "Friend's Phone",
             sendRefBtn: "Send WhatsApp Invite", logoutBtn: "🚪 Logout", deleteAccBtn: "⚠️ Delete Account",
             
-            // Video Player & Loading
             loadingStream: "Fetching Stream...", watchEarn: "🍿 Watch & Earn Money!", movieStartSoon: "Your movie will start soon",
             playingLabel: "Playing: Season", episodeLabel: "Episode"
         },
@@ -385,24 +377,19 @@ document.addEventListener("DOMContentLoaded", () => {
             rowCommunity: "👥 Comunidad Watch Party", rowTrending: "🔥 Tendencias Ahora",
             rowAction: "💥 Películas de Acción", rowComedy: "😂 Películas de Comedia", rowSeries: "📺 Series en Tendencia",
             
-            // Login & Auth
             loginTitle: "Iniciar sesión", emailPlaceholder: "Correo electrónico o número de teléfono", passwordPlaceholder: "Contraseña",
             loginBtn: "Iniciar sesión", forgotPassword: "¿Olvidaste tu contraseña?", newToApp: "¿Nuevo en AYMovies?", signupNow: "Suscríbete ahora.",
             
-            // Modals & Details
             playBtn: "▶ Reproducir", trailerBtn: "🎬 Tráiler", myListAdd: "➕ Mi Lista", myListAdded: "✔️ En Mi Lista",
             shareCommunityBtn: "👥 Compartir a la Comunidad", castLabel: "Reparto:", similarLabel: "Más títulos similares",
             
-            // Rewards & Payouts
             rewardsTitle: "💰 Billetera de Recompensas", balanceLabel: "Saldo disponible:", payoutHeader: "Solicitar Pago de DigiWallet",
             methodLabel: "Método de Pago", accountLabel: "Número / Cuenta de DigiWallet", amountLabel: "Monto (Mín. $5.00 BZD)",
             requestBtn: "Solicitar Pago", minNotice: "El pago mínimo es de $5.00 BZD",
             
-            // Referrals & Settings
             referralTitle: "👥 Invitar a un Amigo", refEmailPlaceholder: "Correo del amigo", refPhonePlaceholder: "Teléfono del amigo",
             sendRefBtn: "Enviar Invitación por WhatsApp", logoutBtn: "🚪 Cerrar Sesión", deleteAccBtn: "⚠️ Eliminar Cuenta",
             
-            // Video Player & Loading
             loadingStream: "Cargando...", watchEarn: "🍿 ¡Mira y Gana Dinero!", movieStartSoon: "Tu película comenzará pronto",
             playingLabel: "Reproduciendo: Temporada", episodeLabel: "Episodio"
         }
@@ -421,13 +408,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const dict = translations[lang] || translations.en;
         
-        // Navigation
         document.querySelectorAll('[data-view="home"]').forEach(el => el.innerText = dict.navHome);
         document.querySelectorAll('[data-view="tv"]').forEach(el => el.innerText = dict.navTv);
         document.querySelectorAll('[data-view="movies"]').forEach(el => el.innerText = dict.navMovies);
         document.querySelectorAll('[data-view="animations"]').forEach(el => el.innerText = dict.navAnimations);
 
-        // Search & Inputs
         const searchInp = document.getElementById('search-input');
         if (searchInp) searchInp.placeholder = dict.searchPlaceholder;
         
@@ -437,7 +422,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const passInp = document.getElementById('auth-password');
         if (passInp) passInp.placeholder = dict.passwordPlaceholder;
 
-        // Buttons & Modals
         const loginBtn = document.querySelector('#auth-form button[type="submit"]');
         if (loginBtn) loginBtn.innerText = dict.loginBtn;
 
@@ -450,7 +434,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const detailsShare = document.getElementById('details-community-btn');
         if (detailsShare) detailsShare.innerText = dict.shareCommunityBtn;
 
-        // My List Text Updater
         const detailsMylistBtn = document.getElementById('details-mylist-btn');
         if(detailsMylistBtn) {
            if(detailsMylistBtn.innerText.includes('✔️')) {
@@ -460,7 +443,6 @@ document.addEventListener("DOMContentLoaded", () => {
            }
         }
 
-        // Row Titles
         const rowTitles = {
             'row1-title': dict.rowTrending, 'row2-title': dict.rowAction,
             'row3-title': dict.rowComedy, 'row4-title': dict.rowSeries
@@ -769,7 +751,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 🚀 NEW: ANTI-SPAM EMOJI FILTER
     document.querySelectorAll('.emoji-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             if (!currentUserUid || !currentModalData) return;
@@ -779,23 +760,20 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!progressMap[movieId] || typeof progressMap[movieId] !== 'object') progressMap[movieId] = {};
             
             const previousEmoji = progressMap[movieId].userEmoji;
-            if (previousEmoji === emojiType) return; // Prevent spamming the exact same emoji
+            if (previousEmoji === emojiType) return; 
 
             if (!globalReactionsMap[movieId]) globalReactionsMap[movieId] = { "🔥": 0, "🤯": 0, "😂": 0, "😴": 0 };
             
-            // Subtract old vote if changing emojis
             if (previousEmoji && globalReactionsMap[movieId][previousEmoji] > 0) {
                 globalReactionsMap[movieId][previousEmoji]--;
             }
 
-            // Add new vote
             globalReactionsMap[movieId][emojiType] = (globalReactionsMap[movieId][emojiType] || 0) + 1;
             progressMap[movieId].userEmoji = emojiType;
             saveUserData();
             
             updateEmojiUI(movieId);
 
-            // Visually highlight the button they just clicked
             document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('user-reacted'));
             btn.classList.add('user-reacted');
 
@@ -1208,6 +1186,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (nativePlayer) {
                     
+                    // 🚀 CLEAR OLD SUBTITLES
+                    while (nativePlayer.firstChild) {
+                        nativePlayer.removeChild(nativePlayer.firstChild);
+                    }
+
+                    // 🚀 INJECT NEW SUBTITLES FROM SCRAPER
+                    let subtitlesArray = streamData.subtitles || streamData.captions || chosenStream.subtitles || [];
+                    if (subtitlesArray && subtitlesArray.length > 0) {
+                        subtitlesArray.forEach(sub => {
+                            const track = document.createElement('track');
+                            track.kind = 'subtitles';
+                            const langName = sub.lang || sub.language || 'Unknown';
+                            track.label = langName;
+                            track.srclang = langName.substring(0, 2).toLowerCase();
+                            track.src = sub.url || sub.file;
+                            
+                            // Auto-enable based on app language (English or Spanish)
+                            if (currentLang === 'es' && (track.srclang === 'es' || langName.toLowerCase().includes('spa'))) {
+                                track.default = true;
+                            } else if (currentLang === 'en' && (track.srclang === 'en' || langName.toLowerCase().includes('eng'))) {
+                                track.default = true;
+                            }
+                            
+                            nativePlayer.appendChild(track);
+                        });
+                    }
+                    
                     // 🚀 CREATE UNIQUE ID FOR EPISODES SO THEY DON'T OVERLAP
                     const trackingId = isTV ? `${id}-S${season}E${episode}` : id.toString();
 
@@ -1294,6 +1299,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
                         const hls = new Hls({
                             defaultAudioCodec: 'mp4a.40.2',
+                            renderTextTracksNatively: true, // 🚀 NEW: Forces HLS to show the native CC button menu
                             xhrSetup: function(xhr, url) {
                                 xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
                             }
