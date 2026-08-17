@@ -38,6 +38,22 @@ function releaseWakeLock() {
     }
 }
 
+// 📡 INITIALIZE GOOGLE CAST FRAMEWORK
+window.__onGCastApiAvailable = function(isAvailable) {
+    if (isAvailable && window.cast && window.cast.framework) {
+        try {
+            cast.framework.CastContext.getInstance().setOptions({
+                receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+            });
+            const castBtn = document.getElementById('castbutton');
+            if (castBtn) castBtn.style.display = 'inline-block';
+        } catch (err) {
+            console.log("Cast init notice:", err);
+        }
+    }
+};
+
 window.scrollRow = function (rowId, direction) {
     const row = document.getElementById(rowId);
     if (!row) return;
@@ -65,6 +81,28 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem('ay_dmca_accepted', 'true');
             splashDmcaView.style.opacity = '0';
             setTimeout(() => { splashDmcaView.style.display = 'none'; }, 300);
+        });
+    }
+
+    // 📺 UNIVERSAL CAST BUTTON (FIRE TV / SAMSUNG / LG / ROKU INTENT)
+    const btnUniversalCast = document.getElementById('btn-cast-to-tv');
+    if (btnUniversalCast) {
+        btnUniversalCast.addEventListener('click', () => {
+            const nativePlayer = document.getElementById('native-video-player');
+            const currentStreamUrl = nativePlayer ? nativePlayer.src : null;
+
+            if (!currentStreamUrl || currentStreamUrl.trim() === "" || currentStreamUrl.includes(window.location.host)) {
+                showCustomAlert("Please wait for the video to start playing before casting!");
+                return;
+            }
+
+            const wvcUrl = `wvc-x-callback://open?url=${encodeURIComponent(currentStreamUrl)}&secure_uri=true`;
+
+            if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+                window.AppInventor.setWebViewString(wvcUrl);
+            } else {
+                window.location.href = wvcUrl;
+            }
         });
     }
     
@@ -1052,7 +1090,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
             }
             
-            // Highlight existing user reaction when opening details
             document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('user-reacted'));
             const userMemory = progressMap[id] && typeof progressMap[id] === 'object' ? progressMap[id] : null;
             if (userMemory && userMemory.userEmoji) {
@@ -1202,7 +1239,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             track.srclang = langName.substring(0, 2).toLowerCase();
                             track.src = sub.url || sub.file;
                             
-                            // Auto-enable based on app language (English or Spanish)
+                            // Auto-enable based on app language
                             if (currentLang === 'es' && (track.srclang === 'es' || langName.toLowerCase().includes('spa'))) {
                                 track.default = true;
                             } else if (currentLang === 'en' && (track.srclang === 'en' || langName.toLowerCase().includes('eng'))) {
@@ -1213,7 +1250,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         });
                     }
                     
-                    // 🚀 CREATE UNIQUE ID FOR EPISODES SO THEY DON'T OVERLAP
+                    // 🚀 UNIQUE ID FOR EPISODE TRACKING
                     const trackingId = isTV ? `${id}-S${season}E${episode}` : id.toString();
 
                     nativePlayer.addEventListener('loadedmetadata', async function resumeHandler() {
@@ -1236,7 +1273,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     // 🚀 DETECT WHEN VIDEO FINISHES (AUTO-BINGE WATCHING & WATCH IT AGAIN)
                     nativePlayer.addEventListener('ended', () => {
                         if (currentTvState.isTV) {
-                            // 📺 AUTO-PLAY NEXT EPISODE LOGIC
                             let nextSeason = currentTvState.season;
                             let nextEpisode = currentTvState.episode + 1;
                             let hasNext = true;
@@ -1244,13 +1280,11 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (currentModalData && currentModalData.seasons) {
                                 const currentSeasonData = currentModalData.seasons.find(s => s.season_number === nextSeason);
                                 
-                                // If episode exceeds this season's count, jump to Next Season, Ep 1
                                 if (currentSeasonData && nextEpisode > currentSeasonData.episode_count) {
                                     nextSeason += 1;
                                     nextEpisode = 1;
                                 }
                                 
-                                // Verify if the next season actually exists
                                 const nextSeasonData = currentModalData.seasons.find(s => s.season_number === nextSeason);
                                 if (!nextSeasonData) {
                                     hasNext = false; 
@@ -1258,23 +1292,18 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
 
                             if (hasNext) {
-                                // Pop a toast so they know it's loading the next episode
                                 showRewardToast("🍿 Up Next...", `Loading Season ${nextSeason}, Episode ${nextEpisode}`);
                                 
-                                // Auto-launch next episode after 3 seconds
                                 setTimeout(() => {
                                     launchVideoStream(currentTvState.id, true, nextSeason, nextEpisode);
                                 }, 3000);
                             } else {
-                                // 🏁 SERIES FINALE - Move to Watch It Again
                                 moveToWatchItAgain();
                             }
                         } else {
-                            // 🎬 MOVIE FINISHED - Move to Watch It Again
                             moveToWatchItAgain();
                         }
 
-                        // Helper function to keep lists clean
                         function moveToWatchItAgain() {
                             if (currentModalData) {
                                 continueWatching = continueWatching.filter(item => item.id !== currentModalData.id);
@@ -1299,7 +1328,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
                         const hls = new Hls({
                             defaultAudioCodec: 'mp4a.40.2',
-                            renderTextTracksNatively: true, // 🚀 NEW: Forces HLS to show the native CC button menu
+                            renderTextTracksNatively: true,
                             xhrSetup: function(xhr, url) {
                                 xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
                             }
@@ -1702,7 +1731,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return style.display !== 'none' && style.visibility !== 'hidden' && style.right !== '-100%';
         });
 
-        const selector = 'button, a, input, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable';
+        const selector = 'button, a, input, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable, google-cast-button';
         const searchArea = activeModal ? activeModal : document;
         const elements = Array.from(searchArea.querySelectorAll(selector));
 
