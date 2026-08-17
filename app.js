@@ -1225,25 +1225,66 @@ document.addEventListener("DOMContentLoaded", () => {
                     };
                     nativePlayer.addEventListener('playing', hideBanner);
 
-                    // 🚀 DETECT WHEN MOVIE FINISHES (AUTO "WATCH IT AGAIN")
+                    // 🚀 DETECT WHEN VIDEO FINISHES (AUTO-BINGE WATCHING & WATCH IT AGAIN)
                     nativePlayer.addEventListener('ended', () => {
-                        // Move to "Watch It Again" Row automatically when done
-                        if (currentModalData) {
-                            continueWatching = continueWatching.filter(item => item.id !== currentModalData.id);
-                            alreadyWatched = alreadyWatched.filter(item => item.id !== currentModalData.id);
-                            
-                            alreadyWatched.unshift({ 
-                                id: currentModalData.id, 
-                                title: currentModalData.title || currentModalData.name, 
-                                poster_path: currentModalData.poster_path, 
-                                media_type: currentModalData.media_type, 
-                                release_date: currentModalData.release_date || currentModalData.first_air_date, 
-                                vote_average: currentModalData.vote_average 
-                            });
-                            
-                            if (alreadyWatched.length > 15) alreadyWatched.pop(); 
-                            saveUserData();
-                            renderPersonalizedRows();
+                        if (currentTvState.isTV) {
+                            // 📺 AUTO-PLAY NEXT EPISODE LOGIC
+                            let nextSeason = currentTvState.season;
+                            let nextEpisode = currentTvState.episode + 1;
+                            let hasNext = true;
+
+                            if (currentModalData && currentModalData.seasons) {
+                                const currentSeasonData = currentModalData.seasons.find(s => s.season_number === nextSeason);
+                                
+                                // If episode exceeds this season's count, jump to Next Season, Ep 1
+                                if (currentSeasonData && nextEpisode > currentSeasonData.episode_count) {
+                                    nextSeason += 1;
+                                    nextEpisode = 1;
+                                }
+                                
+                                // Verify if the next season actually exists
+                                const nextSeasonData = currentModalData.seasons.find(s => s.season_number === nextSeason);
+                                if (!nextSeasonData) {
+                                    hasNext = false; 
+                                }
+                            }
+
+                            if (hasNext) {
+                                // Pop a toast so they know it's loading the next episode
+                                showRewardToast("🍿 Up Next...", `Loading Season ${nextSeason}, Episode ${nextEpisode}`);
+                                
+                                // Auto-launch next episode after 3 seconds
+                                setTimeout(() => {
+                                    launchVideoStream(currentTvState.id, true, nextSeason, nextEpisode);
+                                }, 3000);
+                            } else {
+                                // 🏁 SERIES FINALE - Move to Watch It Again
+                                moveToWatchItAgain();
+                            }
+                        } else {
+                            // 🎬 MOVIE FINISHED - Move to Watch It Again
+                            moveToWatchItAgain();
+                        }
+
+                        // Helper function to keep lists clean
+                        function moveToWatchItAgain() {
+                            if (currentModalData) {
+                                continueWatching = continueWatching.filter(item => item.id !== currentModalData.id);
+                                alreadyWatched = alreadyWatched.filter(item => item.id !== currentModalData.id);
+                                
+                                alreadyWatched.unshift({ 
+                                    id: currentModalData.id, 
+                                    title: currentModalData.title || currentModalData.name, 
+                                    poster_path: currentModalData.poster_path, 
+                                    media_type: currentModalData.media_type, 
+                                    release_date: currentModalData.release_date || currentModalData.first_air_date, 
+                                    vote_average: currentModalData.vote_average 
+                                });
+                                
+                                if (alreadyWatched.length > 15) alreadyWatched.pop(); 
+                                saveUserData();
+                                renderPersonalizedRows();
+                            }
                         }
                     });
 
@@ -1359,8 +1400,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnNextEp.addEventListener('click', () => {
         if (!currentTvState.isTV) return;
-        currentTvState.episode += 1;
-        launchVideoStream(currentTvState.id, true, currentTvState.season, currentTvState.episode);
+        
+        let nextSeason = currentTvState.season;
+        let nextEpisode = currentTvState.episode + 1;
+
+        if (currentModalData && currentModalData.seasons) {
+            const currentSeasonData = currentModalData.seasons.find(s => s.season_number === nextSeason);
+            // If they click 'Next' on the season finale, jump to next season!
+            if (currentSeasonData && nextEpisode > currentSeasonData.episode_count) {
+                nextSeason += 1;
+                nextEpisode = 1;
+            }
+        }
+        
+        launchVideoStream(currentTvState.id, true, nextSeason, nextEpisode);
     });
 
     btnPrevEp.addEventListener('click', () => {
