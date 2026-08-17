@@ -1499,15 +1499,27 @@ document.addEventListener("DOMContentLoaded", () => {
         syncLocalProgressBars();
     }
 
-    // 🚀 LIVE SEARCH WITH STICKY "SEE ALL RESULTS" BANNER
+    // 🚀 SMART LIVE SEARCH WITH STICKY "SEE ALL RESULTS" BANNER & K-DRAMA FIX
     async function fetchLiveSearch(query) {
         const trimmed = query.trim();
         if (trimmed.length < 2) { searchDropdown.style.display = 'none'; return; }
         try {
-            const response = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(trimmed)}`);
+            const lowerQuery = trimmed.toLowerCase();
+            let endpoint = `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(trimmed)}`;
+
+            // 🎯 SMART DETECTOR: Redirect K-Drama searches to TMDB Korean Language Discover
+            if (lowerQuery === 'kdrama' || lowerQuery === 'k-drama' || lowerQuery === 'k drama' || lowerQuery === 'korean drama') {
+                endpoint = `${BASE_URL}/discover/tv?api_key=${API_KEY}&with_original_language=ko&sort_by=popularity.desc`;
+            }
+
+            const response = await fetch(endpoint);
             const data = await response.json();
             searchDropdown.innerHTML = '';
-            const validResults = data.results.filter(i => i.poster_path);
+            
+            const validResults = data.results.map(item => ({
+                ...item,
+                media_type: item.media_type || 'tv' 
+            })).filter(i => i.poster_path);
 
             if (validResults.length === 0) {
                 searchDropdown.innerHTML = '<div style="padding: 12px; color: #aaa; text-align: center;">No results found</div>';
@@ -1532,7 +1544,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const seeAllBtn = document.createElement('div');
                 seeAllBtn.className = 'search-item tv-focusable';
                 seeAllBtn.setAttribute('tabindex', '0');
-                seeAllBtn.style.cssText = "position: sticky; bottom: 0; background: #E50914; color: #ffffff; font-weight: bold; text-align: center; justify-content: center; padding: 12px; z-index: 10; border-top: 1px solid #ff4d4d; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); cursor: pointer;";
+                seeAllBtn.style.cssText = "position: sticky; bottom: 0; background: #E50914; color: #ffffff; font-weight: bold; text-align: center; justify-content: center; padding: 12px; z-index: 10; border-top: 1px solid #ff4d4d; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); cursor: pointer; margin-bottom: -1px;";
                 seeAllBtn.innerHTML = `🔍 See all ${validResults.length} results for "${trimmed}"`;
                 seeAllBtn.onclick = () => {
                     searchDropdown.style.display = 'none';
