@@ -111,9 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     let localProgressTrackerInterval = null;
     let loadingBannerTimer = null;
-    
-    // 🚀 UPDATED: New Localtunnel permanent URL
-    const LOCAL_API_URL = "https://aymovies-backend-2026.loca.lt/api/progress";
+    const LOCAL_API_URL = "https://tug-doctrine-greedily.ngrok-free.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
     function startLocalProgressTracker(videoElement, trackingId) {
@@ -124,8 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true',
-                        'Bypass-Tunnel-Reminder': 'true'
+                        'ngrok-skip-browser-warning': 'true'
                     },
                     body: JSON.stringify({
                         movieId: trackingId.toString(),
@@ -139,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function checkAndResumeLocalVideo(videoElement, trackingId) {
         try {
-            const response = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true', 'Bypass-Tunnel-Reminder': 'true' }});
+            const response = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true' }});
             const history = await response.json();
             if (history[trackingId]) {
                 videoElement.currentTime = history[trackingId].currentTime;
@@ -151,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function syncLocalProgressBars() {
         try {
-            const historyResponse = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true', 'Bypass-Tunnel-Reminder': 'true' }});
+            const historyResponse = await fetch(LOCAL_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true' }});
             const watchHistory = await historyResponse.json();
 
             const cards = document.querySelectorAll('.movie-card, .top-10-wrapper');
@@ -1158,18 +1155,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     imdbId = idData.imdb_id || null;
                 } catch (e) { }
 
-                // 🚀 UPDATED: New Localtunnel permanent URL
-                const myScraperApiUrl = "https://aymovies-backend-2026.loca.lt";
+                const myScraperApiUrl = "https://tug-doctrine-greedily.ngrok-free.dev";
                 const streamType = isTV ? 'series' : 'movie';
                 let endpoint = `${myScraperApiUrl}/api/streams/${streamType}/${id}`;
 
                 if (isTV) endpoint += `?season=${season}&episode=${episode}`;
 
                 const streamRes = await fetch(endpoint, {
-                    headers: { 
-                        'ngrok-skip-browser-warning': 'true',
-                        'Bypass-Tunnel-Reminder': 'true'
-                    }
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const streamData = await streamRes.json();
 
@@ -1295,7 +1288,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             renderTextTracksNatively: true,
                             xhrSetup: function(xhr, url) {
                                 xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
-                                xhr.setRequestHeader('Bypass-Tunnel-Reminder', 'true');
                             }
                         });
                         
