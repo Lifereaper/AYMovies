@@ -15,10 +15,13 @@
     <link rel="stylesheet" href="style.css?v=19">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
     
-    <!-- 🚀 NEW: HLS STREAMING ENGINE FOR NATIVE PLAYER -->
+    <!-- 🚀 HLS STREAMING ENGINE -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-    <!-- 🚀 PRE-CONNECT & DNS PREFETCH FOR ALL 7 STREAMING SERVERS -->
+    <!-- 📡 GOOGLE CAST SDK FOR GOOGLE TV / CHROMECAST -->
+    <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+
+    <!-- 🚀 PRE-CONNECT & DNS PREFETCH FOR STREAMING SERVERS -->
     <link rel="preconnect" href="https://vidsrc.me" crossorigin>
     <link rel="dns-prefetch" href="https://vidsrc.me">
 
@@ -412,30 +415,40 @@
             font-size: 0.8rem;
         }
 
-        /* 📺 TV Remote Focus State (Only shows when using D-Pad/Keyboard) */
+        /* 📺 TV Remote Focus State */
         .tv-focusable:focus-visible, 
         button:focus-visible, 
         .movie-poster:focus-visible,
         .nav-link:focus-visible,
         .chip-btn:focus-visible,
         input:focus-visible,
-        select:focus-visible {
-            outline: 4px solid #ffcc00 !important; /* Yellow highlight border */
-            transform: scale(1.05); /* Slightly enlarge the focused item */
+        select:focus-visible,
+        google-cast-button:focus-visible {
+            outline: 4px solid #ffcc00 !important;
+            transform: scale(1.05);
             box-shadow: 0px 0px 15px #ffcc00;
             transition: all 0.2s ease-in-out;
             z-index: 10;
         }
 
-        /* Remove default focus outlines on phone taps */
         .tv-focusable:focus:not(:focus-visible),
         button:focus:not(:focus-visible),
         .movie-poster:focus:not(:focus-visible),
         .nav-link:focus:not(:focus-visible),
         .chip-btn:focus:not(:focus-visible),
         input:focus:not(:focus-visible),
-        select:focus:not(:focus-visible) {
+        select:focus:not(:focus-visible),
+        google-cast-button:focus:not(:focus-visible) {
             outline: none !important;
+        }
+
+        /* Styling for Google Cast element */
+        google-cast-button {
+            --connected-color: #ffd700;
+            --disconnected-color: #ffffff;
+            width: 28px;
+            height: 28px;
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -799,20 +812,29 @@
             <button id="close-modal-btn" tabindex="0" class="tv-focusable" style="background: transparent; border: none; color: white; font-size: 30px; cursor: pointer; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.8);">&times;</button>
         </div>
 
-        <!-- 🔽 MINI PLAYER BUTTON -->
-        <div style="position: absolute; top: 20px; right: 25px; z-index: 10;">
+        <!-- 🚀 TOP-RIGHT ACTION CONTROLS (CAST + MINI PLAYER) -->
+        <div style="position: absolute; top: 20px; right: 25px; z-index: 10; display: flex; gap: 10px; align-items: center;">
+            
+            <!-- 📡 GOOGLE CAST SDK BUTTON (GOOGLE TV / CHROMECAST) -->
+            <button is="google-cast-button" id="castbutton" class="tv-focusable" tabindex="0" title="Cast to Google TV / Chromecast" style="display: none; background: rgba(255,255,255,0.2); border: 1px solid #666; border-radius: 6px; padding: 2px 6px; cursor: pointer;"></button>
+
+            <!-- 📺 UNIVERSAL CAST BUTTON (FIRE TV / SAMSUNG / LG / ROKU) -->
+            <button id="btn-cast-to-tv" tabindex="0" class="tv-focusable" style="background: rgba(255, 215, 0, 0.2); color: #ffd700; border: 1px solid #ffd700; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem;" title="Cast to Fire TV / Smart TV">
+                📺 Universal Cast
+            </button>
+
+            <!-- 🔽 MINI PLAYER BUTTON -->
             <button id="btn-toggle-mini-player" tabindex="0" class="tv-focusable" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid #666; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem;" title="Minimize Player">🔽 Mini</button>
         </div>
         
         <iframe id="video-player-frame" style="width: 100%; height: 75%; border: none; margin-top: 60px;" allowfullscreen></iframe>
         
-        <!-- 🌟 NEW: NATIVE VIDEO PLAYER (Hidden by default) -->
+        <!-- 🌟 NATIVE VIDEO PLAYER -->
         <video id="native-video-player" tabindex="0" class="tv-focusable" controls playsinline style="display: none; width: 100%; height: 75%; margin-top: 60px; background: #000; outline: none;"></video>
         
         <div class="video-modal-controls" style="text-align: center; color: white; margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <h3 id="episode-indicator-text" style="font-size: 1.2rem; margin: 0; color: #aaa;">Feature Film</h3>
             
-            <!-- 🎛️ INLINE CONTROLS BAR (ALL 7 SERVERS + NATIVE) -->
             <div style="display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 10px;">
                 <div style="display: flex; align-items: center; gap: 8px; background: rgba(30, 30, 30, 0.8); padding: 7px 12px; border-radius: 6px; border: 1px solid #333;">
                     <label for="server-select" style="color: #ffd700; font-weight: bold; font-size: 0.85rem;">📡 Server:</label>
@@ -828,7 +850,6 @@
                     </select>
                 </div>
                 
-                <!-- Hidden to prevent JS errors while keeping them off the UI -->
                 <div style="display: none;">
                     <button id="btn-prev-ep" tabindex="-1">⏮ Prev Ep</button>
                     <button id="btn-next-ep" tabindex="-1">Up Next ⏭</button>
@@ -851,7 +872,7 @@
         </div>
     </div>
 
-    <!-- 🔔 CUSTOM ALERT MODAL (Community Share Success) -->
+    <!-- 🔔 CUSTOM ALERT MODAL -->
     <div id="custom-alert-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10006; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div style="background: #181818; width: 90%; max-width: 350px; padding: 25px; border-radius: 10px; border: 1px solid #ffd700; box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2); text-align: center;">
             <div style="font-size: 3rem; margin-bottom: 10px;">✨</div>
@@ -893,7 +914,7 @@
         </svg>
     </button>
 
-    <!-- 📱 KODULAR CLEAN WHATSAPP SCRIPT WITH CUSTOM MODAL -->
+    <!-- 📱 WHATSAPP SUPPORT SCRIPT -->
     <script>
         function showWhatsAppPrompt() {
             const promptModal = document.getElementById('custom-prompt-modal');
@@ -948,7 +969,6 @@
     <!-- 📺 TV REMOTE NAVIGATION SCRIPT -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Make static UI elements (navbar, buttons, inputs) focusable automatically
             const clickableItems = document.querySelectorAll('button, a, select, input, .nav-link, .chip-btn');
             clickableItems.forEach(item => {
                 if (!item.hasAttribute('tabindex')) {
@@ -957,7 +977,6 @@
                 item.classList.add('tv-focusable');
             });
 
-            // 2. Auto-focus the disclaimer button on load so the TV remote is instantly locked on
             const disclaimerButton = document.getElementById('btn-accept-dmca');
             if (disclaimerButton) {
                 setTimeout(() => {
@@ -965,7 +984,6 @@
                 }, 500);
             }
 
-            // 3. Listen for TV Remote "Select/Enter" button to actually click things
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();
@@ -977,7 +995,7 @@
         });
     </script>
 
-    <!-- 🚀 HLS BUFFER BOOST & PRELOAD ENGINE -->
+    <!-- 🚀 HLS BUFFER BOOST ENGINE -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const observer = new MutationObserver((mutations) => {
