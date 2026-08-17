@@ -38,22 +38,6 @@ function releaseWakeLock() {
     }
 }
 
-// 📡 INITIALIZE GOOGLE CAST FRAMEWORK
-window.__onGCastApiAvailable = function(isAvailable) {
-    if (isAvailable && window.cast && window.cast.framework) {
-        try {
-            cast.framework.CastContext.getInstance().setOptions({
-                receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-                autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-            });
-            const castBtn = document.getElementById('castbutton');
-            if (castBtn) castBtn.style.display = 'inline-block';
-        } catch (err) {
-            console.log("Cast init notice:", err);
-        }
-    }
-};
-
 window.scrollRow = function (rowId, direction) {
     const row = document.getElementById(rowId);
     if (!row) return;
@@ -81,29 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem('ay_dmca_accepted', 'true');
             splashDmcaView.style.opacity = '0';
             setTimeout(() => { splashDmcaView.style.display = 'none'; }, 300);
-        });
-    }
-
-    // 📺 UNIVERSAL CAST BUTTON (FIRE TV / SAMSUNG / LG / ROKU INTENT)
-    const btnUniversalCast = document.getElementById('btn-cast-to-tv');
-    if (btnUniversalCast) {
-        btnUniversalCast.addEventListener('click', () => {
-            const nativePlayer = document.getElementById('native-video-player');
-            // 🚀 CHECK GLOBAL STREAM VARIABLE FIRST TO BYPASS HLS EMPTY SRC ISSUE
-            const currentStreamUrl = window.activeCastStreamUrl || (nativePlayer ? nativePlayer.src : null);
-
-            if (!currentStreamUrl || currentStreamUrl.trim() === "" || currentStreamUrl.includes(window.location.host)) {
-                showCustomAlert("Please wait for the video to start playing before casting!");
-                return;
-            }
-
-            const wvcUrl = `wvc-x-callback://open?url=${encodeURIComponent(currentStreamUrl)}&secure_uri=true`;
-
-            if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-                window.AppInventor.setWebViewString(wvcUrl);
-            } else {
-                window.location.href = wvcUrl;
-            }
         });
     }
     
@@ -1220,9 +1181,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const chosenStream = playableStreams.length > 0 ? playableStreams[0] : streamData.streams[0];
                 const rawStreamUrl = chosenStream.url || chosenStream.playlist || chosenStream.link;
 
-                // 🚀 SAVE ACTIVE STREAM URL FOR UNIVERSAL CAST BUTTON
-                window.activeCastStreamUrl = rawStreamUrl;
-
                 if (!rawStreamUrl) throw new Error("No playable stream URL found.");
 
                 if (nativePlayer) {
@@ -1734,7 +1692,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return style.display !== 'none' && style.visibility !== 'hidden' && style.right !== '-100%';
         });
 
-        const selector = 'button, a, input, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable, google-cast-button';
+        const selector = 'button, a, input, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable';
         const searchArea = activeModal ? activeModal : document;
         const elements = Array.from(searchArea.querySelectorAll(selector));
 
