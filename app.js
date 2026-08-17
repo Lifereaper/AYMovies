@@ -89,7 +89,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnUniversalCast) {
         btnUniversalCast.addEventListener('click', () => {
             const nativePlayer = document.getElementById('native-video-player');
-            const currentStreamUrl = nativePlayer ? nativePlayer.src : null;
+            // 🚀 CHECK GLOBAL STREAM VARIABLE FIRST TO BYPASS HLS EMPTY SRC ISSUE
+            const currentStreamUrl = window.activeCastStreamUrl || (nativePlayer ? nativePlayer.src : null);
 
             if (!currentStreamUrl || currentStreamUrl.trim() === "" || currentStreamUrl.includes(window.location.host)) {
                 showCustomAlert("Please wait for the video to start playing before casting!");
@@ -1219,6 +1220,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 const chosenStream = playableStreams.length > 0 ? playableStreams[0] : streamData.streams[0];
                 const rawStreamUrl = chosenStream.url || chosenStream.playlist || chosenStream.link;
 
+                // 🚀 SAVE ACTIVE STREAM URL FOR UNIVERSAL CAST BUTTON
+                window.activeCastStreamUrl = rawStreamUrl;
+
                 if (!rawStreamUrl) throw new Error("No playable stream URL found.");
 
                 if (nativePlayer) {
@@ -1239,7 +1243,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             track.srclang = langName.substring(0, 2).toLowerCase();
                             track.src = sub.url || sub.file;
                             
-                            // Auto-enable based on app language
                             if (currentLang === 'es' && (track.srclang === 'es' || langName.toLowerCase().includes('spa'))) {
                                 track.default = true;
                             } else if (currentLang === 'en' && (track.srclang === 'en' || langName.toLowerCase().includes('eng'))) {
@@ -1270,7 +1273,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     };
                     nativePlayer.addEventListener('playing', hideBanner);
 
-                    // 🚀 DETECT WHEN VIDEO FINISHES (AUTO-BINGE WATCHING & WATCH IT AGAIN)
+                    // 🚀 DETECT WHEN VIDEO FINISHES
                     nativePlayer.addEventListener('ended', () => {
                         if (currentTvState.isTV) {
                             let nextSeason = currentTvState.season;
