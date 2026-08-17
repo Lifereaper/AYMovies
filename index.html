@@ -827,9 +827,13 @@
                         <option value="videasy">Server 7 (Videasy HD)</option>
                     </select>
                 </div>
+                
+                <!-- Hidden to prevent JS errors while keeping them off the UI -->
+                <div style="display: none;">
+                    <button id="btn-prev-ep" tabindex="-1">⏮ Prev Ep</button>
+                    <button id="btn-next-ep" tabindex="-1">Up Next ⏭</button>
+                </div>
 
-                <button id="btn-prev-ep" tabindex="0" class="tv-focusable" style="display: none; padding: 8px 16px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">⏮ Prev Ep</button>
-                <button id="btn-next-ep" tabindex="0" class="tv-focusable" style="display: none; padding: 8px 16px; background: #E50914; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Up Next ⏭</button>
             </div>
         </div>
     </div>
