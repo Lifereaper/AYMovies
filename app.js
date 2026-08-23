@@ -1082,6 +1082,104 @@ document.addEventListener("DOMContentLoaded", () => {
         clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
     });
 
+    // 🚀 HELPER FUNCTION FOR ATTEMPTING STREAM LOAD IN FAILOVER LOOP
+    function attemptStreamLoad(rawStreamUrl, nativePlayer, streamData, currentLang) {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error("Stream attempt timed out"));
+            }, 12000);
+
+            if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
+                if (window.activeHlsInstance) {
+                    window.activeHlsInstance.destroy();
+                }
+                const hls = new Hls({
+                    defaultAudioCodec: 'mp4a.40.2',
+                    renderTextTracksNatively: true
+                });
+                window.activeHlsInstance = hls;
+
+                hls.loadSource(rawStreamUrl);
+                hls.attachMedia(nativePlayer);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+                    clearTimeout(timeout);
+                    
+                    // ⚙️ POPULATE ADAPTIVE BITRATE QUALITY SELECTOR DROPDOWN
+                    const qualitySelect = document.getElementById('quality-select');
+                    if (qualitySelect && data.levels && data.levels.length > 1) {
+                        qualitySelect.innerHTML = '<option value="-1">⚙️ Auto Quality</option>';
+                        data.levels.forEach((level, index) => {
+                            const resHeight = level.height ? `${level.height}p` : `Bitrate ${Math.round(level.bitrate / 1000)}k`;
+                            const option = document.createElement('option');
+                            option.value = index;
+                            option.innerText = resHeight;
+                            qualitySelect.appendChild(option);
+                        });
+                        qualitySelect.style.display = 'inline-block';
+
+                        qualitySelect.onchange = (e) => {
+                            const levelIndex = parseInt(e.target.value, 10);
+                            hls.currentLevel = levelIndex;
+                            if (levelIndex === -1) {
+                                showRewardToast("📶 Auto Quality", "Adaptive Bitrate Enabled");
+                            } else {
+                                const selectedLabel = e.target.options[e.target.selectedIndex].text;
+                                showRewardToast("⚙️ Quality Locked", `Stream locked to ${selectedLabel}`);
+                            }
+                        };
+                    } else if (qualitySelect) {
+                        qualitySelect.style.display = 'none';
+                    }
+
+                    const audioTracks = hls.audioTracks;
+                    if (audioTracks && audioTracks.length > 0) {
+                        const englishTrackIndex = audioTracks.findIndex(track => {
+                            const lang = (track.lang || track.name || '').toLowerCase();
+                            return lang.includes('en') || lang.includes('eng') || lang.includes('english');
+                        });
+                        if (englishTrackIndex !== -1) hls.audioTrack = englishTrackIndex;
+                    }
+                    nativePlayer.play().then(resolve).catch(reject);
+                });
+
+                hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, function(event, data) {
+                    if (data.audioTracks && data.audioTracks.length > 0) {
+                        const englishTrackIndex = data.audioTracks.findIndex(track => {
+                            const lang = (track.lang || track.name || '').toLowerCase();
+                            return lang.includes('en') || lang.includes('eng') || lang.includes('english');
+                        });
+                        if (englishTrackIndex !== -1) hls.audioTrack = englishTrackIndex;
+                    }
+                });
+
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    if (data.fatal) {
+                        clearTimeout(timeout);
+                        reject(new Error("HLS Fatal Error: " + data.type));
+                    }
+                });
+
+            } else {
+                if (window.activeHlsInstance) {
+                    window.activeHlsInstance.destroy();
+                    window.activeHlsInstance = null;
+                }
+                const qualitySelect = document.getElementById('quality-select');
+                if (qualitySelect) qualitySelect.style.display = 'none';
+
+                nativePlayer.src = rawStreamUrl;
+                nativePlayer.play().then(() => {
+                    clearTimeout(timeout);
+                    resolve();
+                }).catch((err) => {
+                    clearTimeout(timeout);
+                    reject(err);
+                });
+            }
+        });
+    }
+
     async function launchVideoStream(id, isTV = false, season = 1, episode = 1) {
         try {
             currentTvState = { id, isTV, season: parseInt(season), episode: parseInt(episode) };
@@ -1170,6 +1268,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     throw new Error("0 streams found.");
                 }
 
+                // 🇬🇧 FILTER FOR ENGLISH-ONLY PLAYABLE STREAMS
                 const playableStreams = streamData.streams.filter(s => {
                     const link = (s.url || s.playlist || s.link || '').toLowerCase();
                     const title = (s.title || s.name || '').toLowerCase();
@@ -1178,18 +1277,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     return isPlayable && !isSpanish;
                 });
 
-                const chosenStream = playableStreams.length > 0 ? playableStreams[0] : streamData.streams[0];
-                const rawStreamUrl = chosenStream.url || chosenStream.playlist || chosenStream.link;
-
-                if (!rawStreamUrl) throw new Error("No playable stream URL found.");
+                const streamCandidates = playableStreams.length > 0 ? playableStreams : streamData.streams;
 
                 if (nativePlayer) {
-                    
                     while (nativePlayer.firstChild) {
                         nativePlayer.removeChild(nativePlayer.firstChild);
                     }
 
-                    let subtitlesArray = streamData.subtitles || streamData.captions || chosenStream.subtitles || [];
+                    let subtitlesArray = streamData.subtitles || streamData.captions || [];
                     if (subtitlesArray && subtitlesArray.length > 0) {
                         subtitlesArray.forEach(sub => {
                             const track = document.createElement('track');
@@ -1282,49 +1377,28 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     });
 
-                    if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
-                        if (window.activeHlsInstance) {
-                            window.activeHlsInstance.destroy();
+                    // 🚀 AUTOMATIC FAILOVER LOOP (SEQUENTIALLY TRIES ENGLISH STREAMS)
+                    let streamLoaded = false;
+                    for (let i = 0; i < streamCandidates.length; i++) {
+                        const candidate = streamCandidates[i];
+                        const rawStreamUrl = candidate.url || candidate.playlist || candidate.link;
+                        if (!rawStreamUrl) continue;
+
+                        try {
+                            console.log(`[Failover Engine] Attempting stream source #${i + 1}...`);
+                            await attemptStreamLoad(rawStreamUrl, nativePlayer, streamData, currentLang);
+                            console.log(`[Failover Engine] Successfully connected to source #${i + 1}!`);
+                            streamLoaded = true;
+                            break; 
+                        } catch (attemptError) {
+                            console.warn(`[Failover Engine] Source #${i + 1} failed:`, attemptError.message);
                         }
-                        const hls = new Hls({
-                            defaultAudioCodec: 'mp4a.40.2',
-                            renderTextTracksNatively: true
-                        });
-                        window.activeHlsInstance = hls;
-                        
-                        hls.loadSource(rawStreamUrl);
-                        hls.attachMedia(nativePlayer);
-
-                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                            const audioTracks = hls.audioTracks;
-                            if (audioTracks && audioTracks.length > 0) {
-                                const englishTrackIndex = audioTracks.findIndex(track => {
-                                    const lang = (track.lang || track.name || '').toLowerCase();
-                                    return lang.includes('en') || lang.includes('eng') || lang.includes('english');
-                                });
-                                if (englishTrackIndex !== -1) hls.audioTrack = englishTrackIndex;
-                            }
-                            nativePlayer.play();
-                        });
-
-                        hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, function(event, data) {
-                            if (data.audioTracks && data.audioTracks.length > 0) {
-                                const englishTrackIndex = data.audioTracks.findIndex(track => {
-                                    const lang = (track.lang || track.name || '').toLowerCase();
-                                    return lang.includes('en') || lang.includes('eng') || lang.includes('english');
-                                });
-                                if (englishTrackIndex !== -1) hls.audioTrack = englishTrackIndex;
-                            }
-                        });
-
-                    } else {
-                        if (window.activeHlsInstance) {
-                            window.activeHlsInstance.destroy();
-                            window.activeHlsInstance = null;
-                        }
-                        nativePlayer.src = rawStreamUrl;
-                        nativePlayer.play();
                     }
+
+                    if (!streamLoaded) {
+                        throw new Error("All backup stream sources failed to load.");
+                    }
+
                     nativePlayer.style.opacity = '1';
                 }
 
@@ -1407,6 +1481,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         videoModal.style.display = 'none';
         
+        const qualitySelect = document.getElementById('quality-select');
+        if (qualitySelect) qualitySelect.style.display = 'none';
+
         const nativePlayer = document.getElementById('native-video-player');
         if (nativePlayer) {
             nativePlayer.pause();
