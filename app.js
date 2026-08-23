@@ -1839,10 +1839,10 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener('DOMContentLoaded', () => {
     let currentFocus = null;
 
-    // 🛡️ THE NUCLEAR ANTI-KEYBOARD FIX
+    // 🛡️ ANTI-KEYBOARD HIJACKING (For input boxes)
     document.querySelectorAll('input, textarea').forEach(inp => {
-        inp.disabled = true; // Android TV physically cannot auto-focus this now
-        inp.addEventListener('blur', () => inp.disabled = true);
+        inp.setAttribute('readonly', 'true');
+        inp.addEventListener('blur', () => inp.setAttribute('readonly', 'true'));
     });
 
     function getFocusableElements() {
@@ -1968,8 +1968,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             if (currentFocus) {
                 if (currentFocus.tagName === 'INPUT' || currentFocus.tagName === 'TEXTAREA') {
-                    currentFocus.disabled = false; // Turn it back on ONLY when clicked
-                    setTimeout(() => currentFocus.focus(), 100); // Give the OS a split second to realize it's enabled, then open keyboard
+                    currentFocus.removeAttribute('readonly');
+                    currentFocus.focus();
                 } else {
                     e.preventDefault();
                     currentFocus.click();
