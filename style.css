@@ -384,11 +384,20 @@ button:focus-visible,
 .chip-btn:focus-visible,
 input:focus-visible,
 select:focus-visible {
-    outline: 5px solid #ffcc00 !important;
+    outline: 4px solid #E50914 !important; /* Netflix Red Outline */
+    outline-offset: 4px !important;
     transform: scale(1.08) !important;
-    box-shadow: 0px 0px 20px #ffcc00 !important;
-    transition: all 0.2s ease-in-out !important;
-    z-index: 99 !important;
+    box-shadow: 0 0 20px rgba(229, 9, 20, 0.8) !important;
+    transition: transform 0.2s ease, outline 0.2s ease !important;
+    z-index: 9999 !important;
+}
+
+/* Movie Cards smooth zoom when focused */
+.movie-card.tv-focused, 
+.search-item.tv-focused,
+.top-10-wrapper.tv-focused {
+    transform: scale(1.1) !important;
+    border-radius: 8px !important;
 }
 
 /* Remove default focus outlines on touch/pointer interactions */
