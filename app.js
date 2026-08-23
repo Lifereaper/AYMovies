@@ -1834,162 +1834,88 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🚀 AYMOVIES TV SPATIAL NAVIGATION ENGINE
+// 🖱️ AYMOVIES VIRTUAL MOUSE ENGINE
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    let currentFocus = null;
-
-    // 🛡️ THE NUCLEAR ANTI-KEYBOARD FIX
+    
+    // 1. Disable all inputs to completely block Android TV keyboard hijacking
     document.querySelectorAll('input, textarea').forEach(inp => {
-        inp.disabled = true; // Android TV physically cannot auto-focus this now
+        inp.disabled = true; 
         inp.addEventListener('blur', () => inp.disabled = true);
     });
 
-    function getFocusableElements() {
-        const activeModal = [
-            document.getElementById('splash-dmca-view'),
-            document.getElementById('login-view'),
-            document.getElementById('video-modal'),
-            document.getElementById('details-modal'),
-            document.getElementById('rewards-drawer'),
-            document.getElementById('actor-modal'),
-            document.getElementById('mobile-menu'),
-            document.getElementById('custom-prompt-modal'),
-            document.getElementById('custom-alert-modal'),
-            document.getElementById('reset-password-modal'),
-            document.getElementById('delete-account-modal')
-        ].find(el => {
-            if (!el) return false;
-            const style = window.getComputedStyle(el);
-            return style.display !== 'none' && style.visibility !== 'hidden' && style.right !== '-100%';
-        });
+    // 2. Create the custom Netflix-red cursor
+    const cursor = document.createElement('div');
+    cursor.id = 'tv-virtual-cursor';
+    // Using an SVG data URI for a sharp, scalable mouse pointer
+    cursor.style.cssText = `
+        position: fixed; top: 50%; left: 50%; 
+        width: 35px; height: 35px; 
+        background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='35' height='35' viewBox='0 0 24 24' fill='%23E50914' stroke='white' stroke-width='1.5'><path d='M7 2l12 11.2-5.8.5 3.3 7.3-2.2.9-3.2-7.4-4.4 4.7z'/></svg>") no-repeat; 
+        z-index: 9999999; pointer-events: none; 
+        transition: top 0.05s linear, left 0.05s linear;
+        filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.8));
+    `;
+    document.body.appendChild(cursor);
 
-        // Expanded selector to catch every element on the homepage
-        const selector = 'button, a, input, textarea, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable, [tabindex="0"]';
-        const searchArea = activeModal ? activeModal : document;
-        const elements = Array.from(searchArea.querySelectorAll(selector));
+    // 3. Set starting position and cursor speed (pixels per D-pad click)
+    let posX = window.innerWidth / 2;
+    let posY = window.innerHeight / 2;
+    const speed = 45; 
 
-        return elements.filter(el => {
-            const rect = el.getBoundingClientRect();
-            const style = window.getComputedStyle(el);
-            return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
-        });
-    }
-
-    function moveFocus(direction) {
-        const elements = getFocusableElements();
-        if (elements.length === 0) return;
-        
-        // If nothing is focused yet, focus the first item on the homepage
-        if (!currentFocus || !document.body.contains(currentFocus) || currentFocus.offsetParent === null) {
-            const activeEl = document.activeElement;
-            if (activeEl && elements.includes(activeEl)) {
-                setFocus(activeEl);
-            } else {
-                setFocus(elements[0]);
-            }
-            return;
-        }
-
-        const currentRect = currentFocus.getBoundingClientRect();
-        const currentCenter = { x: currentRect.left + currentRect.width / 2, y: currentRect.top + currentRect.height / 2 };
-
-        let bestMatch = null; 
-        let minDistance = Infinity;
-
-        elements.forEach(el => {
-            if (el === currentFocus) return;
-            const rect = el.getBoundingClientRect();
-            const center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-            let isDirectionMatch = false;
-
-            if (direction === 'ArrowUp') isDirectionMatch = center.y < currentCenter.y - 10;
-            if (direction === 'ArrowDown') isDirectionMatch = center.y > currentCenter.y + 10;
-            if (direction === 'ArrowLeft') isDirectionMatch = center.x < currentCenter.x - 10;
-            if (direction === 'ArrowRight') isDirectionMatch = center.x > currentCenter.x + 10;
-
-            if (isDirectionMatch) {
-                const dx = Math.abs(center.x - currentCenter.x);
-                const dy = Math.abs(center.y - currentCenter.y);
-                let distance;
-                
-                // Weighting distance to keep row-by-row navigation intuitive
-                if (direction === 'ArrowUp' || direction === 'ArrowDown') { 
-                    distance = dy + (dx * 3); 
-                } else { 
-                    distance = dx + (dy * 10); 
-                }
-                
-                if (distance < minDistance) { 
-                    minDistance = distance; 
-                    bestMatch = el; 
-                }
-            }
-        });
-
-        if (bestMatch) { 
-            setFocus(bestMatch); 
-        }
-    }
-
-    function setFocus(el) {
-        if (!el) return;
-        if (currentFocus && currentFocus !== el) { 
-            currentFocus.classList.remove('tv-focused'); 
-        }
-        currentFocus = el; 
-        currentFocus.classList.add('tv-focused'); 
-        currentFocus.focus({ preventScroll: true }); 
-
-        // 📜 Smooth scroll horizontally and vertically so movie rows move into view
-        currentFocus.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }
-
+    // 4. Listen for TV Remote inputs
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
+        let moved = false;
 
-        if (key === 'ArrowUp' || keyCode === 38) {
+        // Move the cursor coordinates
+        if (key === 'ArrowUp' || keyCode === 38) { posY -= speed; moved = true; }
+        else if (key === 'ArrowDown' || keyCode === 40) { posY += speed; moved = true; }
+        else if (key === 'ArrowLeft' || keyCode === 37) { posX -= speed; moved = true; }
+        else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
+        
+        // Execute a click at the cursor's exact location
+        else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             e.preventDefault();
-            moveFocus('ArrowUp');
-        } else if (key === 'ArrowDown' || keyCode === 40) {
-            e.preventDefault();
-            moveFocus('ArrowDown');
-        } else if (key === 'ArrowLeft' || keyCode === 37) {
-            if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                moveFocus('ArrowLeft');
-            }
-        } else if (key === 'ArrowRight' || keyCode === 39) {
-            if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                moveFocus('ArrowRight');
-            }
-        } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
-            if (currentFocus) {
-                if (currentFocus.tagName === 'INPUT' || currentFocus.tagName === 'TEXTAREA') {
-                    currentFocus.disabled = false; // Turn it back on ONLY when clicked
-                    setTimeout(() => currentFocus.focus(), 100); // Give the OS a split second to realize it's enabled, then open keyboard
+            
+            // Temporarily hide cursor so it doesn't click itself!
+            cursor.style.display = 'none'; 
+            const target = document.elementFromPoint(posX + 5, posY + 5); // +5 targets the tip of the arrow
+            cursor.style.display = 'block';
+
+            if (target) {
+                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                    target.disabled = false;
+                    setTimeout(() => target.focus(), 100);
                 } else {
-                    e.preventDefault();
-                    currentFocus.click();
+                    target.click();
+                    // Fallback: If they clicked the image inside a movie card, click the parent card
+                    const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot');
+                    if (clickableParent && clickableParent !== target) {
+                        clickableParent.click();
+                    }
                 }
             }
         }
-    });
 
-    // Auto-set focus on load
-    setTimeout(() => {
-        const disclaimerBtn = document.getElementById('btn-accept-dmca');
-        const emailInput = document.getElementById('auth-email');
+        // Apply movement and edge-scrolling
+        if (moved) {
+            e.preventDefault();
+            
+            // Keep cursor inside screen bounds
+            if (posX < 0) posX = 0;
+            if (posY < 0) posY = 0;
+            if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
+            if (posY > window.innerHeight - 30) posY = window.innerHeight - 30;
 
-        if (disclaimerBtn && window.getComputedStyle(document.getElementById('splash-dmca-view')).display !== 'none') {
-            setFocus(disclaimerBtn);
-        } else if (emailInput && window.getComputedStyle(document.getElementById('login-view')).display !== 'none') {
-            setFocus(emailInput);
-        } else {
-            const elements = getFocusableElements();
-            if (elements.length > 0) setFocus(elements[0]);
+            // Move the graphic
+            cursor.style.left = posX + 'px';
+            cursor.style.top = posY + 'px';
+
+            // Auto-scroll the page vertically if the cursor hits the top or bottom edges
+            if (posY > window.innerHeight - 80) window.scrollBy({ top: 100, behavior: 'smooth' });
+            if (posY < 80) window.scrollBy({ top: -100, behavior: 'smooth' });
         }
-    }, 1000); 
+    });
 });
