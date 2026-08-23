@@ -1839,6 +1839,15 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener('DOMContentLoaded', () => {
     let currentFocus = null;
 
+    // 🛡️ ANTI-KEYBOARD HIJACKING LOGIC
+    // Keeps the Android TV keyboard hidden until the user explicitly clicks 'Select'
+    document.querySelectorAll('input, textarea').forEach(inp => {
+        inp.setAttribute('readonly', 'true');
+        inp.addEventListener('blur', () => {
+            inp.setAttribute('readonly', 'true'); // Hide keyboard when clicking away
+        });
+    });
+
     function getFocusableElements() {
         const activeModal = [
             document.getElementById('splash-dmca-view'),
@@ -1858,7 +1867,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return style.display !== 'none' && style.visibility !== 'hidden' && style.right !== '-100%';
         });
 
-        const selector = 'button, a, input, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable';
+        const selector = 'button, a, input, textarea, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable';
         const searchArea = activeModal ? activeModal : document;
         const elements = Array.from(searchArea.querySelectorAll(selector));
 
@@ -1945,18 +1954,20 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             moveFocus('ArrowDown');
         } else if (key === 'ArrowLeft' || keyCode === 37) {
-            if (document.activeElement.tagName !== 'INPUT') {
+            if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
                 e.preventDefault();
                 moveFocus('ArrowLeft');
             }
         } else if (key === 'ArrowRight' || keyCode === 39) {
-            if (document.activeElement.tagName !== 'INPUT') {
+            if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
                 e.preventDefault();
                 moveFocus('ArrowRight');
             }
         } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             if (currentFocus) {
-                if (currentFocus.tagName === 'INPUT') {
+                if (currentFocus.tagName === 'INPUT' || currentFocus.tagName === 'TEXTAREA') {
+                    // 🔓 Unlock the input and summon the keyboard only when selected!
+                    currentFocus.removeAttribute('readonly');
                     currentFocus.focus();
                 } else {
                     e.preventDefault();
