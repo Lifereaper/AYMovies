@@ -112,8 +112,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let localProgressTrackerInterval = null;
     let loadingBannerTimer = null;
     
-    // 🚀 NEW TAILSCALE URL
-    const LOCAL_API_URL = "https://desktop-luq78nh.tail6e9346.ts.net/api/progress";
+    // 🚀 ROUTED THROUGH CLOUDFLARE WORKER
+    const LOCAL_API_URL = "https://aymovies.yalex6677.workers.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
     function startLocalProgressTracker(videoElement, trackingId) {
@@ -1156,8 +1156,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     imdbId = idData.imdb_id || null;
                 } catch (e) { }
 
-                // 🚀 NEW TAILSCALE URL
-                const myScraperApiUrl = "https://desktop-luq78nh.tail6e9346.ts.net";
+                // 🚀 ROUTED THROUGH CLOUDFLARE WORKER
+                const myScraperApiUrl = "https://aymovies.yalex6677.workers.dev";
                 const streamType = isTV ? 'series' : 'movie';
                 let endpoint = `${myScraperApiUrl}/api/streams/${streamType}/${id}`;
 
