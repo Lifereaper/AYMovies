@@ -1283,10 +1283,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
 
                     if (rawStreamUrl.includes('m3u8') && window.Hls && Hls.isSupported()) {
+                        if (window.activeHlsInstance) {
+                            window.activeHlsInstance.destroy();
+                        }
                         const hls = new Hls({
                             defaultAudioCodec: 'mp4a.40.2',
                             renderTextTracksNatively: true
                         });
+                        window.activeHlsInstance = hls;
                         
                         hls.loadSource(rawStreamUrl);
                         hls.attachMedia(nativePlayer);
@@ -1314,6 +1318,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         });
 
                     } else {
+                        if (window.activeHlsInstance) {
+                            window.activeHlsInstance.destroy();
+                            window.activeHlsInstance = null;
+                        }
                         nativePlayer.src = rawStreamUrl;
                         nativePlayer.play();
                     }
@@ -1398,13 +1406,26 @@ document.addEventListener("DOMContentLoaded", () => {
         if (banner) banner.style.display = 'none';
 
         videoModal.style.display = 'none';
+        
         const nativePlayer = document.getElementById('native-video-player');
         if (nativePlayer) {
-            nativePlayer.pause(); nativePlayer.src = ""; nativePlayer.style.opacity = '1';
+            nativePlayer.pause();
+            nativePlayer.removeAttribute('src');
+            nativePlayer.load();
+            nativePlayer.style.opacity = '1';
         }
 
-        releaseWakeLock(); renderPersonalizedRows();
-        try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); } catch (e) { }
+        if (window.activeHlsInstance) {
+            window.activeHlsInstance.destroy();
+            window.activeHlsInstance = null;
+        }
+
+        releaseWakeLock(); 
+        renderPersonalizedRows();
+        
+        try { 
+            heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); 
+        } catch (e) { }
     });
 
     heroMuteBtn.addEventListener('click', () => {
