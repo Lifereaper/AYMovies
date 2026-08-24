@@ -1839,15 +1839,6 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener('DOMContentLoaded', () => {
     let currentFocus = null;
 
-    // 🛡️ ANTI-KEYBOARD HIJACKING LOGIC
-    // Keeps the Android TV keyboard hidden until the user explicitly clicks 'Select'
-    document.querySelectorAll('input, textarea').forEach(inp => {
-        inp.setAttribute('readonly', 'true');
-        inp.addEventListener('blur', () => {
-            inp.setAttribute('readonly', 'true'); // Hide keyboard when clicking away
-        });
-    });
-
     function getFocusableElements() {
         const activeModal = [
             document.getElementById('splash-dmca-view'),
@@ -1965,11 +1956,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             if (currentFocus) {
-                if (currentFocus.tagName === 'INPUT' || currentFocus.tagName === 'TEXTAREA') {
-                    // 🔓 Unlock the input and summon the keyboard only when selected!
-                    currentFocus.removeAttribute('readonly');
-                    currentFocus.focus();
-                } else {
+                if (currentFocus.tagName !== 'INPUT' && currentFocus.tagName !== 'TEXTAREA') {
                     e.preventDefault();
                     currentFocus.click();
                 }
