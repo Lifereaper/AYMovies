@@ -1838,6 +1838,13 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
 
+    // 🔧 FIX: Force slider arrows to be permanently visible for the Virtual Mouse
+    const styleFix = document.createElement('style');
+    styleFix.innerHTML = `
+        .slider-arrow, .row-arrow { opacity: 0.8 !important; }
+    `;
+    document.head.appendChild(styleFix);
+
     // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
@@ -1940,47 +1947,67 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.left = posX + 'px';
             cursor.style.top = posY + 'px';
 
-            // ✨ THE FIX: Smart Priority Scroll Detector
+            // ✨ THE FIX: Smart Priority Scroll Detector (Now Handles Horizontal Row Sliding!)
             let deltaY = 0;
+            let deltaX = 0;
+
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
+            
+            if (posX > window.innerWidth - 80) deltaX = speed * 2;
+            if (posX < 80) deltaX = -speed * 2;
 
-            if (deltaY !== 0) {
+            if (deltaY !== 0 || deltaX !== 0) {
                 let scrolledModal = false;
 
-                const detailsModal = document.getElementById('details-modal');
-                const actorModal = document.getElementById('actor-modal');
-                const rewardsDrawer = document.getElementById('rewards-drawer');
-                const mobileMenu = document.getElementById('mobile-menu');
-                const searchDropdown = document.getElementById('search-dropdown');
+                // Temporarily hide cursor to see what is underneath it
+                cursor.style.display = 'none'; 
+                const target = document.elementFromPoint(posX, posY);
+                cursor.style.display = 'block';
 
-                // 🎯 1. Check exactly which modal is open and lock scroll to it!
-                if (detailsModal && detailsModal.style.display === 'block') {
-                    detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
-                    const detailsContent = detailsModal.querySelector('.details-content');
-                    if (detailsContent) detailsContent.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                else if (actorModal && actorModal.style.display === 'block') {
-                    actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
-                    rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
-                    mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                else if (searchDropdown && searchDropdown.style.display === 'block') {
-                    searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
+                // 🎯 1. HORIZONTAL SCROLL: Slide the movie row if hovering near the left/right edge
+                if (deltaX !== 0 && target) {
+                    const movieRow = target.closest('.movie-row');
+                    if (movieRow) {
+                        movieRow.scrollBy({ left: deltaX, behavior: 'auto' });
+                    }
                 }
 
-                // 🎯 2. Only scroll the main page if NO modals are open
-                if (!scrolledModal) {
-                    window.scrollBy({ top: deltaY, behavior: 'auto' });
+                // 🎯 2. VERTICAL SCROLL: Lock scrolling to Modals if they are open
+                if (deltaY !== 0) {
+                    const detailsModal = document.getElementById('details-modal');
+                    const actorModal = document.getElementById('actor-modal');
+                    const rewardsDrawer = document.getElementById('rewards-drawer');
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    const searchDropdown = document.getElementById('search-dropdown');
+
+                    if (detailsModal && detailsModal.style.display === 'block') {
+                        detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                        const detailsContent = detailsModal.querySelector('.details-content');
+                        if (detailsContent) detailsContent.scrollBy({ top: deltaY, behavior: 'auto' });
+                        scrolledModal = true;
+                    } 
+                    else if (actorModal && actorModal.style.display === 'block') {
+                        actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                        scrolledModal = true;
+                    } 
+                    else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
+                        rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
+                        scrolledModal = true;
+                    } 
+                    else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
+                        mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
+                        scrolledModal = true;
+                    } 
+                    else if (searchDropdown && searchDropdown.style.display === 'block') {
+                        searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
+                        scrolledModal = true;
+                    }
+
+                    // 🎯 3. VERTICAL SCROLL: Only scroll the main page if NO modals are open
+                    if (!scrolledModal) {
+                        window.scrollBy({ top: deltaY, behavior: 'auto' });
+                    }
                 }
             }
         }
