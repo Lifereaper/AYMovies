@@ -1841,7 +1841,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
-    // pointer-events: none is critical here; it allows us to click "through" the cursor graphic
     cursor.style.cssText = `
         position: fixed; top: 50%; left: 50%; 
         width: 35px; height: 35px; 
@@ -1855,8 +1854,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let posX = window.innerWidth / 2;
     let posY = window.innerHeight / 2;
-    
-    // ⚙️ LOWERED SPEED: Changed from 40 to 15 for much smaller, precise jumps
     const speed = 15; 
 
     // 2. PC Mouse Movement: Follow cursor & reveal it
@@ -1880,6 +1877,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
 
     // 4. TV Remote Free-Roaming Input
+    // ✨ Added 'true' (Capture Phase) at the end of this listener to intercept keys BEFORE the input box gets them
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
@@ -1888,6 +1886,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // 🛡️ Block Android TV from jumping objects in the background
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); 
+            e.stopPropagation(); // 🛑 Stop the input box from stealing arrow keys
+            
+            // ✨ Fix: If they start moving the mouse away, they aren't typing anymore. Force remove focus from the text box!
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                document.activeElement.blur();
+            }
         }
 
         // Move the coordinates smoothly
@@ -1898,15 +1902,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             e.preventDefault();
+            e.stopPropagation(); // 🛑 Stop the password box from hijacking the click!
             
             // The visual tip of the SVG arrow graphic is offset slightly
             const tipX = posX + 7;
             const tipY = posY + 2;
             
+            cursor.style.display = 'none'; 
             const target = document.elementFromPoint(tipX, tipY);
+            cursor.style.display = 'block';
 
             if (target) {
-                // ✨ THE FIX: Create a real 'bubbling' mouse click event so it clicks parent cards properly
+                // Create a real 'bubbling' mouse click event
                 const clickEvent = new MouseEvent('click', {
                     view: window,
                     bubbles: true,
@@ -1917,7 +1924,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 target.dispatchEvent(clickEvent);
                 
-                // If it's an input box, focus it to trigger the keyboard
+                // If they specifically clicked an input box, focus it so the keyboard opens
                 const inputParent = target.closest('input, textarea');
                 if (inputParent) {
                     inputParent.focus();
@@ -1942,5 +1949,5 @@ document.addEventListener('DOMContentLoaded', () => {
             if (posY > window.innerHeight - 80) window.scrollBy({ top: speed * 2, behavior: 'auto' });
             if (posY < 80) window.scrollBy({ top: -speed * 2, behavior: 'auto' });
         }
-    });
+    }, true); // 🚨 TRUE = Capture Phase. This guarantees our mouse engine gets the key press BEFORE the HTML password box does.
 });
