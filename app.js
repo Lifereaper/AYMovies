@@ -1834,15 +1834,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🚀 AYMOVIES TV SPATIAL NAVIGATION ENGINE
+// 🚀 AYMOVIES SPATIAL NAVIGATION ENGINE
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     let currentFocus = null;
 
-    // 🛡️ ANTI-KEYBOARD HIJACKING (For input boxes)
+    // 🛡️ ANTI-KEYBOARD HIJACKING LOGIC
+    // Keeps the Android TV keyboard hidden until the user explicitly clicks 'Select'
     document.querySelectorAll('input, textarea').forEach(inp => {
         inp.setAttribute('readonly', 'true');
-        inp.addEventListener('blur', () => inp.setAttribute('readonly', 'true'));
+        inp.addEventListener('blur', () => {
+            inp.setAttribute('readonly', 'true'); // Hide keyboard when clicking away
+        });
     });
 
     function getFocusableElements() {
@@ -1864,8 +1867,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return style.display !== 'none' && style.visibility !== 'hidden' && style.right !== '-100%';
         });
 
-        // Expanded selector to catch every element on the homepage
-        const selector = 'button, a, input, textarea, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable, [tabindex="0"]';
+        const selector = 'button, a, input, textarea, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable';
         const searchArea = activeModal ? activeModal : document;
         const elements = Array.from(searchArea.querySelectorAll(selector));
 
@@ -1880,7 +1882,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const elements = getFocusableElements();
         if (elements.length === 0) return;
         
-        // If nothing is focused yet, focus the first item on the homepage
         if (!currentFocus || !document.body.contains(currentFocus) || currentFocus.offsetParent === null) {
             const activeEl = document.activeElement;
             if (activeEl && elements.includes(activeEl)) {
@@ -1903,21 +1904,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
             let isDirectionMatch = false;
 
-            if (direction === 'ArrowUp') isDirectionMatch = center.y < currentCenter.y - 10;
-            if (direction === 'ArrowDown') isDirectionMatch = center.y > currentCenter.y + 10;
-            if (direction === 'ArrowLeft') isDirectionMatch = center.x < currentCenter.x - 10;
-            if (direction === 'ArrowRight') isDirectionMatch = center.x > currentCenter.x + 10;
+            if (direction === 'ArrowUp') isDirectionMatch = center.y < currentCenter.y - 5;
+            if (direction === 'ArrowDown') isDirectionMatch = center.y > currentCenter.y + 5;
+            if (direction === 'ArrowLeft') isDirectionMatch = center.x < currentCenter.x - 5;
+            if (direction === 'ArrowRight') isDirectionMatch = center.x > currentCenter.x + 5;
 
             if (isDirectionMatch) {
                 const dx = Math.abs(center.x - currentCenter.x);
                 const dy = Math.abs(center.y - currentCenter.y);
                 let distance;
                 
-                // Weighting distance to keep row-by-row navigation intuitive
                 if (direction === 'ArrowUp' || direction === 'ArrowDown') { 
-                    distance = dy + (dx * 3); 
+                    distance = dy + (dx * 10); 
                 } else { 
-                    distance = dx + (dy * 10); 
+                    distance = dx + (dy * 25); 
                 }
                 
                 if (distance < minDistance) { 
@@ -1929,6 +1929,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (bestMatch) { 
             setFocus(bestMatch); 
+            bestMatch.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); 
         }
     }
 
@@ -1940,9 +1941,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentFocus = el; 
         currentFocus.classList.add('tv-focused'); 
         currentFocus.focus({ preventScroll: true }); 
-
-        // 📜 Smooth scroll horizontally and vertically so movie rows move into view
-        currentFocus.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
 
     document.addEventListener('keydown', (e) => {
@@ -1968,6 +1966,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             if (currentFocus) {
                 if (currentFocus.tagName === 'INPUT' || currentFocus.tagName === 'TEXTAREA') {
+                    // 🔓 Unlock the input and summon the keyboard only when selected!
                     currentFocus.removeAttribute('readonly');
                     currentFocus.focus();
                 } else {
@@ -1978,7 +1977,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Auto-set focus on load
     setTimeout(() => {
         const disclaimerBtn = document.getElementById('btn-accept-dmca');
         const emailInput = document.getElementById('auth-email');
@@ -1991,5 +1989,5 @@ document.addEventListener('DOMContentLoaded', () => {
             const elements = getFocusableElements();
             if (elements.length > 0) setFocus(elements[0]);
         }
-    }, 1000); 
+    }, 600); 
 });
