@@ -1834,7 +1834,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🖱️ AYMOVIES TRUE BROWSER MOUSE ENGINE
+// 🖱️ AYMOVIES TRUE BROWSER MOUSE ENGINE (AUTO-HOVER SCROLL)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -1863,16 +1863,97 @@ document.addEventListener('DOMContentLoaded', () => {
     let posY = window.innerHeight / 2;
     const speed = 15; 
 
-    // 2. PC Mouse Movement: Follow cursor & reveal it
+    // --- 🔄 CONTINUOUS HOVER SCROLL LOGIC ---
+    let autoScrollInterval = null;
+    let scrollState = { targetX: null, dx: 0, targetY: null, dy: 0 };
+
+    // This function loops 30 times a second to create smooth, endless sliding
+    function executeScroll() {
+        if (scrollState.targetX) scrollState.targetX.scrollBy({ left: scrollState.dx, behavior: 'auto' });
+        if (scrollState.targetY) {
+            if (scrollState.targetY === window) window.scrollBy({ top: scrollState.dy, behavior: 'auto' });
+            else scrollState.targetY.scrollBy({ top: scrollState.dy, behavior: 'auto' });
+        }
+    }
+
+    // This checks what is under the cursor and decides if we should start scrolling
+    function evaluateHoverZone(x, y) {
+        cursor.style.display = 'none'; 
+        const target = document.elementFromPoint(x + 5, y + 5);
+        cursor.style.display = 'block';
+
+        let dx = 0, dy = 0;
+        let targetX = null, targetY = null;
+
+        if (target) {
+            // 🎯 HORIZONTAL HOVER: Scroll if parked on an arrow OR parked at the far edge of the screen
+            const leftArrow = target.closest('.left-arrow');
+            const rightArrow = target.closest('.right-arrow');
+            const movieRow = target.closest('.movie-row') || target.closest('.row-wrapper');
+
+            if (leftArrow) {
+                targetX = leftArrow.parentElement.querySelector('.movie-row');
+                dx = -15;
+            } else if (rightArrow) {
+                targetX = rightArrow.parentElement.querySelector('.movie-row');
+                dx = 15;
+            } else if (movieRow) {
+                const rowElem = movieRow.classList.contains('movie-row') ? movieRow : movieRow.querySelector('.movie-row');
+                if (rowElem) {
+                    if (x < 80) { targetX = rowElem; dx = -15; }
+                    else if (x > window.innerWidth - 80) { targetX = rowElem; dx = 15; }
+                }
+            }
+
+            // 🎯 VERTICAL HOVER: Scroll the main page or Modal if parked at the top/bottom edge
+            if (y > window.innerHeight - 80) dy = 15;
+            else if (y < 80) dy = -15;
+
+            if (dy !== 0) {
+                const detailsModal = document.getElementById('details-modal');
+                const actorModal = document.getElementById('actor-modal');
+                const rewardsDrawer = document.getElementById('rewards-drawer');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const searchDropdown = document.getElementById('search-dropdown');
+
+                if (detailsModal && detailsModal.style.display === 'block') {
+                    targetY = detailsModal.querySelector('.details-content') || detailsModal;
+                } else if (actorModal && actorModal.style.display === 'block') {
+                    targetY = actorModal;
+                } else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
+                    targetY = rewardsDrawer;
+                } else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
+                    targetY = mobileMenu;
+                } else if (searchDropdown && searchDropdown.style.display === 'block') {
+                    targetY = searchDropdown;
+                } else {
+                    targetY = window;
+                }
+            }
+        }
+
+        scrollState = { targetX, dx, targetY, dy };
+
+        // Start the endless scrolling loop if hovering in a zone, or stop it if moved away
+        if ((dx !== 0 || dy !== 0) && !autoScrollInterval) {
+            autoScrollInterval = setInterval(executeScroll, 30);
+        } else if (dx === 0 && dy === 0 && autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+        }
+    }
+
+    // 2. PC Mouse Movement
     document.addEventListener('mousemove', (e) => {
         cursor.style.opacity = '1';
         posX = e.clientX;
         posY = e.clientY;
         cursor.style.left = posX + 'px';
         cursor.style.top = posY + 'px';
+        evaluateHoverZone(posX, posY);
     });
 
-    // 3. Mobile Touch: Move to tap position
+    // 3. Mobile Touch
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
             cursor.style.opacity = '1';
@@ -1880,10 +1961,11 @@ document.addEventListener('DOMContentLoaded', () => {
             posY = e.touches[0].clientY;
             cursor.style.left = posX + 'px';
             cursor.style.top = posY + 'px';
+            evaluateHoverZone(posX, posY);
         }
     }, { passive: true });
 
-    // 4. TV Remote Free-Roaming Input
+    // 4. TV Remote Input
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
@@ -1893,14 +1975,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); 
             e.stopPropagation(); 
-            
-            // Force remove focus from text boxes when moving
             if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
                 document.activeElement.blur();
             }
         }
 
-        // Move the coordinates smoothly
         if (key === 'ArrowUp' || keyCode === 38) { posY -= speed; moved = true; }
         else if (key === 'ArrowDown' || keyCode === 40) { posY += speed; moved = true; }
         else if (key === 'ArrowLeft' || keyCode === 37) { posX -= speed; moved = true; }
@@ -1938,7 +2017,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (moved) {
             cursor.style.opacity = '1';
             
-            // Keep the mouse inside the screen boundaries
             if (posX < 0) posX = 0;
             if (posY < 0) posY = 0;
             if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
@@ -1947,69 +2025,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.left = posX + 'px';
             cursor.style.top = posY + 'px';
 
-            // ✨ THE FIX: Smart Priority Scroll Detector (Now Handles Horizontal Row Sliding!)
-            let deltaY = 0;
-            let deltaX = 0;
-
-            if (posY > window.innerHeight - 80) deltaY = speed * 2;
-            if (posY < 80) deltaY = -speed * 2;
-            
-            if (posX > window.innerWidth - 80) deltaX = speed * 2;
-            if (posX < 80) deltaX = -speed * 2;
-
-            if (deltaY !== 0 || deltaX !== 0) {
-                let scrolledModal = false;
-
-                // Temporarily hide cursor to see what is underneath it
-                cursor.style.display = 'none'; 
-                const target = document.elementFromPoint(posX, posY);
-                cursor.style.display = 'block';
-
-                // 🎯 1. HORIZONTAL SCROLL: Slide the movie row if hovering near the left/right edge
-                if (deltaX !== 0 && target) {
-                    const movieRow = target.closest('.movie-row');
-                    if (movieRow) {
-                        movieRow.scrollBy({ left: deltaX, behavior: 'auto' });
-                    }
-                }
-
-                // 🎯 2. VERTICAL SCROLL: Lock scrolling to Modals if they are open
-                if (deltaY !== 0) {
-                    const detailsModal = document.getElementById('details-modal');
-                    const actorModal = document.getElementById('actor-modal');
-                    const rewardsDrawer = document.getElementById('rewards-drawer');
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    const searchDropdown = document.getElementById('search-dropdown');
-
-                    if (detailsModal && detailsModal.style.display === 'block') {
-                        detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
-                        const detailsContent = detailsModal.querySelector('.details-content');
-                        if (detailsContent) detailsContent.scrollBy({ top: deltaY, behavior: 'auto' });
-                        scrolledModal = true;
-                    } 
-                    else if (actorModal && actorModal.style.display === 'block') {
-                        actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
-                        scrolledModal = true;
-                    } 
-                    else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
-                        rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
-                        scrolledModal = true;
-                    } 
-                    else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
-                        mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
-                        scrolledModal = true;
-                    } 
-                    else if (searchDropdown && searchDropdown.style.display === 'block') {
-                        searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
-                        scrolledModal = true;
-                    }
-
-                    // 🎯 3. VERTICAL SCROLL: Only scroll the main page if NO modals are open
-                    if (!scrolledModal) {
-                        window.scrollBy({ top: deltaY, behavior: 'auto' });
-                    }
-                }
-            }
+            // Continuously scan what the cursor is hovering over
+            evaluateHoverZone(posX, posY);
         }
     }, true);
 });
