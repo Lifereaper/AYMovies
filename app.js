@@ -2057,7 +2057,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styleFix);
 
-    // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
     cursor.style.cssText = `
@@ -2071,34 +2070,22 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.body.appendChild(cursor);
 
-    // ✨ NEW: Create a custom glowing Fullscreen Button overlay
+    // ✨ Custom Fullscreen Button
     const customFsBtn = document.createElement('div');
     customFsBtn.id = 'tv-custom-fullscreen';
     customFsBtn.innerHTML = `<svg fill="white" viewBox="0 0 24 24" width="24" height="24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>`;
     customFsBtn.style.cssText = `
-        position: fixed;
-        background: rgba(229, 9, 20, 0.95);
-        border-radius: 8px;
-        padding: 8px;
-        width: 45px;
-        height: 45px;
-        display: none; /* Hidden until a video plays */
-        align-items: center;
-        justify-content: center;
-        z-index: 9999998;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.8);
-        border: 2px solid white;
-        cursor: pointer;
+        position: fixed; background: rgba(229, 9, 20, 0.95); border-radius: 8px; padding: 8px;
+        width: 45px; height: 45px; display: none; align-items: center; justify-content: center;
+        z-index: 9999998; box-shadow: 0 4px 10px rgba(0,0,0,0.8); border: 2px solid white; cursor: pointer;
     `;
     document.body.appendChild(customFsBtn);
 
-    // Tracker to automatically glue the custom button to the bottom-right of any video!
     setInterval(() => {
         const vid = document.querySelector('video');
         if (vid && vid.offsetParent !== null) { 
             const rect = vid.getBoundingClientRect();
             customFsBtn.style.display = 'flex';
-            // Position it right over the native broken button zone
             customFsBtn.style.top = (rect.bottom - 60) + 'px';
             customFsBtn.style.left = (rect.right - 65) + 'px';
         } else {
@@ -2131,13 +2118,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const rightArrow = target.closest('.right-arrow');
             const movieRow = target.closest('.movie-row') || target.closest('.row-wrapper');
 
-            if (leftArrow) {
-                targetX = leftArrow.parentElement.querySelector('.movie-row');
-                dx = -15;
-            } else if (rightArrow) {
-                targetX = rightArrow.parentElement.querySelector('.movie-row');
-                dx = 15;
-            } else if (movieRow) {
+            if (leftArrow) { targetX = leftArrow.parentElement.querySelector('.movie-row'); dx = -15; } 
+            else if (rightArrow) { targetX = rightArrow.parentElement.querySelector('.movie-row'); dx = 15; } 
+            else if (movieRow) {
                 const rowElem = movieRow.classList.contains('movie-row') ? movieRow : movieRow.querySelector('.movie-row');
                 if (rowElem) {
                     const rect = rowElem.getBoundingClientRect();
@@ -2149,46 +2132,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         scrollState = { targetX, dx };
 
-        if (dx !== 0 && !autoScrollInterval) {
-            autoScrollInterval = setInterval(executeScroll, 30);
-        } else if (dx === 0 && autoScrollInterval) {
-            clearInterval(autoScrollInterval);
-            autoScrollInterval = null;
-        }
+        if (dx !== 0 && !autoScrollInterval) autoScrollInterval = setInterval(executeScroll, 30);
+        else if (dx === 0 && autoScrollInterval) { clearInterval(autoScrollInterval); autoScrollInterval = null; }
     }
 
-    // 2. PC Mouse Movement
     document.addEventListener('mousemove', (e) => {
-        cursor.style.opacity = '1';
-        posX = e.clientX;
-        posY = e.clientY;
-        cursor.style.left = posX + 'px';
-        cursor.style.top = posY + 'px';
+        cursor.style.opacity = '1'; posX = e.clientX; posY = e.clientY;
+        cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
         evaluateHoverZone(posX, posY);
     });
 
-    // 3. Mobile Touch
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
-            cursor.style.opacity = '1';
-            posX = e.touches[0].clientX;
-            posY = e.touches[0].clientY;
-            cursor.style.left = posX + 'px';
-            cursor.style.top = posY + 'px';
+            cursor.style.opacity = '1'; posX = e.touches[0].clientX; posY = e.touches[0].clientY;
+            cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
             evaluateHoverZone(posX, posY);
         }
     }, { passive: true });
 
-    // 4. TV Remote Input
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
-        // 🛡️ Block Android TV from jumping objects
         if ([37, 38, 39, 40].includes(keyCode)) {
-            e.preventDefault(); 
-            e.stopPropagation(); 
+            e.preventDefault(); e.stopPropagation(); 
             if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
                 document.activeElement.blur();
             }
@@ -2211,49 +2179,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 return; 
             }
 
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
             
-            const tipX = posX + 7;
-            const tipY = posY + 2;
+            const tipX = posX + 7; const tipY = posY + 2;
             
             cursor.style.display = 'none'; 
             const target = document.elementFromPoint(tipX, tipY);
             cursor.style.display = 'block';
 
             if (target) {
-                // ✨ FIX: If they click our new glowing Fullscreen icon (or the hidden hot-zone)!
+                // 1. FULLSCREEN OVERRIDE (Force whole webpage fullscreen)
                 const isCustomFullscreenBtn = target.id === 'tv-custom-fullscreen' || target.closest('#tv-custom-fullscreen');
-                const isFullscreenBtn = target.closest('[class*="fullscreen" i], [class*="maximize" i], [title*="fullscreen" i]');
-                const isVideoBottomRight = (target.tagName === 'VIDEO') && (tipX - target.getBoundingClientRect().left > target.getBoundingClientRect().width - 100) && (tipY - target.getBoundingClientRect().top > target.getBoundingClientRect().height - 80);
-
-                if (isCustomFullscreenBtn || isFullscreenBtn || isVideoBottomRight) {
-                    const vidElement = document.querySelector('video');
-                    const fsTarget = (vidElement ? vidElement.parentElement : null) || document.documentElement;
-
+                if (isCustomFullscreenBtn) {
+                    const fsTarget = document.documentElement; // Force whole screen to bypass video block
                     const reqFS = fsTarget.requestFullscreen || fsTarget.webkitRequestFullscreen || fsTarget.mozRequestFullScreen || fsTarget.msRequestFullscreen;
                     const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
                     
                     if (document.fullscreenElement || document.webkitFullscreenElement) {
                         if (exitFS) exitFS.call(document).catch(()=>{});
                     } else {
-                        if (reqFS) reqFS.call(fsTarget).catch(()=>{
-                            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-                        });
+                        if (reqFS) reqFS.call(fsTarget).catch(()=>{});
                     }
-                    return; // Stop here!
+                    return; 
                 }
 
-                // Video Player controls (Play/Pause & Scrubber)
+                // 2. VIDEO PLAYER CONTROLS
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
                     const clickY = tipY - rect.top;
 
                     if (clickY > rect.height - 80) {
-                        if (clickX < 100) {
-                            if (target.paused) target.play(); else target.pause();
-                        } else {
+                        if (clickX < 100) { if (target.paused) target.play(); else target.pause(); }
+                        else {
                             const percentage = clickX / rect.width;
                             if (target.duration) target.currentTime = percentage * target.duration;
                         }
@@ -2263,27 +2221,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; 
                 }
 
-                // Quality Select Dropdown (Smart Focus)
+                // 3. QUALITY SELECT DROPDOWN (Focus + Click combination)
                 if (target.tagName === 'SELECT' || target.closest('select')) {
                     const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
-                    selectBox.focus(); 
+                    selectBox.focus();
+                    selectBox.click(); // Standard click added back
                     return;
                 }
 
-                // Full Human Click Sequence for everything else
-                ['mousedown', 'mouseup', 'click'].forEach(eventType => {
-                    const event = new MouseEvent(eventType, {
-                        view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
-                    });
-                    target.dispatchEvent(event);
+                // 4. ✨ RESTORED STANDARD CLICK FOR EVERYTHING ELSE (Add to list, Trailer, Links)
+                target.click(); // This is the magic line that was missing!
+
+                // Keep the mousedown/mouseup just in case certain TV elements expect it
+                ['mousedown', 'mouseup'].forEach(eventType => {
+                    target.dispatchEvent(new MouseEvent(eventType, { view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY }));
                 });
 
-                const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot, input, select');
+                const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot');
                 if (clickableParent && clickableParent !== target) {
                     clickableParent.click();
-                    if (clickableParent.tagName === 'INPUT' || clickableParent.tagName === 'TEXTAREA') {
-                        clickableParent.focus();
-                    }
                 }
             }
         }
@@ -2291,13 +2247,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (moved) {
             cursor.style.opacity = '1';
             
-            if (posX < 0) posX = 0;
-            if (posY < 0) posY = 0;
+            if (posX < 0) posX = 0; if (posY < 0) posY = 0;
             if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
             if (posY > window.innerHeight - 30) posY = window.innerHeight - 30;
 
-            cursor.style.left = posX + 'px';
-            cursor.style.top = posY + 'px';
+            cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
 
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
@@ -2305,42 +2259,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (deltaY !== 0) {
                 let scrolledModal = false;
+                const modals = [
+                    document.getElementById('details-modal'), document.getElementById('actor-modal'),
+                    document.getElementById('rewards-drawer'), document.getElementById('mobile-menu'),
+                    document.getElementById('search-dropdown')
+                ];
 
-                const detailsModal = document.getElementById('details-modal');
-                const actorModal = document.getElementById('actor-modal');
-                const rewardsDrawer = document.getElementById('rewards-drawer');
-                const mobileMenu = document.getElementById('mobile-menu');
-                const searchDropdown = document.getElementById('search-dropdown');
-
-                if (detailsModal && (detailsModal.style.display === 'block' || detailsModal.style.display === 'flex')) {
-                    detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
-                    const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
-                    inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
-                    scrolledModal = true;
-                } 
-                else if (actorModal && (actorModal.style.display === 'block' || actorModal.style.display === 'flex')) {
-                    actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
-                    if (actorModal.firstElementChild) actorModal.firstElementChild.scrollBy({ top: deltaY, behavior: 'auto' });
-                    const inners = actorModal.querySelectorAll('.details-content, .modal-content, .actor-content, .scrollable');
-                    inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
-                    scrolledModal = true;
-                } 
-                else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
-                    rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
-                    mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                else if (searchDropdown && searchDropdown.style.display === 'block') {
-                    searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
+                for (let modal of modals) {
+                    if (modal && (modal.style.display === 'block' || modal.style.display === 'flex' || modal.style.right === '0px' || modal.style.right === '0')) {
+                        modal.scrollBy({ top: deltaY, behavior: 'auto' });
+                        const inners = modal.querySelectorAll('.details-content, .modal-content, .actor-content, .scrollable');
+                        inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
+                        scrolledModal = true;
+                        break;
+                    }
                 }
 
-                if (!scrolledModal) {
-                    window.scrollBy({ top: deltaY, behavior: 'auto' });
-                }
+                if (!scrolledModal) window.scrollBy({ top: deltaY, behavior: 'auto' });
             }
 
             evaluateHoverZone(posX, posY);
