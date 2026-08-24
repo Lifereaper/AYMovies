@@ -1894,8 +1894,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (movieRow) {
                 const rowElem = movieRow.classList.contains('movie-row') ? movieRow : movieRow.querySelector('.movie-row');
                 if (rowElem) {
-                    if (x < 80) { targetX = rowElem; dx = -15; }
-                    else if (x > window.innerWidth - 80) { targetX = rowElem; dx = 15; }
+                    // ✨ THE FIX: Calculate the edges of the specific ROW itself, not the whole TV screen!
+                    // This guarantees horizontal scrolling works inside the smaller Modals.
+                    const rect = rowElem.getBoundingClientRect();
+                    if (x < rect.left + 80) { targetX = rowElem; dx = -15; }
+                    else if (x > rect.right - 80) { targetX = rowElem; dx = 15; }
                 }
             }
         }
@@ -1997,7 +2000,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.left = posX + 'px';
             cursor.style.top = posY + 'px';
 
-            // 🎯 VERTICAL MANUAL SCROLL ONLY (Triggers step-by-step per button press)
+            // 🎯 VERTICAL MANUAL SCROLL ONLY
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
@@ -2011,20 +2014,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mobileMenu = document.getElementById('mobile-menu');
                 const searchDropdown = document.getElementById('search-dropdown');
 
-                // ✨ THE FIX: "Blanket Scroll" - Send the scroll command to ALL layers of the details modal so it can't fail
+                // Details Modal Blanket Scroll
                 if (detailsModal && (detailsModal.style.display === 'block' || detailsModal.style.display === 'flex')) {
                     detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
-                    
                     const detailsContent = detailsModal.querySelector('.details-content');
                     if (detailsContent) detailsContent.scrollBy({ top: deltaY, behavior: 'auto' });
-                    
                     const modalContent = detailsModal.querySelector('.modal-content');
                     if (modalContent) modalContent.scrollBy({ top: deltaY, behavior: 'auto' });
-                    
                     scrolledModal = true;
                 } 
-                else if (actorModal && actorModal.style.display === 'block') {
+                // ✨ THE FIX: Actor Modal Blanket Scroll
+                else if (actorModal && (actorModal.style.display === 'block' || actorModal.style.display === 'flex')) {
                     actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    const modalContent = actorModal.querySelector('.modal-content');
+                    if (modalContent) modalContent.scrollBy({ top: deltaY, behavior: 'auto' });
                     scrolledModal = true;
                 } 
                 else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
