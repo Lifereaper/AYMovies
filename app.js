@@ -2051,14 +2051,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 🔧 FIX: Force slider arrows to be permanently visible for the Virtual Mouse
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
         .slider-arrow, .row-arrow { opacity: 0.8 !important; }
     `;
     document.head.appendChild(styleFix);
 
-    // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
     cursor.style.cssText = `
@@ -2155,7 +2153,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); 
             e.stopPropagation(); 
-            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+            // ✨ FIX 1: If you move the arrow keys, instantly un-stick the Quality Menu or Text boxes!
+            if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
                 document.activeElement.blur();
             }
         }
@@ -2167,14 +2166,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             
-            // ✨ FIX 1: Allow native TV controls for active Inputs and Select Dropdowns!
-            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT')) {
+            // Protect Login Boxes
+            if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
                 const form = document.activeElement.closest('form');
-                if (form && document.activeElement.tagName !== 'SELECT') {
+                if (form) {
                     const submitBtn = form.querySelector('button[type="submit"]');
                     if (submitBtn) submitBtn.click();
                 }
-                return; // Let the TV handle the dropdown or keyboard naturally!
+                return; 
             }
 
             e.preventDefault();
@@ -2188,49 +2187,47 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // ✨ FIX 2: Video Player Controls (Now with Android TV Fullscreen Prefixes & Wider Zones)
+                // Native Video Controller
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
                     const clickY = tipY - rect.top;
 
-                    // Bottom 80px (Timeline & Buttons)
                     if (clickY > rect.height - 80) {
-                        // Bottom-Left (Play/Pause)
                         if (clickX < 100) {
                             if (target.paused) target.play(); else target.pause();
-                        } 
-                        // Bottom-Right (Fullscreen - Wider 100px zone)
-                        else if (clickX > rect.width - 100) {
-                            const reqFS = target.requestFullscreen || target.webkitRequestFullscreen || target.mozRequestFullScreen || target.msRequestFullscreen;
+                        } else if (clickX > rect.width - 100) {
+                            // ✨ FIX 2: If the video refuses to fullscreen, force the entire webpage to fullscreen!
+                            const reqFS = target.requestFullscreen || target.webkitRequestFullscreen || target.mozRequestFullScreen || target.msRequestFullscreen || document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
                             const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
                             
                             if (document.fullscreenElement || document.webkitFullscreenElement) {
                                 if (exitFS) exitFS.call(document).catch(()=>{});
                             } else {
-                                if (reqFS) reqFS.call(target).catch(()=>{});
+                                if (reqFS) reqFS.call(target).catch(()=>{ 
+                                    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+                                });
                             }
-                        } 
-                        // Middle (Scrubber)
-                        else {
+                        } else {
                             const percentage = clickX / rect.width;
                             if (target.duration) target.currentTime = percentage * target.duration;
                         }
                     } else {
-                        // Clicking center toggles Play/Pause
                         if (target.paused) target.play(); else target.pause();
                     }
                     return; 
                 }
 
-                // ✨ FIX 3: Quality Select Dropdown (Smart Focus)
-                if (target.tagName === 'SELECT' || target.closest('select')) {
-                    const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
-                    selectBox.focus(); // Highlight it. The next time you press Enter, the TV opens it natively!
-                    return;
-                }
+                // ✨ FIX 3: FULL HUMAN CLICK SEQUENCE
+                // Fires mousedown, mouseup, and click. This forces custom Quality Menus to open properly!
+                ['mousedown', 'mouseup', 'click'].forEach(eventType => {
+                    const event = new MouseEvent(eventType, {
+                        view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
+                    });
+                    target.dispatchEvent(event);
+                });
 
-                target.click(); 
+                // Fallback for native clicks on buttons/links/logins
                 const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot, input, select');
                 if (clickableParent && clickableParent !== target) {
                     clickableParent.click();
@@ -2252,7 +2249,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.left = posX + 'px';
             cursor.style.top = posY + 'px';
 
-            // 🎯 VERTICAL MANUAL SCROLL ONLY
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
@@ -2266,14 +2262,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mobileMenu = document.getElementById('mobile-menu');
                 const searchDropdown = document.getElementById('search-dropdown');
 
-                // Details Modal Blanket Scroll
                 if (detailsModal && (detailsModal.style.display === 'block' || detailsModal.style.display === 'flex')) {
                     detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
                     const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
                     inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
                     scrolledModal = true;
                 } 
-                // Actor Modal Blanket Scroll
                 else if (actorModal && (actorModal.style.display === 'block' || actorModal.style.display === 'flex')) {
                     actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
                     if (actorModal.firstElementChild) actorModal.firstElementChild.scrollBy({ top: deltaY, behavior: 'auto' });
