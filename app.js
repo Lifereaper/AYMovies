@@ -1841,6 +1841,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
+    // pointer-events: none is critical here; it allows us to click "through" the cursor graphic
     cursor.style.cssText = `
         position: fixed; top: 50%; left: 50%; 
         width: 35px; height: 35px; 
@@ -1854,7 +1855,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let posX = window.innerWidth / 2;
     let posY = window.innerHeight / 2;
-    const speed = 40; // ⚙️ Change this number to make the mouse move faster or slower
+    
+    // ⚙️ LOWERED SPEED: Changed from 40 to 15 for much smaller, precise jumps
+    const speed = 15; 
 
     // 2. PC Mouse Movement: Follow cursor & reveal it
     document.addEventListener('mousemove', (e) => {
@@ -1882,12 +1885,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
-        // 🛡️ THE FIX: This absolutely blocks the Android TV from jumping objects in the background
+        // 🛡️ Block Android TV from jumping objects in the background
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); 
         }
 
-        // Move the coordinates freely like a web browser
+        // Move the coordinates smoothly
         if (key === 'ArrowUp' || keyCode === 38) { posY -= speed; moved = true; }
         else if (key === 'ArrowDown' || keyCode === 40) { posY += speed; moved = true; }
         else if (key === 'ArrowLeft' || keyCode === 37) { posX -= speed; moved = true; }
@@ -1896,21 +1899,28 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             e.preventDefault();
             
-            // Temporarily hide the mouse so it doesn't accidentally click itself
-            cursor.style.display = 'none'; 
-            const target = document.elementFromPoint(posX + 5, posY + 5);
-            cursor.style.display = 'block';
+            // The visual tip of the SVG arrow graphic is offset slightly
+            const tipX = posX + 7;
+            const tipY = posY + 2;
+            
+            const target = document.elementFromPoint(tipX, tipY);
 
             if (target) {
-                target.click(); // Click exactly what is under the mouse tip
+                // ✨ THE FIX: Create a real 'bubbling' mouse click event so it clicks parent cards properly
+                const clickEvent = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: tipX,
+                    clientY: tipY
+                });
                 
-                // Fallback for icons/images inside buttons
-                const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot, input, select, #profile-icon');
-                if (clickableParent && clickableParent !== target) {
-                    clickableParent.click();
-                    if (clickableParent.tagName === 'INPUT' || clickableParent.tagName === 'TEXTAREA') {
-                        clickableParent.focus();
-                    }
+                target.dispatchEvent(clickEvent);
+                
+                // If it's an input box, focus it to trigger the keyboard
+                const inputParent = target.closest('input, textarea');
+                if (inputParent) {
+                    inputParent.focus();
                 }
             }
         }
@@ -1929,8 +1939,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.top = posY + 'px';
 
             // Push the page up or down if the mouse hits the top or bottom edges
-            if (posY > window.innerHeight - 80) window.scrollBy({ top: speed * 1.5, behavior: 'auto' });
-            if (posY < 80) window.scrollBy({ top: -speed * 1.5, behavior: 'auto' });
+            if (posY > window.innerHeight - 80) window.scrollBy({ top: speed * 2, behavior: 'auto' });
+            if (posY < 80) window.scrollBy({ top: -speed * 2, behavior: 'auto' });
         }
     });
 });
