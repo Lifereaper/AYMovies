@@ -2044,7 +2044,8 @@ document.addEventListener('DOMContentLoaded', () => {
             evaluateHoverZone(posX, posY);
         }
     }, true);
-});// ==========================================
+});
+// ==========================================
 // 🖱️ AYMOVIES TRUE BROWSER MOUSE ENGINE
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -2181,6 +2182,41 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
+                // ✨ THE FIX: SMART NATIVE VIDEO CONTROLLER
+                if (target.tagName === 'VIDEO') {
+                    const rect = target.getBoundingClientRect();
+                    const clickX = tipX - rect.left;
+                    const clickY = tipY - rect.top;
+
+                    // If clicking the bottom 80 pixels (where the native timeline/buttons are)
+                    if (clickY > rect.height - 80) {
+                        if (clickX < 60) {
+                            // Bottom-Left: Play/Pause Button
+                            if (target.paused) target.play();
+                            else target.pause();
+                        } else if (clickX > rect.width - 60) {
+                            // Bottom-Right: Fullscreen Button
+                            if (document.fullscreenElement) {
+                                document.exitFullscreen().catch(()=>{});
+                            } else {
+                                target.requestFullscreen().catch(()=>{});
+                            }
+                        } else {
+                            // Middle Bottom: Timeline Scrubber
+                            const percentage = clickX / rect.width;
+                            if (target.duration) {
+                                target.currentTime = percentage * target.duration;
+                            }
+                        }
+                    } else {
+                        // Clicking anywhere else in the video toggles Play/Pause
+                        if (target.paused) target.play();
+                        else target.pause();
+                    }
+                    return; // Stop here, bypass the browser security block
+                }
+
+                // Create a real 'bubbling' mouse click event for everything else
                 const clickEvent = new MouseEvent('click', {
                     view: window,
                     bubbles: true,
@@ -2230,7 +2266,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
                     scrolledModal = true;
                 } 
-                // ✨ FIX: Safe Actor Modal Scroll (No freezing calculations)
+                // Actor Modal Blanket Scroll
                 else if (actorModal && (actorModal.style.display === 'block' || actorModal.style.display === 'flex')) {
                     actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
                     if (actorModal.firstElementChild) actorModal.firstElementChild.scrollBy({ top: deltaY, behavior: 'auto' });
