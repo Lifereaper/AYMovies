@@ -1940,27 +1940,45 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.left = posX + 'px';
             cursor.style.top = posY + 'px';
 
-            // ✨ THE FIX: Smart Scroll Detector
+            // ✨ THE FIX: Smart Priority Scroll Detector
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
 
             if (deltaY !== 0) {
-                cursor.style.display = 'none'; 
-                const target = document.elementFromPoint(posX, posY);
-                cursor.style.display = 'block';
-
                 let scrolledModal = false;
-                if (target) {
-                    // Look for a scrollable parent (Rewards Drawer, Play Modal, Menus, etc.)
-                    const scrollableParent = target.closest('#rewards-drawer, .details-content, #details-modal, #actor-modal, #search-dropdown, #mobile-menu, #video-modal');
-                    if (scrollableParent) {
-                        scrollableParent.scrollBy({ top: deltaY, behavior: 'auto' });
-                        scrolledModal = true;
-                    }
+
+                const detailsModal = document.getElementById('details-modal');
+                const actorModal = document.getElementById('actor-modal');
+                const rewardsDrawer = document.getElementById('rewards-drawer');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const searchDropdown = document.getElementById('search-dropdown');
+
+                // 🎯 1. Check exactly which modal is open and lock scroll to it!
+                if (detailsModal && detailsModal.style.display === 'block') {
+                    detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    const detailsContent = detailsModal.querySelector('.details-content');
+                    if (detailsContent) detailsContent.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (actorModal && actorModal.style.display === 'block') {
+                    actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
+                    rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
+                    mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (searchDropdown && searchDropdown.style.display === 'block') {
+                    searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
                 }
 
-                // If we aren't hovering over a modal, just scroll the main background page
+                // 🎯 2. Only scroll the main page if NO modals are open
                 if (!scrolledModal) {
                     window.scrollBy({ top: deltaY, behavior: 'auto' });
                 }
