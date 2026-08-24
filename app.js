@@ -2167,14 +2167,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             
-            // ✨ FIX 1: If hitting Enter/Go on the TV keyboard while inside the password box, force submit the form!
-            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+            // ✨ FIX 1: Allow native TV controls for active Inputs and Select Dropdowns!
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT')) {
                 const form = document.activeElement.closest('form');
-                if (form) {
+                if (form && document.activeElement.tagName !== 'SELECT') {
                     const submitBtn = form.querySelector('button[type="submit"]');
                     if (submitBtn) submitBtn.click();
                 }
-                return; 
+                return; // Let the TV handle the dropdown or keyboard naturally!
             }
 
             e.preventDefault();
@@ -2188,31 +2188,49 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // Video Player controls
+                // ✨ FIX 2: Video Player Controls (Now with Android TV Fullscreen Prefixes & Wider Zones)
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
                     const clickY = tipY - rect.top;
 
+                    // Bottom 80px (Timeline & Buttons)
                     if (clickY > rect.height - 80) {
-                        if (clickX < 60) {
+                        // Bottom-Left (Play/Pause)
+                        if (clickX < 100) {
                             if (target.paused) target.play(); else target.pause();
-                        } else if (clickX > rect.width - 60) {
-                            if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-                            else target.requestFullscreen().catch(()=>{});
-                        } else {
+                        } 
+                        // Bottom-Right (Fullscreen - Wider 100px zone)
+                        else if (clickX > rect.width - 100) {
+                            const reqFS = target.requestFullscreen || target.webkitRequestFullscreen || target.mozRequestFullScreen || target.msRequestFullscreen;
+                            const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+                            
+                            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                                if (exitFS) exitFS.call(document).catch(()=>{});
+                            } else {
+                                if (reqFS) reqFS.call(target).catch(()=>{});
+                            }
+                        } 
+                        // Middle (Scrubber)
+                        else {
                             const percentage = clickX / rect.width;
                             if (target.duration) target.currentTime = percentage * target.duration;
                         }
                     } else {
+                        // Clicking center toggles Play/Pause
                         if (target.paused) target.play(); else target.pause();
                     }
                     return; 
                 }
 
-                // ✨ FIX 2: Restored Native click() - This correctly fires Form Submits!
+                // ✨ FIX 3: Quality Select Dropdown (Smart Focus)
+                if (target.tagName === 'SELECT' || target.closest('select')) {
+                    const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
+                    selectBox.focus(); // Highlight it. The next time you press Enter, the TV opens it natively!
+                    return;
+                }
+
                 target.click(); 
-                
                 const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot, input, select');
                 if (clickableParent && clickableParent !== target) {
                     clickableParent.click();
@@ -2281,7 +2299,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Continuously scan what the cursor is hovering over for HORIZONTAL auto-scroll
             evaluateHoverZone(posX, posY);
         }
     }, true);
