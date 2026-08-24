@@ -1894,8 +1894,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (movieRow) {
                 const rowElem = movieRow.classList.contains('movie-row') ? movieRow : movieRow.querySelector('.movie-row');
                 if (rowElem) {
-                    // ✨ THE FIX: Calculate the edges of the specific ROW itself, not the whole TV screen!
-                    // This guarantees horizontal scrolling works inside the smaller Modals.
                     const rect = rowElem.getBoundingClientRect();
                     if (x < rect.left + 80) { targetX = rowElem; dx = -15; }
                     else if (x > rect.right - 80) { targetX = rowElem; dx = 15; }
@@ -2008,39 +2006,33 @@ document.addEventListener('DOMContentLoaded', () => {
             if (deltaY !== 0) {
                 let scrolledModal = false;
 
-                const detailsModal = document.getElementById('details-modal');
-                const actorModal = document.getElementById('actor-modal');
-                const rewardsDrawer = document.getElementById('rewards-drawer');
-                const mobileMenu = document.getElementById('mobile-menu');
-                const searchDropdown = document.getElementById('search-dropdown');
+                // List all potential modals
+                const activeModals = [
+                    document.getElementById('details-modal'),
+                    document.getElementById('actor-modal'),
+                    document.getElementById('rewards-drawer'),
+                    document.getElementById('mobile-menu'),
+                    document.getElementById('search-dropdown')
+                ];
 
-                // Details Modal Blanket Scroll
-                if (detailsModal && (detailsModal.style.display === 'block' || detailsModal.style.display === 'flex')) {
-                    detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
-                    const detailsContent = detailsModal.querySelector('.details-content');
-                    if (detailsContent) detailsContent.scrollBy({ top: deltaY, behavior: 'auto' });
-                    const modalContent = detailsModal.querySelector('.modal-content');
-                    if (modalContent) modalContent.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                // ✨ THE FIX: Actor Modal Blanket Scroll
-                else if (actorModal && (actorModal.style.display === 'block' || actorModal.style.display === 'flex')) {
-                    actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
-                    const modalContent = actorModal.querySelector('.modal-content');
-                    if (modalContent) modalContent.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
-                    rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
-                    mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
-                } 
-                else if (searchDropdown && searchDropdown.style.display === 'block') {
-                    searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
-                    scrolledModal = true;
+                for (let modal of activeModals) {
+                    // Check if this modal is currently visible
+                    if (modal && (modal.style.display === 'block' || modal.style.display === 'flex' || modal.style.right === '0px' || modal.style.right === '0')) {
+                        
+                        // Scroll the main modal wrapper
+                        modal.scrollBy({ top: deltaY, behavior: 'auto' });
+                        
+                        // ✨ THE ULTIMATE FIX: Find EVERY div inside the modal and scroll it if it has a scrollbar
+                        const allDivs = modal.querySelectorAll('div');
+                        allDivs.forEach(div => {
+                            if (div.scrollHeight > div.clientHeight) {
+                                div.scrollBy({ top: deltaY, behavior: 'auto' });
+                            }
+                        });
+
+                        scrolledModal = true;
+                        break; // Stop at the first visible modal we find
+                    }
                 }
 
                 if (!scrolledModal) {
