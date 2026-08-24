@@ -1877,7 +1877,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
 
     // 4. TV Remote Free-Roaming Input
-    // ✨ Added 'true' (Capture Phase) at the end of this listener to intercept keys BEFORE the input box gets them
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
@@ -1886,9 +1885,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // 🛡️ Block Android TV from jumping objects in the background
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); 
-            e.stopPropagation(); // 🛑 Stop the input box from stealing arrow keys
+            e.stopPropagation(); 
             
-            // ✨ Fix: If they start moving the mouse away, they aren't typing anymore. Force remove focus from the text box!
+            // Force remove focus from text boxes when moving
             if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
                 document.activeElement.blur();
             }
@@ -1902,9 +1901,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             e.preventDefault();
-            e.stopPropagation(); // 🛑 Stop the password box from hijacking the click!
+            e.stopPropagation();
             
-            // The visual tip of the SVG arrow graphic is offset slightly
             const tipX = posX + 7;
             const tipY = posY + 2;
             
@@ -1913,7 +1911,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // Create a real 'bubbling' mouse click event
                 const clickEvent = new MouseEvent('click', {
                     view: window,
                     bubbles: true,
@@ -1924,7 +1921,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 target.dispatchEvent(clickEvent);
                 
-                // If they specifically clicked an input box, focus it so the keyboard opens
                 const inputParent = target.closest('input, textarea');
                 if (inputParent) {
                     inputParent.focus();
@@ -1941,13 +1937,34 @@ document.addEventListener('DOMContentLoaded', () => {
             if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
             if (posY > window.innerHeight - 30) posY = window.innerHeight - 30;
 
-            // Visually move the cursor
             cursor.style.left = posX + 'px';
             cursor.style.top = posY + 'px';
 
-            // Push the page up or down if the mouse hits the top or bottom edges
-            if (posY > window.innerHeight - 80) window.scrollBy({ top: speed * 2, behavior: 'auto' });
-            if (posY < 80) window.scrollBy({ top: -speed * 2, behavior: 'auto' });
+            // ✨ THE FIX: Smart Scroll Detector
+            let deltaY = 0;
+            if (posY > window.innerHeight - 80) deltaY = speed * 2;
+            if (posY < 80) deltaY = -speed * 2;
+
+            if (deltaY !== 0) {
+                cursor.style.display = 'none'; 
+                const target = document.elementFromPoint(posX, posY);
+                cursor.style.display = 'block';
+
+                let scrolledModal = false;
+                if (target) {
+                    // Look for a scrollable parent (Rewards Drawer, Play Modal, Menus, etc.)
+                    const scrollableParent = target.closest('#rewards-drawer, .details-content, #details-modal, #actor-modal, #search-dropdown, #mobile-menu, #video-modal');
+                    if (scrollableParent) {
+                        scrollableParent.scrollBy({ top: deltaY, behavior: 'auto' });
+                        scrolledModal = true;
+                    }
+                }
+
+                // If we aren't hovering over a modal, just scroll the main background page
+                if (!scrolledModal) {
+                    window.scrollBy({ top: deltaY, behavior: 'auto' });
+                }
+            }
         }
-    }, true); // 🚨 TRUE = Capture Phase. This guarantees our mouse engine gets the key press BEFORE the HTML password box does.
+    }, true);
 });
