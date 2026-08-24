@@ -2011,10 +2011,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mobileMenu = document.getElementById('mobile-menu');
                 const searchDropdown = document.getElementById('search-dropdown');
 
-                if (detailsModal && detailsModal.style.display === 'block') {
+                // ✨ THE FIX: "Blanket Scroll" - Send the scroll command to ALL layers of the details modal so it can't fail
+                if (detailsModal && (detailsModal.style.display === 'block' || detailsModal.style.display === 'flex')) {
+                    detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    
                     const detailsContent = detailsModal.querySelector('.details-content');
                     if (detailsContent) detailsContent.scrollBy({ top: deltaY, behavior: 'auto' });
-                    else detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    
+                    const modalContent = detailsModal.querySelector('.modal-content');
+                    if (modalContent) modalContent.scrollBy({ top: deltaY, behavior: 'auto' });
+                    
                     scrolledModal = true;
                 } 
                 else if (actorModal && actorModal.style.display === 'block') {
