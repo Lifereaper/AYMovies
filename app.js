@@ -1986,6 +1986,12 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
+            
+            // ✨ THE FIX: If they hit Enter while typing in the password box, let the form submit normally!
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                return; // Stop the virtual mouse from interfering
+            }
+
             e.preventDefault();
             e.stopPropagation();
             
