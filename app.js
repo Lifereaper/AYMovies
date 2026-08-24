@@ -2057,6 +2057,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styleFix);
 
+    // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
     cursor.style.cssText = `
@@ -2069,6 +2070,41 @@ document.addEventListener('DOMContentLoaded', () => {
         opacity: 0;
     `;
     document.body.appendChild(cursor);
+
+    // ✨ NEW: Create a custom glowing Fullscreen Button overlay
+    const customFsBtn = document.createElement('div');
+    customFsBtn.id = 'tv-custom-fullscreen';
+    customFsBtn.innerHTML = `<svg fill="white" viewBox="0 0 24 24" width="24" height="24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>`;
+    customFsBtn.style.cssText = `
+        position: fixed;
+        background: rgba(229, 9, 20, 0.95);
+        border-radius: 8px;
+        padding: 8px;
+        width: 45px;
+        height: 45px;
+        display: none; /* Hidden until a video plays */
+        align-items: center;
+        justify-content: center;
+        z-index: 9999998;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+        border: 2px solid white;
+        cursor: pointer;
+    `;
+    document.body.appendChild(customFsBtn);
+
+    // Tracker to automatically glue the custom button to the bottom-right of any video!
+    setInterval(() => {
+        const vid = document.querySelector('video');
+        if (vid && vid.offsetParent !== null) { 
+            const rect = vid.getBoundingClientRect();
+            customFsBtn.style.display = 'flex';
+            // Position it right over the native broken button zone
+            customFsBtn.style.top = (rect.bottom - 60) + 'px';
+            customFsBtn.style.left = (rect.right - 65) + 'px';
+        } else {
+            customFsBtn.style.display = 'none';
+        }
+    }, 500);
 
     let posX = window.innerWidth / 2;
     let posY = window.innerHeight / 2;
@@ -2153,7 +2189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); 
             e.stopPropagation(); 
-            // ✨ FIX 1: If you move the arrow keys, instantly un-stick the Quality Menu or Text boxes!
             if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
                 document.activeElement.blur();
             }
@@ -2187,7 +2222,29 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // Native Video Controller
+                // ✨ FIX: If they click our new glowing Fullscreen icon (or the hidden hot-zone)!
+                const isCustomFullscreenBtn = target.id === 'tv-custom-fullscreen' || target.closest('#tv-custom-fullscreen');
+                const isFullscreenBtn = target.closest('[class*="fullscreen" i], [class*="maximize" i], [title*="fullscreen" i]');
+                const isVideoBottomRight = (target.tagName === 'VIDEO') && (tipX - target.getBoundingClientRect().left > target.getBoundingClientRect().width - 100) && (tipY - target.getBoundingClientRect().top > target.getBoundingClientRect().height - 80);
+
+                if (isCustomFullscreenBtn || isFullscreenBtn || isVideoBottomRight) {
+                    const vidElement = document.querySelector('video');
+                    const fsTarget = (vidElement ? vidElement.parentElement : null) || document.documentElement;
+
+                    const reqFS = fsTarget.requestFullscreen || fsTarget.webkitRequestFullscreen || fsTarget.mozRequestFullScreen || fsTarget.msRequestFullscreen;
+                    const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+                    
+                    if (document.fullscreenElement || document.webkitFullscreenElement) {
+                        if (exitFS) exitFS.call(document).catch(()=>{});
+                    } else {
+                        if (reqFS) reqFS.call(fsTarget).catch(()=>{
+                            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+                        });
+                    }
+                    return; // Stop here!
+                }
+
+                // Video Player controls (Play/Pause & Scrubber)
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
@@ -2196,18 +2253,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (clickY > rect.height - 80) {
                         if (clickX < 100) {
                             if (target.paused) target.play(); else target.pause();
-                        } else if (clickX > rect.width - 100) {
-                            // ✨ FIX 2: If the video refuses to fullscreen, force the entire webpage to fullscreen!
-                            const reqFS = target.requestFullscreen || target.webkitRequestFullscreen || target.mozRequestFullScreen || target.msRequestFullscreen || document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
-                            const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-                            
-                            if (document.fullscreenElement || document.webkitFullscreenElement) {
-                                if (exitFS) exitFS.call(document).catch(()=>{});
-                            } else {
-                                if (reqFS) reqFS.call(target).catch(()=>{ 
-                                    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-                                });
-                            }
                         } else {
                             const percentage = clickX / rect.width;
                             if (target.duration) target.currentTime = percentage * target.duration;
@@ -2218,8 +2263,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; 
                 }
 
-                // ✨ FIX 3: FULL HUMAN CLICK SEQUENCE
-                // Fires mousedown, mouseup, and click. This forces custom Quality Menus to open properly!
+                // Quality Select Dropdown (Smart Focus)
+                if (target.tagName === 'SELECT' || target.closest('select')) {
+                    const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
+                    selectBox.focus(); 
+                    return;
+                }
+
+                // Full Human Click Sequence for everything else
                 ['mousedown', 'mouseup', 'click'].forEach(eventType => {
                     const event = new MouseEvent(eventType, {
                         view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
@@ -2227,7 +2278,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     target.dispatchEvent(event);
                 });
 
-                // Fallback for native clicks on buttons/links/logins
                 const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot, input, select');
                 if (clickableParent && clickableParent !== target) {
                     clickableParent.click();
