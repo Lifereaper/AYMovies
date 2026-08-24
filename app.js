@@ -1834,199 +1834,92 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🚀 AYMOVIES SMART ADAPTIVE POINTER ENGINE
+// 🖱️ AYMOVIES VIRTUAL MOUSE ENGINE (ORIGINAL)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    let currentFocus = null;
 
-    // 1. Create a compact, clean cursor element
+    // 1. Create the custom Netflix-red cursor (starts hidden so it doesn't linger)
     const cursor = document.createElement('div');
-    cursor.id = 'ay-adaptive-cursor';
+    cursor.id = 'tv-virtual-cursor';
     cursor.style.cssText = `
-        position: fixed;
-        top: -50px; left: -50px;
-        width: 18px; height: 18px;
-        background: #E50914;
-        border: 2px solid #FFFFFF;
-        border-radius: 50%;
-        z-index: 9999999;
-        pointer-events: none;
+        position: fixed; top: 50%; left: 50%; 
+        width: 35px; height: 35px; 
+        background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='35' height='35' viewBox='0 0 24 24' fill='%23E50914' stroke='white' stroke-width='1.5'><path d='M7 2l12 11.2-5.8.5 3.3 7.3-2.2.9-3.2-7.4-4.4 4.7z'/></svg>") no-repeat; 
+        z-index: 9999999; pointer-events: none; 
+        transition: top 0.05s linear, left 0.05s linear, opacity 0.3s ease;
+        filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.8));
         opacity: 0;
-        transition: transform 0.1s ease-out, opacity 0.3s ease;
-        box-shadow: 0 0 10px rgba(229, 9, 20, 0.8);
     `;
     document.body.appendChild(cursor);
 
-    // 2. 💻 PC / MOUSE TRACKING (Follows actual mouse movement)
+    let posX = window.innerWidth / 2;
+    let posY = window.innerHeight / 2;
+    const speed = 45; 
+
+    // 2. PC Mouse Movement: Follow cursor & reveal it
     document.addEventListener('mousemove', (e) => {
         cursor.style.opacity = '1';
-        cursor.style.left = `${e.clientX - 9}px`;
-        cursor.style.top = `${e.clientY - 9}px`;
+        posX = e.clientX;
+        posY = e.clientY;
+        cursor.style.left = posX + 'px';
+        cursor.style.top = posY + 'px';
     });
 
-    document.addEventListener('mouseleave', () => {
-        cursor.style.opacity = '0';
-    });
-
-    // 3. 📱 TOUCH TRACKING (Jumps to finger tap, then fades)
-    let touchFadeTimeout = null;
+    // 3. Mobile Touch: Move to tap position
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
-            const touch = e.touches[0];
             cursor.style.opacity = '1';
-            cursor.style.left = `${touch.clientX - 9}px`;
-            cursor.style.top = `${touch.clientY - 9}px`;
-
-            clearTimeout(touchFadeTimeout);
-            touchFadeTimeout = setTimeout(() => {
-                cursor.style.opacity = '0';
-            }, 1200);
+            posX = e.touches[0].clientX;
+            posY = e.touches[0].clientY;
+            cursor.style.left = posX + 'px';
+            cursor.style.top = posY + 'px';
         }
     }, { passive: true });
 
-    // 4. 📺 TV SPATIAL NAVIGATION (D-Pad support)
-    function getFocusableElements() {
-        const activeModal = [
-            document.getElementById('splash-dmca-view'),
-            document.getElementById('login-view'),
-            document.getElementById('video-modal'),
-            document.getElementById('details-modal'),
-            document.getElementById('rewards-drawer'),
-            document.getElementById('actor-modal'),
-            document.getElementById('mobile-menu'),
-            document.getElementById('custom-prompt-modal'),
-            document.getElementById('custom-alert-modal'),
-            document.getElementById('reset-password-modal'),
-            document.getElementById('delete-account-modal')
-        ].find(el => {
-            if (!el) return false;
-            const style = window.getComputedStyle(el);
-            return style.display !== 'none' && style.visibility !== 'hidden' && style.right !== '-100%';
-        });
-
-        const selector = 'button, a, input, textarea, select, video, .movie-card, .chip-btn, .nav-link, .top-10-wrapper, .search-item, .hero-dot, .tv-focusable';
-        const searchArea = activeModal ? activeModal : document;
-        const elements = Array.from(searchArea.querySelectorAll(selector));
-
-        return elements.filter(el => {
-            const rect = el.getBoundingClientRect();
-            const style = window.getComputedStyle(el);
-            return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
-        });
-    }
-
-    function moveFocus(direction) {
-        const elements = getFocusableElements();
-        if (elements.length === 0) return;
-        
-        if (!currentFocus || !document.body.contains(currentFocus) || currentFocus.offsetParent === null) {
-            const activeEl = document.activeElement;
-            if (activeEl && elements.includes(activeEl)) {
-                setFocus(activeEl);
-            } else {
-                setFocus(elements[0]);
-            }
-            return;
-        }
-
-        const currentRect = currentFocus.getBoundingClientRect();
-        const currentCenter = { x: currentRect.left + currentRect.width / 2, y: currentRect.top + currentRect.height / 2 };
-
-        let bestMatch = null; 
-        let minDistance = Infinity;
-
-        elements.forEach(el => {
-            if (el === currentFocus) return;
-            const rect = el.getBoundingClientRect();
-            const center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-            let isDirectionMatch = false;
-
-            if (direction === 'ArrowUp') isDirectionMatch = center.y < currentCenter.y - 5;
-            if (direction === 'ArrowDown') isDirectionMatch = center.y > currentCenter.y + 5;
-            if (direction === 'ArrowLeft') isDirectionMatch = center.x < currentCenter.x - 5;
-            if (direction === 'ArrowRight') isDirectionMatch = center.x > currentCenter.x + 5;
-
-            if (isDirectionMatch) {
-                const dx = Math.abs(center.x - currentCenter.x);
-                const dy = Math.abs(center.y - currentCenter.y);
-                let distance;
-                
-                if (direction === 'ArrowUp' || direction === 'ArrowDown') { 
-                    distance = dy + (dx * 10); 
-                } else { 
-                    distance = dx + (dy * 25); 
-                }
-                
-                if (distance < minDistance) { 
-                    minDistance = distance; 
-                    bestMatch = el; 
-                }
-            }
-        });
-
-        if (bestMatch) { 
-            setFocus(bestMatch); 
-            bestMatch.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); 
-        }
-    }
-
-    function setFocus(el) {
-        if (!el) return;
-        if (currentFocus && currentFocus !== el) { 
-            currentFocus.classList.remove('tv-focused'); 
-        }
-        currentFocus = el; 
-        currentFocus.classList.add('tv-focused'); 
-        currentFocus.focus({ preventScroll: true }); 
-
-        // Snap the dot pointer to the focused TV element
-        const rect = el.getBoundingClientRect();
-        cursor.style.opacity = '1';
-        cursor.style.left = `${rect.left + rect.width / 2 - 9}px`;
-        cursor.style.top = `${rect.top + rect.height / 2 - 9}px`;
-    }
-
+    // 4. TV Remote Input handling
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
+        let moved = false;
 
-        if (key === 'ArrowUp' || keyCode === 38) {
+        if (key === 'ArrowUp' || keyCode === 38) { posY -= speed; moved = true; }
+        else if (key === 'ArrowDown' || keyCode === 40) { posY += speed; moved = true; }
+        else if (key === 'ArrowLeft' || keyCode === 37) { posX -= speed; moved = true; }
+        else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
+        
+        else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             e.preventDefault();
-            moveFocus('ArrowUp');
-        } else if (key === 'ArrowDown' || keyCode === 40) {
-            e.preventDefault();
-            moveFocus('ArrowDown');
-        } else if (key === 'ArrowLeft' || keyCode === 37) {
-            if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                moveFocus('ArrowLeft');
-            }
-        } else if (key === 'ArrowRight' || keyCode === 39) {
-            if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                moveFocus('ArrowRight');
-            }
-        } else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
-            if (currentFocus) {
-                if (currentFocus.tagName !== 'INPUT' && currentFocus.tagName !== 'TEXTAREA') {
-                    e.preventDefault();
-                    currentFocus.click();
+            
+            cursor.style.display = 'none'; 
+            const target = document.elementFromPoint(posX + 5, posY + 5);
+            cursor.style.display = 'block';
+
+            if (target) {
+                target.click();
+                const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot, input, select');
+                if (clickableParent && clickableParent !== target) {
+                    clickableParent.click();
+                    if (clickableParent.tagName === 'INPUT' || clickableParent.tagName === 'TEXTAREA') {
+                        clickableParent.focus();
+                    }
                 }
             }
         }
-    });
 
-    setTimeout(() => {
-        const disclaimerBtn = document.getElementById('btn-accept-dmca');
-        const emailInput = document.getElementById('auth-email');
+        if (moved) {
+            e.preventDefault();
+            cursor.style.opacity = '1';
+            
+            if (posX < 0) posX = 0;
+            if (posY < 0) posY = 0;
+            if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
+            if (posY > window.innerHeight - 30) posY = window.innerHeight - 30;
 
-        if (disclaimerBtn && window.getComputedStyle(document.getElementById('splash-dmca-view')).display !== 'none') {
-            setFocus(disclaimerBtn);
-        } else if (emailInput && window.getComputedStyle(document.getElementById('login-view')).display !== 'none') {
-            setFocus(emailInput);
-        } else {
-            const elements = getFocusableElements();
-            if (elements.length > 0) setFocus(elements[0]);
+            cursor.style.left = posX + 'px';
+            cursor.style.top = posY + 'px';
+
+            if (posY > window.innerHeight - 80) window.scrollBy({ top: 100, behavior: 'smooth' });
+            if (posY < 80) window.scrollBy({ top: -100, behavior: 'smooth' });
         }
-    }, 600); 
+    });
 });
