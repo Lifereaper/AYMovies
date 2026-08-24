@@ -2057,6 +2057,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styleFix);
 
+    // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
     cursor.style.cssText = `
@@ -2070,7 +2071,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.body.appendChild(cursor);
 
-    // ✨ Custom Fullscreen Button
+    // 2. Custom Fullscreen Button for the Video Player
     const customFsBtn = document.createElement('div');
     customFsBtn.id = 'tv-custom-fullscreen';
     customFsBtn.innerHTML = `<svg fill="white" viewBox="0 0 24 24" width="24" height="24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>`;
@@ -2188,22 +2189,22 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // 1. FULLSCREEN OVERRIDE (Force whole webpage fullscreen)
+                // 1. FULLSCREEN OVERRIDE (Clicking our custom button forces full screen)
                 const isCustomFullscreenBtn = target.id === 'tv-custom-fullscreen' || target.closest('#tv-custom-fullscreen');
                 if (isCustomFullscreenBtn) {
-                    const fsTarget = document.documentElement; // Force whole screen to bypass video block
+                    const fsTarget = document.documentElement; 
                     const reqFS = fsTarget.requestFullscreen || fsTarget.webkitRequestFullscreen || fsTarget.mozRequestFullScreen || fsTarget.msRequestFullscreen;
-                    const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
                     
-                    if (document.fullscreenElement || document.webkitFullscreenElement) {
-                        if (exitFS) exitFS.call(document).catch(()=>{});
-                    } else {
+                    if (!document.fullscreenElement) {
                         if (reqFS) reqFS.call(fsTarget).catch(()=>{});
+                    } else {
+                        const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+                        if (exitFS) exitFS.call(document).catch(()=>{});
                     }
                     return; 
                 }
 
-                // 2. VIDEO PLAYER CONTROLS
+                // 2. VIDEO PLAYER CONTROLS (Pause/Play/Scrubber)
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
@@ -2221,25 +2222,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; 
                 }
 
-                // 3. QUALITY SELECT DROPDOWN (Focus + Click combination)
+                // 3. QUALITY SELECT DROPDOWN
                 if (target.tagName === 'SELECT' || target.closest('select')) {
                     const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
                     selectBox.focus();
-                    selectBox.click(); // Standard click added back
                     return;
                 }
 
-                // 4. ✨ RESTORED STANDARD CLICK FOR EVERYTHING ELSE (Add to list, Trailer, Links)
-                target.click(); // This is the magic line that was missing!
-
-                // Keep the mousedown/mouseup just in case certain TV elements expect it
-                ['mousedown', 'mouseup'].forEach(eventType => {
-                    target.dispatchEvent(new MouseEvent(eventType, { view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY }));
+                // 4. RESTORED CLICK EVENT FOR TRAILER & ADD TO LIST (This is what I broke)
+                const clickEvent = new MouseEvent('click', {
+                    view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
                 });
+                target.dispatchEvent(clickEvent);
 
                 const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot');
                 if (clickableParent && clickableParent !== target) {
-                    clickableParent.click();
+                    clickableParent.dispatchEvent(new MouseEvent('click', {
+                        view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
+                    }));
                 }
             }
         }
@@ -2253,29 +2253,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
 
+            // 🎯 RESTORED VERTICAL SCROLL LOGIC (This is what broke main page scrolling)
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
 
             if (deltaY !== 0) {
                 let scrolledModal = false;
-                const modals = [
-                    document.getElementById('details-modal'), document.getElementById('actor-modal'),
-                    document.getElementById('rewards-drawer'), document.getElementById('mobile-menu'),
-                    document.getElementById('search-dropdown')
-                ];
 
-                for (let modal of modals) {
-                    if (modal && (modal.style.display === 'block' || modal.style.display === 'flex' || modal.style.right === '0px' || modal.style.right === '0')) {
-                        modal.scrollBy({ top: deltaY, behavior: 'auto' });
-                        const inners = modal.querySelectorAll('.details-content, .modal-content, .actor-content, .scrollable');
-                        inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
-                        scrolledModal = true;
-                        break;
-                    }
+                const detailsModal = document.getElementById('details-modal');
+                const actorModal = document.getElementById('actor-modal');
+                const rewardsDrawer = document.getElementById('rewards-drawer');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const searchDropdown = document.getElementById('search-dropdown');
+
+                // Specifically checking if they are actually visible on screen (offsetParent !== null)
+                if (detailsModal && detailsModal.offsetParent !== null) {
+                    detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
+                    inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
+                    scrolledModal = true;
+                } 
+                else if (actorModal && actorModal.offsetParent !== null) {
+                    actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    const inners = actorModal.querySelectorAll('.details-content, .modal-content, .actor-content, .scrollable');
+                    inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
+                    scrolledModal = true;
+                } 
+                else if (rewardsDrawer && rewardsDrawer.offsetParent !== null && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
+                    rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (mobileMenu && mobileMenu.offsetParent !== null && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
+                    mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (searchDropdown && searchDropdown.offsetParent !== null) {
+                    searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
                 }
 
-                if (!scrolledModal) window.scrollBy({ top: deltaY, behavior: 'auto' });
+                // If no modals were visible and scrolled, scroll the main window!
+                if (!scrolledModal) {
+                    window.scrollBy({ top: deltaY, behavior: 'auto' });
+                }
             }
 
             evaluateHoverZone(posX, posY);
