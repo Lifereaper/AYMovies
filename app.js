@@ -2044,4 +2044,220 @@ document.addEventListener('DOMContentLoaded', () => {
             evaluateHoverZone(posX, posY);
         }
     }, true);
+});// ==========================================
+// 🖱️ AYMOVIES TRUE BROWSER MOUSE ENGINE
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+
+    // 🔧 FIX: Force slider arrows to be permanently visible for the Virtual Mouse
+    const styleFix = document.createElement('style');
+    styleFix.innerHTML = `
+        .slider-arrow, .row-arrow { opacity: 0.8 !important; }
+    `;
+    document.head.appendChild(styleFix);
+
+    // 1. Create the custom Netflix-red cursor
+    const cursor = document.createElement('div');
+    cursor.id = 'tv-virtual-cursor';
+    cursor.style.cssText = `
+        position: fixed; top: 50%; left: 50%; 
+        width: 35px; height: 35px; 
+        background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='35' height='35' viewBox='0 0 24 24' fill='%23E50914' stroke='white' stroke-width='1.5'><path d='M7 2l12 11.2-5.8.5 3.3 7.3-2.2.9-3.2-7.4-4.4 4.7z'/></svg>") no-repeat; 
+        z-index: 9999999; pointer-events: none; 
+        transition: opacity 0.3s ease; 
+        filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.8));
+        opacity: 0;
+    `;
+    document.body.appendChild(cursor);
+
+    let posX = window.innerWidth / 2;
+    let posY = window.innerHeight / 2;
+    const speed = 15; 
+
+    // --- 🔄 CONTINUOUS HORIZONTAL HOVER SCROLL LOGIC ---
+    let autoScrollInterval = null;
+    let scrollState = { targetX: null, dx: 0 };
+
+    function executeScroll() {
+        if (scrollState.targetX) scrollState.targetX.scrollBy({ left: scrollState.dx, behavior: 'auto' });
+    }
+
+    function evaluateHoverZone(x, y) {
+        cursor.style.display = 'none'; 
+        const target = document.elementFromPoint(x + 5, y + 5);
+        cursor.style.display = 'block';
+
+        let dx = 0;
+        let targetX = null;
+
+        if (target) {
+            // 🎯 ONLY DO HOVER SCROLLING FOR HORIZONTAL MOVIE ROWS
+            const leftArrow = target.closest('.left-arrow');
+            const rightArrow = target.closest('.right-arrow');
+            const movieRow = target.closest('.movie-row') || target.closest('.row-wrapper');
+
+            if (leftArrow) {
+                targetX = leftArrow.parentElement.querySelector('.movie-row');
+                dx = -15;
+            } else if (rightArrow) {
+                targetX = rightArrow.parentElement.querySelector('.movie-row');
+                dx = 15;
+            } else if (movieRow) {
+                const rowElem = movieRow.classList.contains('movie-row') ? movieRow : movieRow.querySelector('.movie-row');
+                if (rowElem) {
+                    const rect = rowElem.getBoundingClientRect();
+                    if (x < rect.left + 80) { targetX = rowElem; dx = -15; }
+                    else if (x > rect.right - 80) { targetX = rowElem; dx = 15; }
+                }
+            }
+        }
+
+        scrollState = { targetX, dx };
+
+        if (dx !== 0 && !autoScrollInterval) {
+            autoScrollInterval = setInterval(executeScroll, 30);
+        } else if (dx === 0 && autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+        }
+    }
+
+    // 2. PC Mouse Movement
+    document.addEventListener('mousemove', (e) => {
+        cursor.style.opacity = '1';
+        posX = e.clientX;
+        posY = e.clientY;
+        cursor.style.left = posX + 'px';
+        cursor.style.top = posY + 'px';
+        evaluateHoverZone(posX, posY);
+    });
+
+    // 3. Mobile Touch
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            cursor.style.opacity = '1';
+            posX = e.touches[0].clientX;
+            posY = e.touches[0].clientY;
+            cursor.style.left = posX + 'px';
+            cursor.style.top = posY + 'px';
+            evaluateHoverZone(posX, posY);
+        }
+    }, { passive: true });
+
+    // 4. TV Remote Input
+    document.addEventListener('keydown', (e) => {
+        const key = e.key;
+        const keyCode = e.keyCode || e.which;
+        let moved = false;
+
+        // 🛡️ Block Android TV from jumping objects
+        if ([37, 38, 39, 40].includes(keyCode)) {
+            e.preventDefault(); 
+            e.stopPropagation(); 
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                document.activeElement.blur();
+            }
+        }
+
+        if (key === 'ArrowUp' || keyCode === 38) { posY -= speed; moved = true; }
+        else if (key === 'ArrowDown' || keyCode === 40) { posY += speed; moved = true; }
+        else if (key === 'ArrowLeft' || keyCode === 37) { posX -= speed; moved = true; }
+        else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
+        
+        else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
+            // ✨ Protect typing in login box
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                return; 
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const tipX = posX + 7;
+            const tipY = posY + 2;
+            
+            cursor.style.display = 'none'; 
+            const target = document.elementFromPoint(tipX, tipY);
+            cursor.style.display = 'block';
+
+            if (target) {
+                const clickEvent = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: tipX,
+                    clientY: tipY
+                });
+                
+                target.dispatchEvent(clickEvent);
+                
+                const inputParent = target.closest('input, textarea');
+                if (inputParent) {
+                    inputParent.focus();
+                }
+            }
+        }
+
+        if (moved) {
+            cursor.style.opacity = '1';
+            
+            if (posX < 0) posX = 0;
+            if (posY < 0) posY = 0;
+            if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
+            if (posY > window.innerHeight - 30) posY = window.innerHeight - 30;
+
+            cursor.style.left = posX + 'px';
+            cursor.style.top = posY + 'px';
+
+            // 🎯 VERTICAL MANUAL SCROLL ONLY
+            let deltaY = 0;
+            if (posY > window.innerHeight - 80) deltaY = speed * 2;
+            if (posY < 80) deltaY = -speed * 2;
+
+            if (deltaY !== 0) {
+                let scrolledModal = false;
+
+                const detailsModal = document.getElementById('details-modal');
+                const actorModal = document.getElementById('actor-modal');
+                const rewardsDrawer = document.getElementById('rewards-drawer');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const searchDropdown = document.getElementById('search-dropdown');
+
+                // Details Modal Blanket Scroll
+                if (detailsModal && (detailsModal.style.display === 'block' || detailsModal.style.display === 'flex')) {
+                    detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
+                    inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
+                    scrolledModal = true;
+                } 
+                // ✨ FIX: Safe Actor Modal Scroll (No freezing calculations)
+                else if (actorModal && (actorModal.style.display === 'block' || actorModal.style.display === 'flex')) {
+                    actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    if (actorModal.firstElementChild) actorModal.firstElementChild.scrollBy({ top: deltaY, behavior: 'auto' });
+                    const inners = actorModal.querySelectorAll('.details-content, .modal-content, .actor-content, .scrollable');
+                    inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
+                    scrolledModal = true;
+                } 
+                else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
+                    rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
+                    mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (searchDropdown && searchDropdown.style.display === 'block') {
+                    searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                }
+
+                if (!scrolledModal) {
+                    window.scrollBy({ top: deltaY, behavior: 'auto' });
+                }
+            }
+
+            // Continuously scan what the cursor is hovering over for HORIZONTAL auto-scroll
+            evaluateHoverZone(posX, posY);
+        }
+    }, true);
 });
