@@ -1834,11 +1834,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🖱️ AYMOVIES VIRTUAL MOUSE ENGINE (ORIGINAL)
+// 🖱️ AYMOVIES TRUE BROWSER MOUSE ENGINE
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Create the custom Netflix-red cursor (starts hidden so it doesn't linger)
+    // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
     cursor.style.cssText = `
@@ -1846,7 +1846,7 @@ document.addEventListener('DOMContentLoaded', () => {
         width: 35px; height: 35px; 
         background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='35' height='35' viewBox='0 0 24 24' fill='%23E50914' stroke='white' stroke-width='1.5'><path d='M7 2l12 11.2-5.8.5 3.3 7.3-2.2.9-3.2-7.4-4.4 4.7z'/></svg>") no-repeat; 
         z-index: 9999999; pointer-events: none; 
-        transition: top 0.05s linear, left 0.05s linear, opacity 0.3s ease;
+        transition: opacity 0.3s ease; 
         filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.8));
         opacity: 0;
     `;
@@ -1854,7 +1854,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let posX = window.innerWidth / 2;
     let posY = window.innerHeight / 2;
-    const speed = 45; 
+    const speed = 40; // ⚙️ Change this number to make the mouse move faster or slower
 
     // 2. PC Mouse Movement: Follow cursor & reveal it
     document.addEventListener('mousemove', (e) => {
@@ -1876,12 +1876,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: true });
 
-    // 4. TV Remote Input handling
+    // 4. TV Remote Free-Roaming Input
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
+        // 🛡️ THE FIX: This absolutely blocks the Android TV from jumping objects in the background
+        if ([37, 38, 39, 40].includes(keyCode)) {
+            e.preventDefault(); 
+        }
+
+        // Move the coordinates freely like a web browser
         if (key === 'ArrowUp' || keyCode === 38) { posY -= speed; moved = true; }
         else if (key === 'ArrowDown' || keyCode === 40) { posY += speed; moved = true; }
         else if (key === 'ArrowLeft' || keyCode === 37) { posX -= speed; moved = true; }
@@ -1890,13 +1896,16 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             e.preventDefault();
             
+            // Temporarily hide the mouse so it doesn't accidentally click itself
             cursor.style.display = 'none'; 
             const target = document.elementFromPoint(posX + 5, posY + 5);
             cursor.style.display = 'block';
 
             if (target) {
-                target.click();
-                const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot, input, select');
+                target.click(); // Click exactly what is under the mouse tip
+                
+                // Fallback for icons/images inside buttons
+                const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot, input, select, #profile-icon');
                 if (clickableParent && clickableParent !== target) {
                     clickableParent.click();
                     if (clickableParent.tagName === 'INPUT' || clickableParent.tagName === 'TEXTAREA') {
@@ -1907,19 +1916,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (moved) {
-            e.preventDefault();
             cursor.style.opacity = '1';
             
+            // Keep the mouse inside the screen boundaries
             if (posX < 0) posX = 0;
             if (posY < 0) posY = 0;
             if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
             if (posY > window.innerHeight - 30) posY = window.innerHeight - 30;
 
+            // Visually move the cursor
             cursor.style.left = posX + 'px';
             cursor.style.top = posY + 'px';
 
-            if (posY > window.innerHeight - 80) window.scrollBy({ top: 100, behavior: 'smooth' });
-            if (posY < 80) window.scrollBy({ top: -100, behavior: 'smooth' });
+            // Push the page up or down if the mouse hits the top or bottom edges
+            if (posY > window.innerHeight - 80) window.scrollBy({ top: speed * 1.5, behavior: 'auto' });
+            if (posY < 80) window.scrollBy({ top: -speed * 1.5, behavior: 'auto' });
         }
     });
 });
