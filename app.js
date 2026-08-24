@@ -1834,7 +1834,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🖱️ AYMOVIES TRUE BROWSER MOUSE ENGINE (AUTO-HOVER SCROLL)
+// 🖱️ AYMOVIES TRUE BROWSER MOUSE ENGINE
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -1863,30 +1863,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let posY = window.innerHeight / 2;
     const speed = 15; 
 
-    // --- 🔄 CONTINUOUS HOVER SCROLL LOGIC ---
+    // --- 🔄 CONTINUOUS HORIZONTAL HOVER SCROLL LOGIC ---
     let autoScrollInterval = null;
-    let scrollState = { targetX: null, dx: 0, targetY: null, dy: 0 };
+    let scrollState = { targetX: null, dx: 0 };
 
-    // This function loops 30 times a second to create smooth, endless sliding
     function executeScroll() {
         if (scrollState.targetX) scrollState.targetX.scrollBy({ left: scrollState.dx, behavior: 'auto' });
-        if (scrollState.targetY) {
-            if (scrollState.targetY === window) window.scrollBy({ top: scrollState.dy, behavior: 'auto' });
-            else scrollState.targetY.scrollBy({ top: scrollState.dy, behavior: 'auto' });
-        }
     }
 
-    // This checks what is under the cursor and decides if we should start scrolling
     function evaluateHoverZone(x, y) {
         cursor.style.display = 'none'; 
         const target = document.elementFromPoint(x + 5, y + 5);
         cursor.style.display = 'block';
 
-        let dx = 0, dy = 0;
-        let targetX = null, targetY = null;
+        let dx = 0;
+        let targetX = null;
 
         if (target) {
-            // 🎯 HORIZONTAL HOVER: Scroll if parked on an arrow OR parked at the far edge of the screen
+            // 🎯 ONLY DO HOVER SCROLLING FOR HORIZONTAL MOVIE ROWS
             const leftArrow = target.closest('.left-arrow');
             const rightArrow = target.closest('.right-arrow');
             const movieRow = target.closest('.movie-row') || target.closest('.row-wrapper');
@@ -1904,40 +1898,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     else if (x > window.innerWidth - 80) { targetX = rowElem; dx = 15; }
                 }
             }
-
-            // 🎯 VERTICAL HOVER: Scroll the main page or Modal if parked at the top/bottom edge
-            if (y > window.innerHeight - 80) dy = 15;
-            else if (y < 80) dy = -15;
-
-            if (dy !== 0) {
-                const detailsModal = document.getElementById('details-modal');
-                const actorModal = document.getElementById('actor-modal');
-                const rewardsDrawer = document.getElementById('rewards-drawer');
-                const mobileMenu = document.getElementById('mobile-menu');
-                const searchDropdown = document.getElementById('search-dropdown');
-
-                if (detailsModal && detailsModal.style.display === 'block') {
-                    targetY = detailsModal.querySelector('.details-content') || detailsModal;
-                } else if (actorModal && actorModal.style.display === 'block') {
-                    targetY = actorModal;
-                } else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
-                    targetY = rewardsDrawer;
-                } else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
-                    targetY = mobileMenu;
-                } else if (searchDropdown && searchDropdown.style.display === 'block') {
-                    targetY = searchDropdown;
-                } else {
-                    targetY = window;
-                }
-            }
         }
 
-        scrollState = { targetX, dx, targetY, dy };
+        scrollState = { targetX, dx };
 
-        // Start the endless scrolling loop if hovering in a zone, or stop it if moved away
-        if ((dx !== 0 || dy !== 0) && !autoScrollInterval) {
+        if (dx !== 0 && !autoScrollInterval) {
             autoScrollInterval = setInterval(executeScroll, 30);
-        } else if (dx === 0 && dy === 0 && autoScrollInterval) {
+        } else if (dx === 0 && autoScrollInterval) {
             clearInterval(autoScrollInterval);
             autoScrollInterval = null;
         }
@@ -1971,7 +1938,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
-        // 🛡️ Block Android TV from jumping objects in the background
+        // 🛡️ Block Android TV from jumping objects
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); 
             e.stopPropagation(); 
@@ -1986,10 +1953,9 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
-            
-            // ✨ THE FIX: If they hit Enter while typing in the password box, let the form submit normally!
+            // ✨ Protect typing in login box
             if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
-                return; // Stop the virtual mouse from interfering
+                return; 
             }
 
             e.preventDefault();
@@ -2031,7 +1997,49 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.left = posX + 'px';
             cursor.style.top = posY + 'px';
 
-            // Continuously scan what the cursor is hovering over
+            // 🎯 VERTICAL MANUAL SCROLL ONLY (Triggers step-by-step per button press)
+            let deltaY = 0;
+            if (posY > window.innerHeight - 80) deltaY = speed * 2;
+            if (posY < 80) deltaY = -speed * 2;
+
+            if (deltaY !== 0) {
+                let scrolledModal = false;
+
+                const detailsModal = document.getElementById('details-modal');
+                const actorModal = document.getElementById('actor-modal');
+                const rewardsDrawer = document.getElementById('rewards-drawer');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const searchDropdown = document.getElementById('search-dropdown');
+
+                if (detailsModal && detailsModal.style.display === 'block') {
+                    const detailsContent = detailsModal.querySelector('.details-content');
+                    if (detailsContent) detailsContent.scrollBy({ top: deltaY, behavior: 'auto' });
+                    else detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (actorModal && actorModal.style.display === 'block') {
+                    actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
+                    rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
+                    mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (searchDropdown && searchDropdown.style.display === 'block') {
+                    searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                }
+
+                if (!scrolledModal) {
+                    window.scrollBy({ top: deltaY, behavior: 'auto' });
+                }
+            }
+
+            // Continuously scan what the cursor is hovering over for HORIZONTAL auto-scroll
             evaluateHoverZone(posX, posY);
         }
     }, true);
