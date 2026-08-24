@@ -2045,6 +2045,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, true);
 });
+
 // ==========================================
 // 🖱️ AYMOVIES TRUE BROWSER MOUSE ENGINE
 // ==========================================
@@ -2092,7 +2093,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let targetX = null;
 
         if (target) {
-            // 🎯 ONLY DO HOVER SCROLLING FOR HORIZONTAL MOVIE ROWS
             const leftArrow = target.closest('.left-arrow');
             const rightArrow = target.closest('.right-arrow');
             const movieRow = target.closest('.movie-row') || target.closest('.row-wrapper');
@@ -2166,8 +2166,14 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
-            // ✨ Protect typing in login box
+            
+            // ✨ FIX 1: If hitting Enter/Go on the TV keyboard while inside the password box, force submit the form!
             if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                const form = document.activeElement.closest('form');
+                if (form) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) submitBtn.click();
+                }
                 return; 
             }
 
@@ -2182,54 +2188,37 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // ✨ THE FIX: SMART NATIVE VIDEO CONTROLLER
+                // Video Player controls
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
                     const clickY = tipY - rect.top;
 
-                    // If clicking the bottom 80 pixels (where the native timeline/buttons are)
                     if (clickY > rect.height - 80) {
                         if (clickX < 60) {
-                            // Bottom-Left: Play/Pause Button
-                            if (target.paused) target.play();
-                            else target.pause();
+                            if (target.paused) target.play(); else target.pause();
                         } else if (clickX > rect.width - 60) {
-                            // Bottom-Right: Fullscreen Button
-                            if (document.fullscreenElement) {
-                                document.exitFullscreen().catch(()=>{});
-                            } else {
-                                target.requestFullscreen().catch(()=>{});
-                            }
+                            if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+                            else target.requestFullscreen().catch(()=>{});
                         } else {
-                            // Middle Bottom: Timeline Scrubber
                             const percentage = clickX / rect.width;
-                            if (target.duration) {
-                                target.currentTime = percentage * target.duration;
-                            }
+                            if (target.duration) target.currentTime = percentage * target.duration;
                         }
                     } else {
-                        // Clicking anywhere else in the video toggles Play/Pause
-                        if (target.paused) target.play();
-                        else target.pause();
+                        if (target.paused) target.play(); else target.pause();
                     }
-                    return; // Stop here, bypass the browser security block
+                    return; 
                 }
 
-                // Create a real 'bubbling' mouse click event for everything else
-                const clickEvent = new MouseEvent('click', {
-                    view: window,
-                    bubbles: true,
-                    cancelable: true,
-                    clientX: tipX,
-                    clientY: tipY
-                });
+                // ✨ FIX 2: Restored Native click() - This correctly fires Form Submits!
+                target.click(); 
                 
-                target.dispatchEvent(clickEvent);
-                
-                const inputParent = target.closest('input, textarea');
-                if (inputParent) {
-                    inputParent.focus();
+                const clickableParent = target.closest('button, a, .movie-card, .chip-btn, .hero-dot, input, select');
+                if (clickableParent && clickableParent !== target) {
+                    clickableParent.click();
+                    if (clickableParent.tagName === 'INPUT' || clickableParent.tagName === 'TEXTAREA') {
+                        clickableParent.focus();
+                    }
                 }
             }
         }
