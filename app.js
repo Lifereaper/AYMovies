@@ -1834,11 +1834,57 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 🚀 AYMOVIES SPATIAL NAVIGATION ENGINE
+// 🚀 AYMOVIES SMART ADAPTIVE POINTER ENGINE
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     let currentFocus = null;
 
+    // 1. Create a compact, clean cursor element
+    const cursor = document.createElement('div');
+    cursor.id = 'ay-adaptive-cursor';
+    cursor.style.cssText = `
+        position: fixed;
+        top: -50px; left: -50px;
+        width: 18px; height: 18px;
+        background: #E50914;
+        border: 2px solid #FFFFFF;
+        border-radius: 50%;
+        z-index: 9999999;
+        pointer-events: none;
+        opacity: 0;
+        transition: transform 0.1s ease-out, opacity 0.3s ease;
+        box-shadow: 0 0 10px rgba(229, 9, 20, 0.8);
+    `;
+    document.body.appendChild(cursor);
+
+    // 2. 💻 PC / MOUSE TRACKING (Follows actual mouse movement)
+    document.addEventListener('mousemove', (e) => {
+        cursor.style.opacity = '1';
+        cursor.style.left = `${e.clientX - 9}px`;
+        cursor.style.top = `${e.clientY - 9}px`;
+    });
+
+    document.addEventListener('mouseleave', () => {
+        cursor.style.opacity = '0';
+    });
+
+    // 3. 📱 TOUCH TRACKING (Jumps to finger tap, then fades)
+    let touchFadeTimeout = null;
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            const touch = e.touches[0];
+            cursor.style.opacity = '1';
+            cursor.style.left = `${touch.clientX - 9}px`;
+            cursor.style.top = `${touch.clientY - 9}px`;
+
+            clearTimeout(touchFadeTimeout);
+            touchFadeTimeout = setTimeout(() => {
+                cursor.style.opacity = '0';
+            }, 1200);
+        }
+    }, { passive: true });
+
+    // 4. 📺 TV SPATIAL NAVIGATION (D-Pad support)
     function getFocusableElements() {
         const activeModal = [
             document.getElementById('splash-dmca-view'),
@@ -1932,6 +1978,12 @@ document.addEventListener('DOMContentLoaded', () => {
         currentFocus = el; 
         currentFocus.classList.add('tv-focused'); 
         currentFocus.focus({ preventScroll: true }); 
+
+        // Snap the dot pointer to the focused TV element
+        const rect = el.getBoundingClientRect();
+        cursor.style.opacity = '1';
+        cursor.style.left = `${rect.left + rect.width / 2 - 9}px`;
+        cursor.style.top = `${rect.top + rect.height / 2 - 9}px`;
     }
 
     document.addEventListener('keydown', (e) => {
