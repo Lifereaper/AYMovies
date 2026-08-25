@@ -2075,20 +2075,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let posY = window.innerHeight / 2;
     const speed = 15; 
 
-    // --- 🕒 ROCK-SOLID CURSOR FADE LOGIC ---
-    let cursorTimeout = null;
-    let isFaded = true;
+    // --- 🕒 BULLETPROOF HEARTBEAT FADE LOGIC ---
+    let lastActivityTime = Date.now();
 
-    function wakeCursor() {
-        if (isFaded) {
-            cursor.style.opacity = '1';
-            isFaded = false;
-        }
-        clearTimeout(cursorTimeout);
-        cursorTimeout = setTimeout(() => {
+    // This loop checks every 500ms to see if 3 seconds have passed
+    setInterval(() => {
+        if (Date.now() - lastActivityTime >= 3000) {
             cursor.style.opacity = '0';
-            isFaded = true;
-        }, 3000); // Fades out exactly after 3 seconds of real inactivity
+        }
+    }, 500);
+
+    function registerActivity() {
+        lastActivityTime = Date.now();
+        cursor.style.opacity = '1';
     }
 
     // --- 🔄 CONTINUOUS HORIZONTAL HOVER SCROLL LOGIC ---
@@ -2130,24 +2129,19 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (dx === 0 && autoScrollInterval) { clearInterval(autoScrollInterval); autoScrollInterval = null; }
     }
 
-    // Prevent Android TV phantom mouse moves from keeping cursor awake
-    let lastMouseX = -1;
-    let lastMouseY = -1;
-
     document.addEventListener('mousemove', (e) => {
-        if (e.clientX !== lastMouseX || e.clientY !== lastMouseY) {
-            wakeCursor(); 
+        // Only register as activity if the mouse physically moved (blocks phantom signals)
+        if (Math.abs(e.movementX) > 0 || Math.abs(e.movementY) > 0) {
+            registerActivity();
             posX = e.clientX; posY = e.clientY;
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
             evaluateHoverZone(posX, posY);
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
         }
     });
 
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
-            wakeCursor(); 
+            registerActivity();
             posX = e.touches[0].clientX; posY = e.touches[0].clientY;
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
             evaluateHoverZone(posX, posY);
@@ -2172,7 +2166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
-            wakeCursor(); // Ensure cursor is visible if user hits Enter while faded
+            registerActivity();
             
             // Protect Login Boxes
             if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
@@ -2193,7 +2187,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // 1. VIDEO PLAYER CONTROLS (Pause/Play/Scrubber)
+                // 1. VIDEO PLAYER CONTROLS
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
@@ -2234,7 +2228,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (moved) {
-            wakeCursor();
+            registerActivity();
             
             if (posX < 0) posX = 0; if (posY < 0) posY = 0;
             if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
