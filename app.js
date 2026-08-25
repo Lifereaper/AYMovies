@@ -2075,10 +2075,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let posY = window.innerHeight / 2;
     const speed = 15; 
 
-    // --- 🕒 BULLETPROOF HEARTBEAT FADE LOGIC ---
+    // --- 🕒 REMOTE-ONLY FADE LOGIC ---
     let lastActivityTime = Date.now();
 
-    // This loop checks every 500ms to see if 3 seconds have passed
+    // Check every 500ms. If 3 seconds have passed since the last REMOTE click, fade it.
     setInterval(() => {
         if (Date.now() - lastActivityTime >= 3000) {
             cursor.style.opacity = '0';
@@ -2129,25 +2129,22 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (dx === 0 && autoScrollInterval) { clearInterval(autoScrollInterval); autoScrollInterval = null; }
     }
 
+    // We keep these listeners so the math doesn't break, but they NO LONGER wake the cursor!
     document.addEventListener('mousemove', (e) => {
-        // Only register as activity if the mouse physically moved (blocks phantom signals)
-        if (Math.abs(e.movementX) > 0 || Math.abs(e.movementY) > 0) {
-            registerActivity();
-            posX = e.clientX; posY = e.clientY;
-            cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
-            evaluateHoverZone(posX, posY);
-        }
+        posX = e.clientX; posY = e.clientY;
+        cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
+        evaluateHoverZone(posX, posY);
     });
 
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
-            registerActivity();
             posX = e.touches[0].clientX; posY = e.touches[0].clientY;
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
             evaluateHoverZone(posX, posY);
         }
     }, { passive: true });
 
+    // ONLY the physical remote (keyboard) is allowed to wake the cursor
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
@@ -2166,7 +2163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
-            registerActivity();
+            registerActivity(); // Wake on Enter
             
             // Protect Login Boxes
             if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
@@ -2228,7 +2225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (moved) {
-            registerActivity();
+            registerActivity(); // Wake on D-Pad movement
             
             if (posX < 0) posX = 0; if (posY < 0) posY = 0;
             if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
