@@ -1839,10 +1839,11 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 🔧 FIX: Force slider arrows visible & 🚫 KILL ALL WHITE BORDERS AND SCROLLBARS
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
         .slider-arrow, .row-arrow { opacity: 0.8 !important; }
+        
+        /* 🚫 KILL ALL WHITE BORDERS AND SCROLLBARS */
         body, html { 
             margin: 0 !important; 
             padding: 0 !important; 
@@ -1850,6 +1851,7 @@ document.addEventListener('DOMContentLoaded', () => {
             scrollbar-width: none !important; 
             -ms-overflow-style: none !important; 
         }
+        
         ::-webkit-scrollbar { 
             display: none !important; 
             width: 0px !important; 
@@ -1929,7 +1931,6 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (dx === 0 && autoScrollInterval) { clearInterval(autoScrollInterval); autoScrollInterval = null; }
     }
 
-    // Keep listeners but they DO NOT wake the cursor
     document.addEventListener('mousemove', (e) => {
         posX = e.clientX; posY = e.clientY;
         cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
@@ -1944,7 +1945,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: true });
 
-    // ONLY the physical remote wakes the cursor
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
@@ -1963,7 +1963,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
-            registerActivity(); // Wake on Enter
+            registerActivity(); 
             
             if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
                 const form = document.activeElement.closest('form');
@@ -2021,7 +2021,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (moved) {
-            registerActivity(); // Wake on D-Pad movement
+            registerActivity(); 
             
             if (posX < 0) posX = 0; if (posY < 0) posY = 0;
             if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
@@ -2029,7 +2029,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
 
-            // 🎯 VERTICAL MANUAL SCROLL ONLY
+            // 🎯 VERTICAL SCROLL LOGIC - RESTORED TO YOUR ORIGINAL WORKING CODE
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
@@ -2037,33 +2037,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (deltaY !== 0) {
                 let scrolledModal = false;
 
-                // List all potential modals
-                const activeModals = [
-                    document.getElementById('details-modal'),
-                    document.getElementById('actor-modal'),
-                    document.getElementById('rewards-drawer'),
-                    document.getElementById('mobile-menu'),
-                    document.getElementById('search-dropdown')
-                ];
+                const detailsModal = document.getElementById('details-modal');
+                const actorModal = document.getElementById('actor-modal');
+                const rewardsDrawer = document.getElementById('rewards-drawer');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const searchDropdown = document.getElementById('search-dropdown');
 
-                for (let modal of activeModals) {
-                    // Check if this modal is currently visible
-                    if (modal && (modal.style.display === 'block' || modal.style.display === 'flex' || modal.style.right === '0px' || modal.style.right === '0')) {
-                        
-                        // Scroll the main modal wrapper
-                        modal.scrollBy({ top: deltaY, behavior: 'auto' });
-                        
-                        // ✨ THE ULTIMATE FIX: Find EVERY div inside the modal and scroll it if it has a scrollbar
-                        const allDivs = modal.querySelectorAll('div');
-                        allDivs.forEach(div => {
-                            if (div.scrollHeight > div.clientHeight) {
-                                div.scrollBy({ top: deltaY, behavior: 'auto' });
-                            }
-                        });
-
-                        scrolledModal = true;
-                        break; // Stop at the first visible modal we find
-                    }
+                if (detailsModal && detailsModal.offsetParent !== null) {
+                    detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
+                    inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
+                    scrolledModal = true;
+                } 
+                else if (actorModal && actorModal.offsetParent !== null) {
+                    actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
+                    const inners = actorModal.querySelectorAll('.details-content, .modal-content, .actor-content, .scrollable');
+                    inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
+                    scrolledModal = true;
+                } 
+                else if (rewardsDrawer && rewardsDrawer.offsetParent !== null && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
+                    rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (mobileMenu && mobileMenu.offsetParent !== null && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
+                    mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
+                } 
+                else if (searchDropdown && searchDropdown.offsetParent !== null) {
+                    searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
+                    scrolledModal = true;
                 }
 
                 if (!scrolledModal) {
