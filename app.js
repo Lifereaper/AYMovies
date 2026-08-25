@@ -2071,29 +2071,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.body.appendChild(cursor);
 
-    // 2. Custom Fullscreen Button for the Video Player
-    const customFsBtn = document.createElement('div');
-    customFsBtn.id = 'tv-custom-fullscreen';
-    customFsBtn.innerHTML = `<svg fill="white" viewBox="0 0 24 24" width="24" height="24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>`;
-    customFsBtn.style.cssText = `
-        position: fixed; background: rgba(229, 9, 20, 0.95); border-radius: 8px; padding: 8px;
-        width: 45px; height: 45px; display: none; align-items: center; justify-content: center;
-        z-index: 9999998; box-shadow: 0 4px 10px rgba(0,0,0,0.8); border: 2px solid white; cursor: pointer;
-    `;
-    document.body.appendChild(customFsBtn);
-
-    setInterval(() => {
-        const vid = document.querySelector('video');
-        if (vid && vid.offsetParent !== null) { 
-            const rect = vid.getBoundingClientRect();
-            customFsBtn.style.display = 'flex';
-            customFsBtn.style.top = (rect.bottom - 60) + 'px';
-            customFsBtn.style.left = (rect.right - 65) + 'px';
-        } else {
-            customFsBtn.style.display = 'none';
-        }
-    }, 500);
-
     let posX = window.innerWidth / 2;
     let posY = window.innerHeight / 2;
     const speed = 15; 
@@ -2189,22 +2166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // 1. FULLSCREEN OVERRIDE (Clicking our custom button forces full screen)
-                const isCustomFullscreenBtn = target.id === 'tv-custom-fullscreen' || target.closest('#tv-custom-fullscreen');
-                if (isCustomFullscreenBtn) {
-                    const fsTarget = document.documentElement; 
-                    const reqFS = fsTarget.requestFullscreen || fsTarget.webkitRequestFullscreen || fsTarget.mozRequestFullScreen || fsTarget.msRequestFullscreen;
-                    
-                    if (!document.fullscreenElement) {
-                        if (reqFS) reqFS.call(fsTarget).catch(()=>{});
-                    } else {
-                        const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-                        if (exitFS) exitFS.call(document).catch(()=>{});
-                    }
-                    return; 
-                }
-
-                // 2. VIDEO PLAYER CONTROLS (Pause/Play/Scrubber)
+                // 1. VIDEO PLAYER CONTROLS (Pause/Play/Scrubber)
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
@@ -2222,14 +2184,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; 
                 }
 
-                // 3. QUALITY SELECT DROPDOWN
+                // 2. QUALITY SELECT DROPDOWN
                 if (target.tagName === 'SELECT' || target.closest('select')) {
                     const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
                     selectBox.focus();
                     return;
                 }
 
-                // 4. RESTORED CLICK EVENT FOR TRAILER & ADD TO LIST (This is what I broke)
+                // 3. CLICK EVENT FOR BUTTONS, CARDS, MODALS
                 const clickEvent = new MouseEvent('click', {
                     view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
                 });
@@ -2253,7 +2215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
 
-            // 🎯 RESTORED VERTICAL SCROLL LOGIC (This is what broke main page scrolling)
+            // 🎯 VERTICAL SCROLL LOGIC
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
@@ -2267,7 +2229,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mobileMenu = document.getElementById('mobile-menu');
                 const searchDropdown = document.getElementById('search-dropdown');
 
-                // Specifically checking if they are actually visible on screen (offsetParent !== null)
                 if (detailsModal && detailsModal.offsetParent !== null) {
                     detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
                     const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
@@ -2293,7 +2254,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     scrolledModal = true;
                 }
 
-                // If no modals were visible and scrolled, scroll the main window!
                 if (!scrolledModal) {
                     window.scrollBy({ top: deltaY, behavior: 'auto' });
                 }
