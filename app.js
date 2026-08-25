@@ -2054,6 +2054,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
         .slider-arrow, .row-arrow { opacity: 0.8 !important; }
+        /* Hide the Mini Player (Picture-in-Picture) and Overflow Menu */
+        video::-webkit-media-controls-picture-in-picture-button { display: none !important; }
+        video::-webkit-media-controls-overflow-menu-button { display: none !important; }
     `;
     document.head.appendChild(styleFix);
 
@@ -2065,7 +2068,7 @@ document.addEventListener('DOMContentLoaded', () => {
         width: 35px; height: 35px; 
         background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='35' height='35' viewBox='0 0 24 24' fill='%23E50914' stroke='white' stroke-width='1.5'><path d='M7 2l12 11.2-5.8.5 3.3 7.3-2.2.9-3.2-7.4-4.4 4.7z'/></svg>") no-repeat; 
         z-index: 9999999; pointer-events: none; 
-        transition: opacity 0.3s ease; 
+        transition: opacity 0.5s ease; /* Smooth fade effect */
         filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.8));
         opacity: 0;
     `;
@@ -2074,6 +2077,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let posX = window.innerWidth / 2;
     let posY = window.innerHeight / 2;
     const speed = 15; 
+
+    // --- 🕒 CURSOR INACTIVITY FADE LOGIC ---
+    let cursorTimeout = null;
+    function wakeCursor() {
+        cursor.style.opacity = '1';
+        clearTimeout(cursorTimeout);
+        cursorTimeout = setTimeout(() => {
+            cursor.style.opacity = '0';
+        }, 3000); // Cursor disappears after 3 seconds of no movement
+    }
 
     // --- 🔄 CONTINUOUS HORIZONTAL HOVER SCROLL LOGIC ---
     let autoScrollInterval = null;
@@ -2115,14 +2128,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('mousemove', (e) => {
-        cursor.style.opacity = '1'; posX = e.clientX; posY = e.clientY;
+        wakeCursor(); 
+        posX = e.clientX; posY = e.clientY;
         cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
         evaluateHoverZone(posX, posY);
     });
 
     document.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
-            cursor.style.opacity = '1'; posX = e.touches[0].clientX; posY = e.touches[0].clientY;
+            wakeCursor(); 
+            posX = e.touches[0].clientX; posY = e.touches[0].clientY;
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
             evaluateHoverZone(posX, posY);
         }
@@ -2207,7 +2222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (moved) {
-            cursor.style.opacity = '1';
+            wakeCursor();
             
             if (posX < 0) posX = 0; if (posY < 0) posY = 0;
             if (posX > window.innerWidth - 30) posX = window.innerWidth - 30;
