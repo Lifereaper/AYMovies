@@ -1842,21 +1842,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
         .slider-arrow, .row-arrow { opacity: 0.8 !important; }
-        
-        /* 🚫 KILL ALL WHITE BORDERS AND SCROLLBARS */
-        body, html { 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            overflow-x: hidden !important; 
-            scrollbar-width: none !important; 
-            -ms-overflow-style: none !important; 
-        }
-        
-        ::-webkit-scrollbar { 
-            display: none !important; 
-            width: 0px !important; 
-            background: transparent !important; 
-        }
     `;
     document.head.appendChild(styleFix);
 
