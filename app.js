@@ -2054,9 +2054,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const styleFix = document.createElement('style');
     styleFix.innerHTML = `
         .slider-arrow, .row-arrow { opacity: 0.8 !important; }
-        /* Hide the Mini Player (Picture-in-Picture) and Overflow Menu */
-        video::-webkit-media-controls-picture-in-picture-button { display: none !important; }
-        video::-webkit-media-controls-overflow-menu-button { display: none !important; }
     `;
     document.head.appendChild(styleFix);
 
@@ -2068,7 +2065,7 @@ document.addEventListener('DOMContentLoaded', () => {
         width: 35px; height: 35px; 
         background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='35' height='35' viewBox='0 0 24 24' fill='%23E50914' stroke='white' stroke-width='1.5'><path d='M7 2l12 11.2-5.8.5 3.3 7.3-2.2.9-3.2-7.4-4.4 4.7z'/></svg>") no-repeat; 
         z-index: 9999999; pointer-events: none; 
-        transition: opacity 0.5s ease; /* Smooth fade effect */
+        transition: opacity 0.4s ease-out; 
         filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.8));
         opacity: 0;
     `;
@@ -2078,14 +2075,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let posY = window.innerHeight / 2;
     const speed = 15; 
 
-    // --- 🕒 CURSOR INACTIVITY FADE LOGIC ---
+    // --- 🕒 ROCK-SOLID CURSOR FADE LOGIC ---
     let cursorTimeout = null;
+    let isFaded = true;
+
     function wakeCursor() {
-        cursor.style.opacity = '1';
+        if (isFaded) {
+            cursor.style.opacity = '1';
+            isFaded = false;
+        }
         clearTimeout(cursorTimeout);
         cursorTimeout = setTimeout(() => {
             cursor.style.opacity = '0';
-        }, 3000); // Cursor disappears after 3 seconds of no movement
+            isFaded = true;
+        }, 3000); // Fades out exactly after 3 seconds of real inactivity
     }
 
     // --- 🔄 CONTINUOUS HORIZONTAL HOVER SCROLL LOGIC ---
@@ -2127,11 +2130,19 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (dx === 0 && autoScrollInterval) { clearInterval(autoScrollInterval); autoScrollInterval = null; }
     }
 
+    // Prevent Android TV phantom mouse moves from keeping cursor awake
+    let lastMouseX = -1;
+    let lastMouseY = -1;
+
     document.addEventListener('mousemove', (e) => {
-        wakeCursor(); 
-        posX = e.clientX; posY = e.clientY;
-        cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
-        evaluateHoverZone(posX, posY);
+        if (e.clientX !== lastMouseX || e.clientY !== lastMouseY) {
+            wakeCursor(); 
+            posX = e.clientX; posY = e.clientY;
+            cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
+            evaluateHoverZone(posX, posY);
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        }
     });
 
     document.addEventListener('touchstart', (e) => {
@@ -2161,6 +2172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (key === 'ArrowRight' || keyCode === 39) { posX += speed; moved = true; }
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
+            wakeCursor(); // Ensure cursor is visible if user hits Enter while faded
             
             // Protect Login Boxes
             if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
