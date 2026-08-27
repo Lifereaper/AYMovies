@@ -1082,7 +1082,6 @@ document.addEventListener("DOMContentLoaded", () => {
         clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
     });
 
-    // 🚀 HELPER FUNCTION FOR ATTEMPTING STREAM LOAD IN FAILOVER LOOP
     function attemptStreamLoad(rawStreamUrl, nativePlayer, streamData, currentLang) {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
@@ -1105,7 +1104,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
                     clearTimeout(timeout);
                     
-                    // ⚙️ POPULATE ADAPTIVE BITRATE QUALITY SELECTOR DROPDOWN
                     const qualitySelect = document.getElementById('quality-select');
                     if (qualitySelect && data.levels && data.levels.length > 1) {
                         qualitySelect.innerHTML = '<option value="-1">⚙️ Auto Quality</option>';
@@ -1254,7 +1252,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     imdbId = idData.imdb_id || null;
                 } catch (e) { }
 
-                // 🚀 ROUTED THROUGH STANDALONE PROXY WORKER
                 const myScraperApiUrl = "https://twilight-mud-4868.yalex6677.workers.dev";
                 const streamType = isTV ? 'series' : 'movie';
                 let endpoint = `${myScraperApiUrl}/api/streams/${streamType}/${id}`;
@@ -1268,7 +1265,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     throw new Error("0 streams found.");
                 }
 
-                // 🇬🇧 FILTER FOR ENGLISH-ONLY PLAYABLE STREAMS
                 const playableStreams = streamData.streams.filter(s => {
                     const link = (s.url || s.playlist || s.link || '').toLowerCase();
                     const title = (s.title || s.name || '').toLowerCase();
@@ -1377,7 +1373,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     });
 
-                    // 🚀 AUTOMATIC FAILOVER LOOP (SEQUENTIALLY TRIES ENGLISH STREAMS)
                     let streamLoaded = false;
                     for (let i = 0; i < streamCandidates.length; i++) {
                         const candidate = streamCandidates[i];
@@ -1594,7 +1589,6 @@ document.addEventListener("DOMContentLoaded", () => {
         syncLocalProgressBars();
     }
 
-    // 🚀 SMART LIVE SEARCH WITH STICKY "SEE ALL RESULTS" BANNER & K-DRAMA FIX
     async function fetchLiveSearch(query) {
         const trimmed = query.trim();
         if (trimmed.length < 2) { searchDropdown.style.display = 'none'; return; }
@@ -1602,7 +1596,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const lowerQuery = trimmed.toLowerCase();
             let endpoint = `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(trimmed)}`;
 
-            // 🎯 SMART DETECTOR: Redirect K-Drama searches to TMDB Korean Language Discover
             if (lowerQuery === 'kdrama' || lowerQuery === 'k-drama' || lowerQuery === 'k drama' || lowerQuery === 'korean drama') {
                 endpoint = `${BASE_URL}/discover/tv?api_key=${API_KEY}&with_original_language=ko&sort_by=popularity.desc`;
             }
@@ -1635,7 +1628,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 searchDropdown.appendChild(resultsContainer);
 
-                // 🚀 STICKY BOTTOM BANNER FOR "SEE ALL"
                 const seeAllBtn = document.createElement('div');
                 seeAllBtn.className = 'search-item tv-focusable';
                 seeAllBtn.setAttribute('tabindex', '0');
@@ -1833,7 +1825,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-
 // ==========================================
 // 🖱️ AYMOVIES TRUE BROWSER MOUSE ENGINE
 // ==========================================
@@ -1860,7 +1851,39 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styleFix);
 
-    // 1. Create the custom Netflix-red cursor
+    // 📺 WEB-ONLY FULL-SCREEN FIX (No APK Rebuild Required!)
+    const fullscreenFix = document.createElement('style');
+    fullscreenFix.innerHTML = `
+        /* 1. Hide the broken native Android fullscreen button */
+        video::-webkit-media-controls-fullscreen-button {
+            display: none !important;
+        }
+        
+        /* 2. Force the video modal to cover the entire TV screen */
+        #video-modal:not(.mini-mode) {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 999999 !important;
+            background: #000000 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* 3. Force the actual video inside to stretch edge-to-edge */
+        #native-video-player {
+            width: 100vw !important;
+            height: 100vh !important;
+            object-fit: contain !important; /* Keeps the movie aspect ratio so it doesn't look stretched/fat */
+            background: #000000 !important;
+            border: none !important;
+            outline: none !important;
+        }
+    `;
+    document.head.appendChild(fullscreenFix);
+
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
     cursor.style.cssText = `
@@ -1878,7 +1901,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let posY = window.innerHeight / 2;
     const speed = 15; 
 
-    // --- 🕒 REMOTE-ONLY FADE LOGIC ---
     let lastActivityTime = Date.now();
 
     setInterval(() => {
@@ -1892,7 +1914,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cursor.style.opacity = '1';
     }
 
-    // --- 🔄 CONTINUOUS HORIZONTAL HOVER SCROLL LOGIC ---
     let autoScrollInterval = null;
     let scrollState = { targetX: null, dx: 0 };
 
@@ -1945,14 +1966,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: true });
 
-    // ONLY the physical remote wakes the cursor
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
-        // 🛑 THE SEARCH FIX: If you are actively typing in the search bar or login, 
-        // DO NOT intercept the remote! Let the TV keyboard work naturally.
+        // 🛑 SEARCH FIX: If actively typing in input/textarea, let the native keyboard handle keys!
         if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             if (key === 'Enter' || keyCode === 13) {
                 const form = document.activeElement.closest('form');
@@ -1961,10 +1980,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (submitBtn) submitBtn.click();
                 }
             }
-            return; // Exit the mouse engine so you can type!
+            return;
         }
 
-        // Block Android TV from jumping objects while using the virtual mouse
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); e.stopPropagation(); 
         }
@@ -1985,7 +2003,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // 1. VIDEO PLAYER CONTROLS
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
@@ -2003,21 +2020,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; 
                 }
 
-                // 2. QUALITY SELECT DROPDOWN
                 if (target.tagName === 'SELECT' || target.closest('select')) {
                     const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
                     selectBox.focus();
                     return;
                 }
 
-                // 3. 🔍 INPUT FOCUS FIX (Search & Login)
                 const inputParent = target.closest('input, textarea');
                 if (inputParent) {
                     inputParent.focus();
-                    return; // Stop here so the on-screen keyboard can pop up
+                    return;
                 }
 
-                // 4. CLICK EVENT FOR BUTTONS, CARDS, MODALS
                 const clickEvent = new MouseEvent('click', {
                     view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
                 });
@@ -2041,7 +2055,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
 
-            // 🎯 VERTICAL SCROLL LOGIC
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
@@ -2055,7 +2068,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mobileMenu = document.getElementById('mobile-menu');
                 const searchDropdown = document.getElementById('search-dropdown');
 
-                // Strictly check explicit inline styles so we never falsely block the home screen!
                 if (detailsModal && detailsModal.style.display === 'block') {
                     detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
                     const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
@@ -2081,7 +2093,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     scrolledModal = true;
                 }
 
-                // If NO modals are genuinely open, scroll the main TV browser window!
                 if (!scrolledModal) {
                     window.scrollBy({ top: deltaY, behavior: 'auto' });
                 }
