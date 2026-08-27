@@ -1945,16 +1945,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: true });
 
+    // ONLY the physical remote wakes the cursor
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
+        // 🛑 THE SEARCH FIX: If you are actively typing in the search bar or login, 
+        // DO NOT intercept the remote! Let the TV keyboard work naturally.
+        if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+            if (key === 'Enter' || keyCode === 13) {
+                const form = document.activeElement.closest('form');
+                if (form) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) submitBtn.click();
+                }
+            }
+            return; // Exit the mouse engine so you can type!
+        }
+
+        // Block Android TV from jumping objects while using the virtual mouse
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); e.stopPropagation(); 
-            if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
-                document.activeElement.blur();
-            }
         }
 
         if (key === 'ArrowUp' || keyCode === 38) { posY -= speed; moved = true; }
@@ -1964,16 +1976,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         else if (key === 'Enter' || key === 'Select' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
             registerActivity(); 
-            
-            if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-                const form = document.activeElement.closest('form');
-                if (form) {
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    if (submitBtn) submitBtn.click();
-                }
-                return; 
-            }
-
             e.preventDefault(); e.stopPropagation();
             
             const tipX = posX + 7; const tipY = posY + 2;
@@ -1983,6 +1985,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
+                // 1. VIDEO PLAYER CONTROLS
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
@@ -2000,12 +2003,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; 
                 }
 
+                // 2. QUALITY SELECT DROPDOWN
                 if (target.tagName === 'SELECT' || target.closest('select')) {
                     const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
                     selectBox.focus();
                     return;
                 }
 
+                // 3. 🔍 INPUT FOCUS FIX (Search & Login)
+                const inputParent = target.closest('input, textarea');
+                if (inputParent) {
+                    inputParent.focus();
+                    return; // Stop here so the on-screen keyboard can pop up
+                }
+
+                // 4. CLICK EVENT FOR BUTTONS, CARDS, MODALS
                 const clickEvent = new MouseEvent('click', {
                     view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
                 });
@@ -2029,7 +2041,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
 
-            // 🎯 VERTICAL SCROLL LOGIC - RESTORED TO YOUR ORIGINAL WORKING CODE
+            // 🎯 VERTICAL SCROLL LOGIC
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
@@ -2043,31 +2055,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mobileMenu = document.getElementById('mobile-menu');
                 const searchDropdown = document.getElementById('search-dropdown');
 
-                if (detailsModal && detailsModal.offsetParent !== null) {
+                // Strictly check explicit inline styles so we never falsely block the home screen!
+                if (detailsModal && detailsModal.style.display === 'block') {
                     detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
                     const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
                     inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
                     scrolledModal = true;
                 } 
-                else if (actorModal && actorModal.offsetParent !== null) {
+                else if (actorModal && actorModal.style.display === 'block') {
                     actorModal.scrollBy({ top: deltaY, behavior: 'auto' });
                     const inners = actorModal.querySelectorAll('.details-content, .modal-content, .actor-content, .scrollable');
                     inners.forEach(el => el.scrollBy({ top: deltaY, behavior: 'auto' }));
                     scrolledModal = true;
                 } 
-                else if (rewardsDrawer && rewardsDrawer.offsetParent !== null && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
+                else if (rewardsDrawer && (rewardsDrawer.style.right === '0px' || rewardsDrawer.style.right === '0')) {
                     rewardsDrawer.scrollBy({ top: deltaY, behavior: 'auto' });
                     scrolledModal = true;
                 } 
-                else if (mobileMenu && mobileMenu.offsetParent !== null && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
+                else if (mobileMenu && (mobileMenu.style.right === '0px' || mobileMenu.style.right === '0')) {
                     mobileMenu.scrollBy({ top: deltaY, behavior: 'auto' });
                     scrolledModal = true;
                 } 
-                else if (searchDropdown && searchDropdown.offsetParent !== null) {
+                else if (searchDropdown && searchDropdown.style.display === 'block') {
                     searchDropdown.scrollBy({ top: deltaY, behavior: 'auto' });
                     scrolledModal = true;
                 }
 
+                // If NO modals are genuinely open, scroll the main TV browser window!
                 if (!scrolledModal) {
                     window.scrollBy({ top: deltaY, behavior: 'auto' });
                 }
