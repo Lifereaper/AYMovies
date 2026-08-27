@@ -1859,11 +1859,14 @@ document.addEventListener('DOMContentLoaded', () => {
             display: none !important;
         }
         
-        /* Let the video perfectly fill your existing modal */
+        /* Pull the video up so the timeline/controls aren't cut off */
         #native-video-player {
             width: 100% !important;
-            height: 100% !important;
+            height: auto !important;
+            max-height: 85vh !important; /* Prevents it from pushing past the bottom of the screen */
             object-fit: contain !important;
+            margin: 0 auto !important;
+            display: block !important;
         }
     `;
     document.head.appendChild(fullscreenFix);
