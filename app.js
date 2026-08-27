@@ -1243,6 +1243,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 nativePlayer.pause();
             }
 
+            // ⏳ AUTO-HIDE TOP BUTTONS ON PLAYBACK
+            let controlHideTimeout = null;
+
+            function resetControlTimer() {
+                videoModal.classList.remove('controls-hidden');
+                if (controlHideTimeout) clearTimeout(controlHideTimeout);
+                
+                if (nativePlayer && !nativePlayer.paused) {
+                    controlHideTimeout = setTimeout(() => {
+                        videoModal.classList.add('controls-hidden');
+                    }, 3000);
+                }
+            }
+
+            if (nativePlayer) {
+                nativePlayer.addEventListener('pause', () => videoModal.classList.remove('controls-hidden'));
+                nativePlayer.addEventListener('playing', resetControlTimer);
+            }
+            window.addEventListener('mousemove', resetControlTimer);
+            window.addEventListener('keydown', resetControlTimer);
+
             try {
                 let imdbId = null;
                 try {
@@ -1474,6 +1495,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const banner = document.getElementById('loading-earn-banner');
         if (banner) banner.style.display = 'none';
 
+        videoModal.classList.remove('controls-hidden');
         videoModal.style.display = 'none';
         
         const qualitySelect = document.getElementById('quality-select');
@@ -1851,7 +1873,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styleFix);
 
-    // 📺 SAFER WEB-ONLY FULL-SCREEN FIX
+    // 📺 SAFER WEB-ONLY FULL-SCREEN FIX WITH AUTO-HIDE CONTROLS
     const fullscreenFix = document.createElement('style');
     fullscreenFix.innerHTML = `
         /* Hide the broken native Android fullscreen button */
@@ -1859,14 +1881,27 @@ document.addEventListener('DOMContentLoaded', () => {
             display: none !important;
         }
         
-        /* Pull the video up so the timeline/controls aren't cut off */
+        /* Shrink video height dynamically by 80px so the timeline controls aren't pushed off-screen */
         #native-video-player {
             width: 100% !important;
-            height: auto !important;
-            max-height: 85vh !important; /* Prevents it from pushing past the bottom of the screen */
+            height: calc(100% - 80px) !important;
             object-fit: contain !important;
             margin: 0 auto !important;
             display: block !important;
+        }
+
+        /* 🧼 Smooth transition for hiding top controls during playback */
+        #close-modal-btn, #quality-select, #btn-toggle-mini-player, #episode-indicator-text {
+            transition: opacity 0.3s ease-in-out !important;
+        }
+
+        /* Class applied to hide top controls */
+        .controls-hidden #close-modal-btn,
+        .controls-hidden #quality-select,
+        .controls-hidden #btn-toggle-mini-player,
+        .controls-hidden #episode-indicator-text {
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
     `;
     document.head.appendChild(fullscreenFix);
