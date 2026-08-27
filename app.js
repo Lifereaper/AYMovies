@@ -1851,35 +1851,19 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styleFix);
 
-    // 📺 WEB-ONLY FULL-SCREEN FIX (No APK Rebuild Required!)
+    // 📺 SAFER WEB-ONLY FULL-SCREEN FIX
     const fullscreenFix = document.createElement('style');
     fullscreenFix.innerHTML = `
-        /* 1. Hide the broken native Android fullscreen button */
+        /* Hide the broken native Android fullscreen button */
         video::-webkit-media-controls-fullscreen-button {
             display: none !important;
         }
         
-        /* 2. Force the video modal to cover the entire TV screen */
-        #video-modal:not(.mini-mode) {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            z-index: 999999 !important;
-            background: #000000 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* 3. Force the actual video inside to stretch edge-to-edge */
+        /* Let the video perfectly fill your existing modal */
         #native-video-player {
-            width: 100vw !important;
-            height: 100vh !important;
-            object-fit: contain !important; /* Keeps the movie aspect ratio so it doesn't look stretched/fat */
-            background: #000000 !important;
-            border: none !important;
-            outline: none !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
         }
     `;
     document.head.appendChild(fullscreenFix);
