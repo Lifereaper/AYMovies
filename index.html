@@ -11,7 +11,9 @@
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E50914'/><text x='50%' y='50%' font-family='Arial' font-size='45' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>AY</text></svg>">
+    <!-- 🌟 UPDATED BROWSER TAB ICON -->
+    <link rel="icon" href="app_icon.png">
+    
     <link rel="stylesheet" href="style.css?v=19">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
     
@@ -58,7 +60,7 @@
                 font-size: 0.85rem !important;
             }
             .brand-logo {
-                font-size: 20px !important;
+                height: 30px !important; /* Slightly smaller logo for mobile */
             }
         }
 
@@ -441,7 +443,7 @@
 <body>
     <!-- ⚖️ SPLASH / DMCA DISCLAIMER SCREEN -->
     <div id="splash-dmca-view" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 999999; justify-content: center; align-items: center; flex-direction: column; text-align: center; padding: 20px; box-sizing: border-box;">
-        <h1 style="color: #E50914; font-size: 4rem; margin-bottom: 20px; font-weight: 900; letter-spacing: 2px;">AYMovies</h1>
+        <img src="app_icon.png" alt="AYMovies" style="height: 100px; margin-bottom: 20px; object-fit: contain;">
         <div style="background: #181818; border: 1px solid #333; padding: 30px; border-radius: 10px; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
             <h2 style="color: white; margin-top: 0; font-size: 1.5rem; border-bottom: 1px solid #333; padding-bottom: 15px;">Legal Disclaimer</h2>
             <p style="color: #aaa; font-size: 0.95rem; line-height: 1.6; text-align: left; margin-top: 20px; margin-bottom: 25px;">
@@ -456,7 +458,9 @@
     <!-- 🔒 LOGIN VIEW -->
     <div id="login-view" class="login-container">
         <div class="login-box">
-            <h1 style="color: red; text-align: center; font-size: 2.5rem; margin-bottom: 20px;">AYMovies</h1>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="app_icon.png" alt="AYMovies" style="height: 80px; object-fit: contain;">
+            </div>
             <form id="auth-form" style="display: flex; flex-direction: column; gap: 15px;">
                 <input type="email" id="auth-email" placeholder="Email Address" required style="padding: 15px; background: #333; color: white; border: none; border-radius: 5px;">
                 <input type="password" id="auth-password" placeholder="Password" required style="padding: 15px; background: #333; color: white; border: none; border-radius: 5px;">
@@ -472,7 +476,8 @@
     <!-- 🌐 NAVBAR -->
     <header style="display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: #141414; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 1000;">
         <div style="display: flex; gap: 20px; align-items: center;">
-            <div class="brand-logo" id="btn-home" style="cursor: pointer; font-size: 28px; font-weight: bold; color: #E50914;">AYMovies</div>
+            <!-- 🌟 UPDATED HEADER LOGO -->
+            <img src="app_icon.png" class="brand-logo tv-focusable" id="btn-home" alt="AYMovies" tabindex="0" style="cursor: pointer; height: 45px; object-fit: contain;">
             <nav id="main-nav" class="desktop-nav" style="display: flex; gap: 20px; font-size: 1rem;">
                 <span class="nav-link active" data-view="home">Home</span>
                 <span class="nav-link" data-view="tv">TV Shows</span>
