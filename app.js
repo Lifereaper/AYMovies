@@ -1887,15 +1887,37 @@ document.addEventListener('DOMContentLoaded', () => {
             width: 0px !important; 
             background: transparent !important; 
         }
+    `;
+    document.head.appendChild(styleFix);
 
-        /* STANDARD MOBILE VIDEO PLAYER STYLING */
+    // 📱 MOBILE VIDEO MODAL FIT FIX (No Scrolling Required)
+    const mobileLayoutFix = document.createElement('style');
+    mobileLayoutFix.innerHTML = `
+        #video-modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            background: #000000 !important;
+            overflow: hidden !important;
+            z-index: 999999 !important;
+        }
+
         #native-video-player {
             width: 100% !important;
             height: 100% !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
             object-fit: contain !important;
         }
     `;
-    document.head.appendChild(styleFix);
+    document.head.appendChild(mobileLayoutFix);
 
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
