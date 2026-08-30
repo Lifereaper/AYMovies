@@ -1,14 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-    getAuth, 
-    signInWithEmailAndPassword, 
-    onAuthStateChanged, 
-    signOut, 
-    sendPasswordResetEmail, 
-    deleteUser,
-    setPersistence,
-    browserLocalPersistence 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -24,7 +15,6 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
-
 const db = initializeFirestore(firebaseApp, {
     experimentalForceLongPolling: true
 });
@@ -63,25 +53,18 @@ window.scrollRow = function (rowId, direction) {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Safely apply auth persistence after DOM is fully loaded
-    setPersistence(auth, browserLocalPersistence).catch((err) => {
-        console.error("Auth persistence error:", err);
-    });
-
     const splashDmcaView = document.getElementById('splash-dmca-view');
     const btnAcceptDmca = document.getElementById('btn-accept-dmca');
 
     if (!localStorage.getItem('ay_dmca_accepted')) {
-        if (splashDmcaView) splashDmcaView.style.display = 'flex';
+        splashDmcaView.style.display = 'flex';
     }
 
     if (btnAcceptDmca) {
         btnAcceptDmca.addEventListener('click', () => {
             localStorage.setItem('ay_dmca_accepted', 'true');
-            if (splashDmcaView) {
-                splashDmcaView.style.opacity = '0';
-                setTimeout(() => { splashDmcaView.style.display = 'none'; }, 300);
-            }
+            splashDmcaView.style.opacity = '0';
+            setTimeout(() => { splashDmcaView.style.display = 'none'; }, 300);
         });
     }
     
@@ -129,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let localProgressTrackerInterval = null;
     let loadingBannerTimer = null;
     
+    // 🚀 ROUTED THROUGH STANDALONE PROXY WORKER
     const LOCAL_API_URL = "https://twilight-mud-4868.yalex6677.workers.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
@@ -524,9 +508,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const avatarDropdown = document.getElementById('avatar-dropdown');
     const customAvatars = ['👤', '🔴', '🔵', '🟢', '👾', '🐧', '😎', '🍿', '👻', '👑', '👽', '🤖', '🦊', '🐯', '🍕', '🎬', '🎮', '🔥', '💎', '🚀', '🐼', '🐉', '🎸', '🌮'];
 
-    if (profileIcon) {
-        profileIcon.addEventListener('click', () => { avatarDropdown.style.display = avatarDropdown.style.display === 'flex' ? 'none' : 'flex'; });
-    }
+    profileIcon.addEventListener('click', () => { avatarDropdown.style.display = avatarDropdown.style.display === 'flex' ? 'none' : 'flex'; });
 
     customAvatars.forEach(av => {
         const span = document.createElement('span');
@@ -537,13 +519,13 @@ document.addEventListener("DOMContentLoaded", () => {
         span.onmouseover = () => span.style.transform = "scale(1.3)";
         span.onmouseout = () => span.style.transform = "scale(1)";
         span.onclick = () => {
-            if (profileIcon) profileIcon.innerText = av;
+            profileIcon.innerText = av;
             const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
             if (mobileMenuAvatar) mobileMenuAvatar.innerText = av;
-            if (avatarDropdown) avatarDropdown.style.display = 'none';
+            avatarDropdown.style.display = 'none';
             if (currentUserUid) saveUserData();
         };
-        if (avatarDropdown) avatarDropdown.appendChild(span);
+        avatarDropdown.appendChild(span);
     });
 
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -607,7 +589,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
 
-                if (profileIcon) profileIcon.innerText = data.avatar || '👤';
+                profileIcon.innerText = data.avatar || '👤';
                 myList = data.myList || [];
                 continueWatching = data.continueWatching || [];
                 alreadyWatched = data.alreadyWatched || [];
@@ -661,7 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
         progressMap['_active_device_'] = myDeviceId;
         const payload = {
             action: "save", uid: currentUserUid, email: window.currentUserEmail,
-            userData: { avatar: profileIcon ? profileIcon.innerText : '👤', myList: myList, continueWatching: continueWatching, alreadyWatched: alreadyWatched, progress: progressMap }
+            userData: { avatar: profileIcon.innerText, myList: myList, continueWatching: continueWatching, alreadyWatched: alreadyWatched, progress: progressMap }
         };
         try { fetch(GOOGLE_SHEET_URL, { method: "POST", mode: "cors", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }); } catch (e) { }
     }
@@ -685,8 +667,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function initializeFreshProfile() {
-        if (profileIcon) profileIcon.innerText = '👤'; 
-        myList = []; continueWatching = []; alreadyWatched = []; progressMap = {}; window.userTotalPoints = 0.00;
+        profileIcon.innerText = '👤'; myList = []; continueWatching = []; alreadyWatched = []; progressMap = {}; window.userTotalPoints = 0.00;
         updatePointsUI();
         const mobileMenuAvatar = document.getElementById('mobile-menu-avatar');
         const mobileMenuEmail = document.getElementById('mobile-menu-email');
@@ -702,8 +683,8 @@ document.addEventListener("DOMContentLoaded", () => {
         updateHeroBillboard(trendingMoviesList[currentHeroIndex]);
         startHeroRotationLoop();
     }
-    if (heroPrev) heroPrev.addEventListener('click', () => shiftHero('prev'));
-    if (heroNext) heroNext.addEventListener('click', () => shiftHero('next'));
+    heroPrev.addEventListener('click', () => shiftHero('prev'));
+    heroNext.addEventListener('click', () => shiftHero('next'));
 
     const detailsModal = document.getElementById('details-modal');
     const closeDetailsBtn = document.getElementById('close-details-btn');
@@ -723,60 +704,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const actorMoviesRow = document.getElementById('actor-movies-row');
 
     if (closeActorBtn) closeActorBtn.addEventListener('click', () => { actorModal.style.display = 'none'; });
-    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', () => { mobileMenu.style.right = '0'; });
-    if (closeMobileMenu) closeMobileMenu.addEventListener('click', () => { mobileMenu.style.right = '-100%'; });
+    mobileMenuBtn.addEventListener('click', () => { mobileMenu.style.right = '0'; });
+    closeMobileMenu.addEventListener('click', () => { mobileMenu.style.right = '-100%'; });
 
-    function handleLogout() { if (mobileMenu) mobileMenu.style.right = '-100%'; signOut(auth); }
-    if (btnLogout) btnLogout.addEventListener('click', handleLogout);
-    if (btnLogoutMobile) btnLogoutMobile.addEventListener('click', handleLogout);
+    function handleLogout() { mobileMenu.style.right = '-100%'; signOut(auth); }
+    btnLogout.addEventListener('click', handleLogout);
+    btnLogoutMobile.addEventListener('click', handleLogout);
 
-    // CLEAN AUTH STATE SWITCHER
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            if (currentUserUid !== user.uid) {
-                continueWatching = [];
-                alreadyWatched = [];
-                myList = [];
-                progressMap = {};
-                window.userTotalPoints = 0.00;
-                dataLoadedFromCloud = false;
-            }
-
-            currentUserUid = user.uid; 
-            window.currentUserEmail = user.email || "Registered User"; 
-            if (loginView) loginView.style.display = 'none';
-            
-            myDeviceId = 'app_' + user.uid.substring(0, 8) + '_' + Math.random().toString(36).substr(2, 5);
-            localStorage.setItem('ay_device_id', myDeviceId);
-
+            if (currentUserUid === user.uid) return;
+            currentUserUid = user.uid; window.currentUserEmail = user.email || "Registered User"; loginView.style.display = 'none';
             loadCategoryView('home');
             fetchUserData().then(() => { renderPersonalizedRows(); });
         } else {
-            currentUserUid = null; 
-            window.currentUserEmail = null; 
-            continueWatching = []; 
-            alreadyWatched = []; 
-            myList = []; 
-            progressMap = {};
-            dataLoadedFromCloud = false;
-            
-            localStorage.removeItem('ay_device_id');
-            
-            if (loginView) loginView.style.display = 'flex'; 
-            if (rotationIntervalId) clearInterval(rotationIntervalId);
+            currentUserUid = null; window.currentUserEmail = null; continueWatching = []; alreadyWatched = []; myList = []; progressMap = {};
+            loginView.style.display = 'flex'; if (rotationIntervalId) clearInterval(rotationIntervalId);
         }
     });
 
-    if (authForm) {
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); authErrorMsg.style.color = "white"; authErrorMsg.innerText = "Checking credentials...";
-            try { await signInWithEmailAndPassword(auth, authEmailInput.value, authPasswordInput.value); authErrorMsg.innerText = ""; } 
-            catch (error) { authErrorMsg.style.color = "#E50914"; authErrorMsg.innerText = "Incorrect email or password."; }
-        });
-    }
+    authForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); authErrorMsg.style.color = "white"; authErrorMsg.innerText = "Checking credentials...";
+        try { await signInWithEmailAndPassword(auth, authEmailInput.value, authPasswordInput.value); authErrorMsg.innerText = ""; } 
+        catch (error) { authErrorMsg.style.color = "#E50914"; authErrorMsg.innerText = "Incorrect email or password."; }
+    });
 
     async function triggerSurprise() {
-        if (mobileMenu) mobileMenu.style.right = '-100%';
+        mobileMenu.style.right = '-100%';
         try {
             const res = await fetch(`${BASE_URL}/trending/all/week?api_key=${API_KEY}`);
             const data = await res.json();
@@ -784,9 +738,8 @@ document.addEventListener("DOMContentLoaded", () => {
             openDetailsModal(randomItem.id, randomItem.media_type === 'tv');
         } catch (e) { }
     }
-    const btnSurprise = document.getElementById('btn-surprise');
-    if (btnSurprise) btnSurprise.addEventListener('click', triggerSurprise);
-    if (btnSurpriseMobile) btnSurpriseMobile.addEventListener('click', triggerSurprise);
+    document.getElementById('btn-surprise').addEventListener('click', triggerSurprise);
+    btnSurpriseMobile.addEventListener('click', triggerSurprise);
 
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -794,7 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             const view = e.target.getAttribute('data-view');
             document.querySelectorAll(`[data-view="${view}"]`).forEach(l => l.classList.add('active'));
-            if (mobileMenu) mobileMenu.style.right = '-100%';
+            mobileMenu.style.right = '-100%';
             loadCategoryView(view);
         });
     });
@@ -862,14 +815,14 @@ document.addEventListener("DOMContentLoaded", () => {
         renderSkeletons(row1); renderSkeletons(row2); renderSkeletons(row3); renderSkeletons(row4);
         try {
             if (viewType === 'home') {
-                if (top10Container) top10Container.style.display = 'block'; renderSkeletons(top10Row, 10, true);
+                top10Container.style.display = 'block'; renderSkeletons(top10Row, 10, true);
                 const tData = await (await fetch(`${BASE_URL}/trending/all/day?api_key=${API_KEY}`)).json();
                 populateTop10Row(tData.results.slice(0, 10), top10Row); populateRow(tData.results, row1, false); setupHero(tData.results.slice(0, 5));
                 const aData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=28`)).json(); populateRow(aData.results, row2, false);
                 const cData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=35`)).json(); populateRow(cData.results, row3, false);
                 const sData = await (await fetch(`${BASE_URL}/trending/tv/day?api_key=${API_KEY}`)).json(); populateRow(sData.results, row4, true);
             } else if (viewType === 'animations') {
-                if (top10Container) top10Container.style.display = 'none';
+                top10Container.style.display = 'none';
                 if (title1) title1.innerText = currentLang === 'es' ? "🍿 Top Películas de Animación" : "🍿 Top Animated Movies";
                 if (title2) title2.innerText = currentLang === 'es' ? "🎌 Anime y Series Animadas" : "🎌 Anime & Animated Series";
                 if (title3) title3.innerText = currentLang === 'es' ? "🧸 Animación Familiar" : "🧸 Family Animation";
@@ -880,7 +833,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const familyAnimData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16,10751&sort_by=popularity.desc`)).json(); populateRow(familyAnimData.results, row3, false);
                 const trendingAnimData = await (await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=16&sort_by=vote_count.desc`)).json(); populateRow(trendingAnimData.results, row4, false);
             } else {
-                if (top10Container) top10Container.style.display = 'none';
+                top10Container.style.display = 'none';
                 if (viewType === 'tv') {
                     if (title1) title1.innerText = currentLang === 'es' ? "📺 Top Series de TV" : "📺 Top TV Shows";
                     if (title2) title2.innerText = currentLang === 'es' ? "🦸‍♂️ TV de Acción" : "🦸‍♂️ Action TV";
@@ -907,7 +860,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderHeroDots() {
-        if (!heroDotsContainer) return;
         heroDotsContainer.innerHTML = '';
         trendingMoviesList.forEach((_, idx) => {
             const dot = document.createElement('div');
@@ -934,11 +886,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const recContainer = document.getElementById('recommended-container'); const recRow = document.getElementById('recommended-row');
         const communityContainer = document.getElementById('community-container'); const communityRow = document.getElementById('community-row');
 
-        if (myListContainer) myListContainer.style.display = myList.length > 0 ? 'block' : 'none';
-        if (myList.length > 0 && myListRow) populateRow(myList, myListRow, false);
-
-        if (awContainer) awContainer.style.display = alreadyWatched.length > 0 ? 'block' : 'none';
-        if (alreadyWatched.length > 0 && awRow) populateRow(alreadyWatched, awRow, false);
+        if (myList.length > 0) { myListContainer.style.display = 'block'; populateRow(myList, myListRow, false); } else { myListContainer.style.display = 'none'; }
+        if (alreadyWatched.length > 0) { awContainer.style.display = 'block'; populateRow(alreadyWatched, awRow, false); } else { awContainer.style.display = 'none'; }
 
         if (globalCommunityMovies.length > 0 && communityContainer && communityRow) {
             communityContainer.style.display = 'block'; communityRow.innerHTML = '';
@@ -959,17 +908,17 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         } else if (communityContainer) { communityContainer.style.display = 'none'; }
 
-        if (continueWatching.length > 0 && cwContainer && cwRow) {
+        if (continueWatching.length > 0) {
             cwContainer.style.display = 'block'; populateRow(continueWatching, cwRow, false);
             const lastWatched = continueWatching[0];
             fetch(`${BASE_URL}/${lastWatched.media_type}/${lastWatched.id}/similar?api_key=${API_KEY}`)
                 .then(res => res.json()).then(data => {
-                    if (data.results && data.results.length > 0 && recContainer && recRow) {
+                    if (data.results && data.results.length > 0) {
                         recContainer.style.display = 'block'; const formattedRecs = data.results.map(item => ({ ...item, media_type: lastWatched.media_type }));
                         populateRow(formattedRecs, recRow, lastWatched.media_type === 'tv'); syncLocalProgressBars();
-                    } else if (recContainer) { recContainer.style.display = 'none'; }
-                }).catch(e => { if (recContainer) recContainer.style.display = 'none'; });
-        } else { if (cwContainer) cwContainer.style.display = 'none'; if (recContainer) recContainer.style.display = 'none'; }
+                    } else { recContainer.style.display = 'none'; }
+                }).catch(e => { recContainer.style.display = 'none'; });
+        } else { cwContainer.style.display = 'none'; recContainer.style.display = 'none'; }
 
         syncLocalProgressBars();
     }
@@ -995,106 +944,85 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res = await fetch(`${BASE_URL}/person/${personId}?api_key=${API_KEY}&append_to_response=combined_credits`);
             const data = await res.json();
-            if (actorNameEl) actorNameEl.innerText = data.name; 
-            if (actorBioEl) actorBioEl.innerText = data.biography || "No biography available.";
-            if (actorPhotoEl) actorPhotoEl.src = data.profile_path ? `${IMAGE_BASE_URL}${data.profile_path}` : 'https://via.placeholder.com/200x300?text=No+Image';
+            actorNameEl.innerText = data.name; actorBioEl.innerText = data.biography || "No biography available.";
+            actorPhotoEl.src = data.profile_path ? `${IMAGE_BASE_URL}${data.profile_path}` : 'https://via.placeholder.com/200x300?text=No+Image';
             const sortedMovies = data.combined_credits.cast.sort((a, b) => b.popularity - a.popularity);
-            if (actorMoviesRow) populateRow(sortedMovies, actorMoviesRow, false); 
-            if (actorModal) actorModal.style.display = 'block';
+            populateRow(sortedMovies, actorMoviesRow, false); actorModal.style.display = 'block';
         } catch (e) { }
     }
 
     async function openDetailsModal(id, isTV) {
         try {
-            const detailsContent = document.querySelector('.details-content');
-            if (detailsContent) detailsContent.scrollTop = 0;
-            clearTimeout(modalTrailerTimeout); 
-            if (modalTrailerFrame) { modalTrailerFrame.src = ""; modalTrailerFrame.style.display = 'none'; }
+            document.querySelector('.details-content').scrollTop = 0;
+            clearTimeout(modalTrailerTimeout); modalTrailerFrame.src = ""; modalTrailerFrame.style.display = 'none';
 
             const type = isTV ? 'tv' : 'movie';
             const res = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}&append_to_response=credits,similar`);
             const data = await res.json();
 
             data.media_type = type; currentModalData = data;
-            const detailsTitle = document.getElementById('details-title');
-            const detailsDesc = document.getElementById('details-desc');
-            const detailsRating = document.getElementById('details-rating');
-            const detailsYear = document.getElementById('details-year');
-            const detailsHero = document.getElementById('details-hero');
-
-            if (detailsTitle) detailsTitle.innerText = data.title || data.name;
-            if (detailsDesc) detailsDesc.innerText = data.overview || "No description available.";
-            if (detailsRating) detailsRating.innerText = `⭐ ${parseFloat(data.vote_average).toFixed(1)} Rating`;
+            document.getElementById('details-title').innerText = data.title || data.name;
+            document.getElementById('details-desc').innerText = data.overview || "No description available.";
+            document.getElementById('details-rating').innerText = `⭐ ${parseFloat(data.vote_average).toFixed(1)} Rating`;
 
             const releaseDate = data.release_date || data.first_air_date;
-            if (detailsYear) detailsYear.innerText = releaseDate ? releaseDate.substring(0, 4) : "N/A";
-            if (detailsHero) detailsHero.style.backgroundImage = `url('${HERO_IMAGE_BASE_URL}${data.backdrop_path || data.poster_path}')`;
+            document.getElementById('details-year').innerText = releaseDate ? releaseDate.substring(0, 4) : "N/A";
+            document.getElementById('details-hero').style.backgroundImage = `url('${HERO_IMAGE_BASE_URL}${data.backdrop_path || data.poster_path}')`;
 
-            const castContainer = document.getElementById('details-cast'); 
-            if (castContainer) {
-                castContainer.innerHTML = '';
-                if (data.credits && data.credits.cast && data.credits.cast.length > 0) {
-                    data.credits.cast.slice(0, 6).forEach((c, index) => {
-                        const span = document.createElement('span'); span.innerText = c.name + (index < 5 ? ", " : "");
-                        span.style.cssText = "cursor: pointer; color: #fff; text-decoration: underline; margin-right: 5px; transition: color 0.2s;";
-                        span.className = 'tv-focusable'; span.setAttribute('tabindex', '0'); span.onclick = () => openActorModal(c.id);
-                        castContainer.appendChild(span);
-                    });
-                } else { castContainer.innerText = "Cast information unavailable."; }
-            }
+            const castContainer = document.getElementById('details-cast'); castContainer.innerHTML = '';
+            if (data.credits && data.credits.cast && data.credits.cast.length > 0) {
+                data.credits.cast.slice(0, 6).forEach((c, index) => {
+                    const span = document.createElement('span'); span.innerText = c.name + (index < 5 ? ", " : "");
+                    span.style.cssText = "cursor: pointer; color: #fff; text-decoration: underline; margin-right: 5px; transition: color 0.2s;";
+                    span.className = 'tv-focusable'; span.setAttribute('tabindex', '0'); span.onclick = () => openActorModal(c.id);
+                    castContainer.appendChild(span);
+                });
+            } else { castContainer.innerText = "Cast information unavailable."; }
 
-            if (modalSimilarRow) {
-                if (data.similar && data.similar.results && data.similar.results.length > 0) {
-                    const formattedSimilar = data.similar.results.map(item => ({ ...item, media_type: type }));
-                    populateRow(formattedSimilar, modalSimilarRow, isTV);
-                } else { modalSimilarRow.innerHTML = "<p style='color: #aaa;'>No similar shows found.</p>"; }
-            }
+            if (data.similar && data.similar.results && data.similar.results.length > 0) {
+                const formattedSimilar = data.similar.results.map(item => ({ ...item, media_type: type }));
+                populateRow(formattedSimilar, modalSimilarRow, isTV);
+            } else { modalSimilarRow.innerHTML = "<p style='color: #aaa;'>No similar shows found.</p>"; }
 
             const dict = translations[currentLang] || translations.en;
 
             let isInList = myList.some(m => m.id === id);
-            if (detailsMylistBtn) {
+            detailsMylistBtn.innerText = isInList ? dict.myListAdded : dict.myListAdd;
+            detailsMylistBtn.style.backgroundColor = isInList ? "#46d369" : "rgba(109, 109, 110, 0.7)";
+            detailsMylistBtn.onclick = () => {
+                toggleMyList(currentModalData); isInList = !isInList;
                 detailsMylistBtn.innerText = isInList ? dict.myListAdded : dict.myListAdd;
                 detailsMylistBtn.style.backgroundColor = isInList ? "#46d369" : "rgba(109, 109, 110, 0.7)";
-                detailsMylistBtn.onclick = () => {
-                    toggleMyList(currentModalData); isInList = !isInList;
-                    detailsMylistBtn.innerText = isInList ? dict.myListAdded : dict.myListAdd;
-                    detailsMylistBtn.style.backgroundColor = isInList ? "#46d369" : "rgba(109, 109, 110, 0.7)";
-                };
-            }
+            };
 
-            const detailsBtnGroup = document.getElementById('details-btn-group') || (detailsPlayBtn ? detailsPlayBtn.parentElement : null);
+            const detailsBtnGroup = document.getElementById('details-btn-group') || detailsPlayBtn.parentElement;
             const oldShareBtn = document.getElementById('details-community-btn');
             if (oldShareBtn) oldShareBtn.remove();
+            const communityShareBtn = document.createElement('button');
+            communityShareBtn.id = "details-community-btn"; communityShareBtn.className = "tv-focusable"; communityShareBtn.setAttribute('tabindex', '0');
+            communityShareBtn.style.cssText = "padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(229, 9, 20, 0.2); color: #fff; border: 1px solid #E50914; border-radius: 5px; cursor: pointer; transition: 0.2s;";
             
-            if (detailsBtnGroup) {
-                const communityShareBtn = document.createElement('button');
-                communityShareBtn.id = "details-community-btn"; communityShareBtn.className = "tv-focusable"; communityShareBtn.setAttribute('tabindex', '0');
-                communityShareBtn.style.cssText = "padding: 12px 30px; font-size: 1.2rem; font-weight: bold; background: rgba(229, 9, 20, 0.2); color: #fff; border: 1px solid #E50914; border-radius: 5px; cursor: pointer; transition: 0.2s;";
-                communityShareBtn.innerText = dict.shareCommunityBtn; 
-                communityShareBtn.onmouseover = () => communityShareBtn.style.background = "#E50914";
-                communityShareBtn.onmouseout = () => communityShareBtn.style.background = "rgba(229, 9, 20, 0.2)";
-                communityShareBtn.onclick = () => { shareMovieToCommunity(currentModalData); };
-                detailsBtnGroup.appendChild(communityShareBtn);
-            }
+            communityShareBtn.innerText = dict.shareCommunityBtn; 
+            
+            communityShareBtn.onmouseover = () => communityShareBtn.style.background = "#E50914";
+            communityShareBtn.onmouseout = () => communityShareBtn.style.background = "rgba(229, 9, 20, 0.2)";
+            communityShareBtn.onclick = () => { shareMovieToCommunity(currentModalData); };
+            detailsBtnGroup.appendChild(communityShareBtn);
 
             modalTrailerTimeout = setTimeout(async () => {
                 const trailerKey = await fetchMovieTrailer(id, isTV);
-                if (trailerKey && modalTrailerFrame) { modalTrailerFrame.style.display = 'block'; modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=0&controls=0&showinfo=0&rel=0`; }
+                if (trailerKey) { modalTrailerFrame.style.display = 'block'; modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=0&controls=0&showinfo=0&rel=0`; }
             }, 500);
 
-            if (detailsTrailerBtn) {
-                detailsTrailerBtn.onclick = async () => {
-                    clearTimeout(modalTrailerTimeout);
-                    const trailerKey = await fetchMovieTrailer(id, isTV);
-                    if (trailerKey && modalTrailerFrame) { modalTrailerFrame.style.display = 'block'; modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=1&showinfo=0&rel=0`; } 
-                    else { showCustomAlert("Trailer not available for this title."); }
-                };
-            }
+            detailsTrailerBtn.onclick = async () => {
+                clearTimeout(modalTrailerTimeout);
+                const trailerKey = await fetchMovieTrailer(id, isTV);
+                if (trailerKey) { modalTrailerFrame.style.display = 'block'; modalTrailerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=1&showinfo=0&rel=0`; } 
+                else { showCustomAlert("Trailer not available for this title."); }
+            };
 
             if (isTV) {
-                if (modalTvControls) modalTvControls.style.display = 'flex'; 
-                if (modalSeasonSelect) modalSeasonSelect.innerHTML = '';
+                modalTvControls.style.display = 'flex'; modalSeasonSelect.innerHTML = '';
                 const tvMemory = progressMap[id] && typeof progressMap[id] === 'object' ? progressMap[id] : null;
                 const resumeSeason = tvMemory ? tvMemory.lastSeason : 1; const resumeEpisode = tvMemory ? tvMemory.lastEpisode : 1;
 
@@ -1102,35 +1030,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 validSeasons.forEach(s => {
                     const option = document.createElement('option'); option.value = s.season_number; option.innerText = `Season ${s.season_number}`;
                     if (parseInt(s.season_number) === parseInt(resumeSeason)) option.selected = true;
-                    if (modalSeasonSelect) modalSeasonSelect.appendChild(option);
+                    modalSeasonSelect.appendChild(option);
                 });
 
-                if (validSeasons.length > 0 && modalSeasonSelect) { await populateModalEpisodes(id, modalSeasonSelect.value); }
-                if (modalEpisodeSelect && modalEpisodeSelect.children.length >= resumeEpisode) { modalEpisodeSelect.value = resumeEpisode; }
-                if (modalSeasonSelect) modalSeasonSelect.onchange = async (e) => { await populateModalEpisodes(id, e.target.value); };
+                if (validSeasons.length > 0) { await populateModalEpisodes(id, modalSeasonSelect.value); }
+                if (modalEpisodeSelect.children.length >= resumeEpisode) { modalEpisodeSelect.value = resumeEpisode; }
+                modalSeasonSelect.onchange = async (e) => { await populateModalEpisodes(id, e.target.value); };
 
-                if (detailsPlayBtn) {
-                    detailsPlayBtn.onclick = (e) => {
-                        if (e) { e.preventDefault(); e.stopPropagation(); }
-                        clearTimeout(modalTrailerTimeout); 
-                        if (detailsModal) detailsModal.style.display = 'none'; 
-                        if (modalTrailerFrame) modalTrailerFrame.src = "";
-                        try { addToContinueWatching(currentModalData); } catch (err) { }
-                        launchVideoStream(id, true, modalSeasonSelect.value, modalEpisodeSelect.value);
-                    };
-                }
+                detailsPlayBtn.onclick = (e) => {
+                    if (e) { e.preventDefault(); e.stopPropagation(); }
+                    clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
+                    try { addToContinueWatching(currentModalData); } catch (err) { }
+                    launchVideoStream(id, true, modalSeasonSelect.value, modalEpisodeSelect.value);
+                };
             } else {
-                if (modalTvControls) modalTvControls.style.display = 'none';
-                if (detailsPlayBtn) {
-                    detailsPlayBtn.onclick = (e) => {
-                        if (e) { e.preventDefault(); e.stopPropagation(); }
-                        clearTimeout(modalTrailerTimeout); 
-                        if (detailsModal) detailsModal.style.display = 'none'; 
-                        if (modalTrailerFrame) modalTrailerFrame.src = "";
-                        try { addToContinueWatching(currentModalData); } catch (err) { }
-                        launchVideoStream(id, false);
-                    };
-                }
+                modalTvControls.style.display = 'none';
+                detailsPlayBtn.onclick = (e) => {
+                    if (e) { e.preventDefault(); e.stopPropagation(); }
+                    clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
+                    try { addToContinueWatching(currentModalData); } catch (err) { }
+                    launchVideoStream(id, false);
+                };
             }
             
             document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('user-reacted'));
@@ -1140,14 +1060,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (activeBtn) activeBtn.classList.add('user-reacted');
             }
 
-            if (detailsModal) detailsModal.style.display = 'block'; 
-            updateEmojiUI(id.toString());
+            detailsModal.style.display = 'block'; updateEmojiUI(id.toString());
 
         } catch (error) { console.error("Failed to load details modal:", error); }
     }
 
     async function populateModalEpisodes(tvId, seasonNumber) {
-        if (!modalEpisodeSelect) return;
         modalEpisodeSelect.innerHTML = '<option>Loading...</option>';
         try {
             const res = await fetch(`${BASE_URL}/tv/${tvId}/season/${seasonNumber}?api_key=${API_KEY}`);
@@ -1160,13 +1078,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (e) { }
     }
 
-    if (closeDetailsBtn) {
-        closeDetailsBtn.addEventListener('click', () => {
-            clearTimeout(modalTrailerTimeout); 
-            if (detailsModal) detailsModal.style.display = 'none'; 
-            if (modalTrailerFrame) modalTrailerFrame.src = "";
-        });
-    }
+    closeDetailsBtn.addEventListener('click', () => {
+        clearTimeout(modalTrailerTimeout); detailsModal.style.display = 'none'; modalTrailerFrame.src = "";
+    });
 
     function attemptStreamLoad(rawStreamUrl, nativePlayer, streamData, currentLang) {
         return new Promise((resolve, reject) => {
@@ -1282,17 +1196,17 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             requestWakeLock();
-            try { if (heroPlayerFrame) heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch (e) { }
+            try { heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch (e) { }
 
             const dict = translations[currentLang] || translations.en;
-            if (episodeIndicatorText) episodeIndicatorText.innerText = isTV ? `${dict.playingLabel} ${season}, ${dict.episodeLabel} ${episode}` : "";
+            episodeIndicatorText.innerText = isTV ? `${dict.playingLabel} ${season}, ${dict.episodeLabel} ${episode}` : "";
 
             if (serverSelect) serverSelect.style.display = 'none';
 
-            if (videoModal) videoModal.style.display = 'block';
+            videoModal.style.display = 'block';
             
             let loadingBanner = document.getElementById('loading-earn-banner');
-            if (!loadingBanner && videoModal) {
+            if (!loadingBanner) {
                 loadingBanner = document.createElement('div');
                 loadingBanner.id = 'loading-earn-banner';
                 loadingBanner.style.cssText = 'position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 15, 15, 0.96); color: #ffd700; padding: 25px 40px; font-size: 1.6rem; font-weight: bold; border-radius: 12px; border: 2px solid #E50914; z-index: 99999; text-align: center; transition: opacity 0.5s ease; pointer-events: none; box-shadow: 0 0 35px rgba(229, 9, 20, 0.7); font-family: Arial, sans-serif;';
@@ -1301,7 +1215,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let elapsedSeconds = 0;
             const updateBannerContent = () => {
-                if (!loadingBanner) return;
                 const formattedSecs = String(elapsedSeconds).padStart(2, '0');
                 loadingBanner.innerHTML = `
                     <div style="font-size: 2.2rem; margin-bottom: 8px;">🎬 🍿 🎥</div>
@@ -1312,10 +1225,8 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             updateBannerContent();
-            if (loadingBanner) {
-                loadingBanner.style.opacity = '1';
-                loadingBanner.style.display = 'block';
-            }
+            loadingBanner.style.opacity = '1';
+            loadingBanner.style.display = 'block';
 
             loadingBannerTimer = setInterval(() => {
                 elapsedSeconds++;
@@ -1330,7 +1241,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 nativePlayer.style.display = 'block';
                 nativePlayer.style.opacity = '0.3';
                 nativePlayer.pause();
-                nativePlayer.currentTime = 0; // Reset player position for new stream load
             }
 
             try {
@@ -1432,9 +1342,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (hasNext) {
                                 showRewardToast("🍿 Up Next...", `Loading Season ${nextSeason}, Episode ${nextEpisode}`);
                                 
-                                if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval);
-                                nativePlayer.currentTime = 0;
-
                                 setTimeout(() => {
                                     launchVideoStream(currentTvState.id, true, nextSeason, nextEpisode);
                                 }, 3000);
@@ -1492,7 +1399,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             } catch (error) {
                 console.warn("Stream extraction failed:", error);
-                if (episodeIndicatorText) episodeIndicatorText.innerHTML = "⚠️ <span style='color:red;'>Stream loading failed.</span>";
+                episodeIndicatorText.innerHTML = "⚠️ <span style='color:red;'>Stream loading failed.</span>";
                 if (nativePlayer) nativePlayer.style.opacity = '1';
                 
                 if (loadingBannerTimer) clearInterval(loadingBannerTimer);
@@ -1559,49 +1466,45 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', () => {
-            if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
-            if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); 
-            if (loadingBannerTimer) clearInterval(loadingBannerTimer);
+    closeModalBtn.addEventListener('click', () => {
+        if (window.watchTimerInterval) clearInterval(window.watchTimerInterval);
+        if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval); 
+        if (loadingBannerTimer) clearInterval(loadingBannerTimer);
 
-            const banner = document.getElementById('loading-earn-banner');
-            if (banner) banner.style.display = 'none';
+        const banner = document.getElementById('loading-earn-banner');
+        if (banner) banner.style.display = 'none';
 
-            if (videoModal) videoModal.style.display = 'none';
-            
-            const qualitySelect = document.getElementById('quality-select');
-            if (qualitySelect) qualitySelect.style.display = 'none';
+        videoModal.style.display = 'none';
+        
+        const qualitySelect = document.getElementById('quality-select');
+        if (qualitySelect) qualitySelect.style.display = 'none';
 
-            const nativePlayer = document.getElementById('native-video-player');
-            if (nativePlayer) {
-                nativePlayer.pause();
-                nativePlayer.removeAttribute('src');
-                nativePlayer.load();
-                nativePlayer.style.opacity = '1';
-            }
+        const nativePlayer = document.getElementById('native-video-player');
+        if (nativePlayer) {
+            nativePlayer.pause();
+            nativePlayer.removeAttribute('src');
+            nativePlayer.load();
+            nativePlayer.style.opacity = '1';
+        }
 
-            if (window.activeHlsInstance) {
-                window.activeHlsInstance.destroy();
-                window.activeHlsInstance = null;
-            }
+        if (window.activeHlsInstance) {
+            window.activeHlsInstance.destroy();
+            window.activeHlsInstance = null;
+        }
 
-            releaseWakeLock(); 
-            renderPersonalizedRows();
-            
-            try { 
-                if (heroPlayerFrame) heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); 
-            } catch (e) { }
-        });
-    }
+        releaseWakeLock(); 
+        renderPersonalizedRows();
+        
+        try { 
+            heroPlayerFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); 
+        } catch (e) { }
+    });
 
-    if (heroMuteBtn) {
-        heroMuteBtn.addEventListener('click', () => {
-            isHeroMuted = !isHeroMuted; heroMuteBtn.innerText = isHeroMuted ? "..." : "...";
-            const command = isHeroMuted ? 'mute' : 'unMute';
-            if (heroPlayerFrame) heroPlayerFrame.contentWindow.postMessage(`{"event":"command","func":"${command}","args":""}`, '*');
-        });
-    }
+    heroMuteBtn.addEventListener('click', () => {
+        isHeroMuted = !isHeroMuted; heroMuteBtn.innerText = isHeroMuted ? "..." : "...";
+        const command = isHeroMuted ? 'mute' : 'unMute';
+        heroPlayerFrame.contentWindow.postMessage(`{"event":"command","func":"${command}","args":""}`, '*');
+    });
 
     async function fetchMovieTrailer(movieId, isTV = false) {
         try {
@@ -1631,36 +1534,32 @@ document.addEventListener("DOMContentLoaded", () => {
             const enLogo = imgData.logos ? imgData.logos.find(l => l.iso_639_1 === 'en') : null;
             const logoToUse = enLogo || (imgData.logos && imgData.logos.length > 0 ? imgData.logos[0] : null);
 
-            if (logoToUse && heroDisplayTitle && heroDisplayLogo) {
+            if (logoToUse) {
                 heroDisplayTitle.style.display = 'none'; heroDisplayLogo.style.display = 'block';
                 heroDisplayLogo.src = `https://image.tmdb.org/t/p/w500${logoToUse.file_path}`;
-            } else if (heroDisplayLogo && heroDisplayTitle) {
+            } else {
                 heroDisplayLogo.style.display = 'none'; heroDisplayTitle.style.display = 'block';
                 heroDisplayTitle.innerText = (featuredMovie.title || featuredMovie.name).toUpperCase();
             }
         } catch (e) {
-            if (heroDisplayLogo && heroDisplayTitle) {
-                heroDisplayLogo.style.display = 'none'; heroDisplayTitle.style.display = 'block';
-                heroDisplayTitle.innerText = (featuredMovie.title || featuredMovie.name).toUpperCase();
-            }
+            heroDisplayLogo.style.display = 'none'; heroDisplayTitle.style.display = 'block';
+            heroDisplayTitle.innerText = (featuredMovie.title || featuredMovie.name).toUpperCase();
         }
 
-        if (heroDisplayDesc) heroDisplayDesc.innerText = featuredMovie.overview || "No description available at this moment.";
-        if (heroPosterBg) heroPosterBg.style.backgroundImage = `url('${HERO_IMAGE_BASE_URL}${featuredMovie.backdrop_path}')`;
+        heroDisplayDesc.innerText = featuredMovie.overview || "No description available at this moment.";
+        heroPosterBg.style.backgroundImage = `url('${HERO_IMAGE_BASE_URL}${featuredMovie.backdrop_path}')`;
 
-        if (heroPlayBtn) {
-            heroPlayBtn.onclick = (e) => {
-                if (e) { e.preventDefault(); e.stopPropagation(); }
-                openDetailsModal(featuredMovie.id, featuredMovie.isTV);
-            };
-        }
+        heroPlayBtn.onclick = (e) => {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            openDetailsModal(featuredMovie.id, featuredMovie.isTV);
+        };
 
         const trailerKey = await fetchMovieTrailer(featuredMovie.id, featuredMovie.isTV);
-        if (trailerKey && heroPlayerFrame && heroMuteBtn) {
+        if (trailerKey) {
             heroPlayerFrame.style.display = 'block'; heroMuteBtn.style.display = 'flex';
             heroPlayerFrame.src = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerKey}&showinfo=0&rel=0&modestbranding=1&enablejsapi=1`;
             isHeroMuted = true; heroMuteBtn.innerText = "🔇";
-        } else if (heroPlayerFrame && heroMuteBtn) {
+        } else {
             heroPlayerFrame.src = ""; heroPlayerFrame.style.display = 'none'; heroMuteBtn.style.display = 'none';
         }
     }
@@ -1692,7 +1591,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function fetchLiveSearch(query) {
         const trimmed = query.trim();
-        if (trimmed.length < 2) { if (searchDropdown) searchDropdown.style.display = 'none'; return; }
+        if (trimmed.length < 2) { searchDropdown.style.display = 'none'; return; }
         try {
             const lowerQuery = trimmed.toLowerCase();
             let endpoint = `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(trimmed)}`;
@@ -1703,16 +1602,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const response = await fetch(endpoint);
             const data = await response.json();
-            if (searchDropdown) searchDropdown.innerHTML = '';
+            searchDropdown.innerHTML = '';
             
             const validResults = data.results.map(item => ({
                 ...item,
                 media_type: item.media_type || 'tv' 
             })).filter(i => i.poster_path);
 
-            if (validResults.length === 0 && searchDropdown) {
+            if (validResults.length === 0) {
                 searchDropdown.innerHTML = '<div style="padding: 12px; color: #aaa; text-align: center;">No results found</div>';
-            } else if (searchDropdown) {
+            } else {
                 const resultsContainer = document.createElement('div');
                 resultsContainer.style.cssText = "max-height: 320px; overflow-y: auto;";
 
@@ -1723,7 +1622,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     div.setAttribute('tabindex', '0');
                     const year = (item.release_date || item.first_air_date || "N/A").substring(0, 4);
                     div.innerHTML = `<img src="${IMAGE_BASE_URL}${item.poster_path}" alt=""><div class="search-item-info"><span class="search-item-title">${item.title || item.name}</span><span class="search-item-meta">${isTV ? 'TV Series' : 'Movie'} • ${year}</span></div>`;
-                    div.onclick = () => { searchDropdown.style.display = 'none'; if (searchInput) searchInput.value = ''; openDetailsModal(item.id, isTV); };
+                    div.onclick = () => { searchDropdown.style.display = 'none'; searchInput.value = ''; openDetailsModal(item.id, isTV); };
                     resultsContainer.appendChild(div);
                 });
 
@@ -1740,7 +1639,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
                 searchDropdown.appendChild(seeAllBtn);
             }
-            if (searchDropdown) searchDropdown.style.display = 'block';
+            searchDropdown.style.display = 'block';
         } catch (error) { }
     }
 
@@ -1749,7 +1648,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let searchRow = document.getElementById('search-results-row');
         const homeView = document.getElementById('home-view');
 
-        if (!searchContainer && homeView) {
+        if (!searchContainer) {
             searchContainer = document.createElement('div');
             searchContainer.id = 'search-results-container';
             searchContainer.className = 'row-container';
@@ -1771,33 +1670,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 homeView.prepend(searchContainer);
             }
 
-            const closeSearchBtn = document.getElementById('close-search-results');
-            if (closeSearchBtn) {
-                closeSearchBtn.onclick = () => {
-                    searchContainer.style.display = 'none';
-                    if (searchInput) searchInput.value = '';
-                };
-            }
+            document.getElementById('close-search-results').onclick = () => {
+                searchContainer.style.display = 'none';
+                searchInput.value = '';
+            };
         }
 
-        const searchTitle = document.getElementById('search-results-title');
-        if (searchTitle) searchTitle.innerText = `🔍 Search Results for "${query}" (${results.length})`;
+        document.getElementById('search-results-title').innerText = `🔍 Search Results for "${query}" (${results.length})`;
         searchRow = document.getElementById('search-results-row');
-        if (searchRow) populateRow(results, searchRow, false);
-        if (searchContainer) {
-            searchContainer.style.display = 'block';
-            searchContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        populateRow(results, searchRow, false);
+        searchContainer.style.display = 'block';
+
+        searchContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout); searchTimeout = setTimeout(() => { fetchLiveSearch(e.target.value); }, 400);
-        });
-    }
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout); searchTimeout = setTimeout(() => { fetchLiveSearch(e.target.value); }, 400);
+    });
 
     document.addEventListener('click', (e) => {
-        if (e.target !== searchInput && e.target !== searchDropdown && searchDropdown) { searchDropdown.style.display = 'none'; }
+        if (e.target !== searchInput && e.target !== searchDropdown) { searchDropdown.style.display = 'none'; }
     });
 
     function createMovieCard(item, isTV = false) {
@@ -1812,11 +1704,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll('.brand-logo, #btn-home').forEach(btn => {
         btn.addEventListener('click', () => {
-            if (searchInput) searchInput.value = ''; 
-            loadCategoryView('home');
+            searchInput.value = ''; loadCategoryView('home');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            const homeLink = document.querySelector('[data-view="home"]');
-            if (homeLink) homeLink.classList.add('active');
+            document.querySelector('[data-view="home"]').classList.add('active');
             const searchContainer = document.getElementById('search-results-container');
             if (searchContainer) searchContainer.style.display = 'none';
         });
@@ -1859,23 +1749,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnForgotPassword) {
         btnForgotPassword.addEventListener('click', () => {
-            if (resetEmailInput && authEmailInput) resetEmailInput.value = authEmailInput.value || ''; 
-            if (resetStatusMsg) resetStatusMsg.innerText = ''; 
-            if (resetPasswordModal) resetPasswordModal.style.display = 'flex';
+            resetEmailInput.value = authEmailInput.value || ''; resetStatusMsg.innerText = ''; resetPasswordModal.style.display = 'flex';
         });
     }
-    if (resetCancelBtn) resetCancelBtn.addEventListener('click', () => { if (resetPasswordModal) resetPasswordModal.style.display = 'none'; });
+    if (resetCancelBtn) resetCancelBtn.addEventListener('click', () => { resetPasswordModal.style.display = 'none'; });
     
     if (resetSubmitBtn) {
         resetSubmitBtn.addEventListener('click', async () => {
-            const email = resetEmailInput ? resetEmailInput.value.trim() : '';
-            if (!email) { if (resetStatusMsg) { resetStatusMsg.style.color = '#E50914'; resetStatusMsg.innerText = 'Please enter a valid email.'; } return; }
+            const email = resetEmailInput.value.trim();
+            if (!email) { resetStatusMsg.style.color = '#E50914'; resetStatusMsg.innerText = 'Please enter a valid email.'; return; }
             try {
-                if (resetStatusMsg) { resetStatusMsg.style.color = '#aaa'; resetStatusMsg.innerText = 'Sending link...'; }
+                resetStatusMsg.style.color = '#aaa'; resetStatusMsg.innerText = 'Sending link...';
                 await sendPasswordResetEmail(auth, email);
-                if (resetStatusMsg) { resetStatusMsg.style.color = '#46d369'; resetStatusMsg.innerText = '✅ Reset link sent to your email!'; }
-                setTimeout(() => { if (resetPasswordModal) resetPasswordModal.style.display = 'none'; }, 3000);
-            } catch (error) { if (resetStatusMsg) { resetStatusMsg.style.color = '#E50914'; resetStatusMsg.innerText = '❌ Failed to send link. Try again.'; } }
+                resetStatusMsg.style.color = '#46d369'; resetStatusMsg.innerText = '✅ Reset link sent to your email!';
+                setTimeout(() => { resetPasswordModal.style.display = 'none'; }, 3000);
+            } catch (error) { resetStatusMsg.style.color = '#E50914'; resetStatusMsg.innerText = '❌ Failed to send link. Try again.'; }
         });
     }
 
@@ -1885,9 +1773,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
 
     if (btnDeleteAccountMobile) {
-        btnDeleteAccountMobile.addEventListener('click', () => { if (mobileMenu) mobileMenu.style.right = '-100%'; if (deleteAccountModal) deleteAccountModal.style.display = 'flex'; });
+        btnDeleteAccountMobile.addEventListener('click', () => { mobileMenu.style.right = '-100%'; deleteAccountModal.style.display = 'flex'; });
     }
-    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', () => { if (deleteAccountModal) deleteAccountModal.style.display = 'none'; });
+    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', () => { deleteAccountModal.style.display = 'none'; });
     
     if (deleteConfirmBtn) {
         deleteConfirmBtn.addEventListener('click', async () => {
@@ -1899,11 +1787,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         method: "POST", mode: "cors", redirect: "follow", headers: { "Content-Type": "text/plain;charset=utf-8" },
                         body: JSON.stringify({ action: "deleteAccount", uid: user.uid })
                     });
-                    await deleteUser(user); if (deleteAccountModal) deleteAccountModal.style.display = 'none'; window.location.reload(); 
+                    await deleteUser(user); deleteAccountModal.style.display = 'none'; window.location.reload(); 
                 } catch (error) {
                     alert("For security reasons, please Log Out and log back in before deleting your account.");
-                    if (deleteAccountModal) deleteAccountModal.style.display = 'none'; 
-                    deleteConfirmBtn.innerText = "Yes, Delete";
+                    deleteAccountModal.style.display = 'none'; deleteConfirmBtn.innerText = "Yes, Delete";
                 }
             }
         });
@@ -1961,34 +1848,10 @@ document.addEventListener('DOMContentLoaded', () => {
             width: 0px !important; 
             background: transparent !important; 
         }
-
-        /* MOBILE VIDEO PLAYER FIT */
-        #video-modal {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            max-height: 100vh !important;
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-            align-items: center !important;
-            background: #000000 !important;
-            overflow: hidden !important;
-            z-index: 999999 !important;
-        }
-
-        #native-video-player {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            object-fit: contain !important;
-        }
     `;
     document.head.appendChild(styleFix);
 
+    // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
     cursor.style.cssText = `
@@ -2006,6 +1869,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let posY = window.innerHeight / 2;
     const speed = 15; 
 
+    // --- 🕒 REMOTE-ONLY FADE LOGIC ---
     let lastActivityTime = Date.now();
 
     setInterval(() => {
@@ -2019,6 +1883,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cursor.style.opacity = '1';
     }
 
+    // --- 🔄 CONTINUOUS HORIZONTAL HOVER SCROLL LOGIC ---
     let autoScrollInterval = null;
     let scrollState = { targetX: null, dx: 0 };
 
@@ -2071,11 +1936,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: true });
 
+    // ONLY the physical remote wakes the cursor
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
+        // 🛑 THE SEARCH FIX: If you are actively typing in the search bar or login, 
+        // DO NOT intercept the remote! Let the TV keyboard work naturally.
         if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             if (key === 'Enter' || keyCode === 13) {
                 const form = document.activeElement.closest('form');
@@ -2084,9 +1952,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (submitBtn) submitBtn.click();
                 }
             }
-            return;
+            return; // Exit the mouse engine so you can type!
         }
 
+        // Block Android TV from jumping objects while using the virtual mouse
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); e.stopPropagation(); 
         }
@@ -2107,6 +1976,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
+                // 1. VIDEO PLAYER CONTROLS
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
@@ -2124,18 +1994,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; 
                 }
 
+                // 2. QUALITY SELECT DROPDOWN
                 if (target.tagName === 'SELECT' || target.closest('select')) {
                     const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
                     selectBox.focus();
                     return;
                 }
 
+                // 3. 🔍 INPUT FOCUS FIX (Search & Login)
                 const inputParent = target.closest('input, textarea');
                 if (inputParent) {
                     inputParent.focus();
-                    return;
+                    return; // Stop here so the on-screen keyboard can pop up
                 }
 
+                // 4. CLICK EVENT FOR BUTTONS, CARDS, MODALS
                 const clickEvent = new MouseEvent('click', {
                     view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
                 });
@@ -2159,6 +2032,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
 
+            // 🎯 VERTICAL SCROLL LOGIC
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
@@ -2172,6 +2046,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mobileMenu = document.getElementById('mobile-menu');
                 const searchDropdown = document.getElementById('search-dropdown');
 
+                // Strictly check explicit inline styles so we never falsely block the home screen!
                 if (detailsModal && detailsModal.style.display === 'block') {
                     detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
                     const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
@@ -2197,6 +2072,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     scrolledModal = true;
                 }
 
+                // If NO modals are genuinely open, scroll the main TV browser window!
                 if (!scrolledModal) {
                     window.scrollBy({ top: deltaY, behavior: 'auto' });
                 }
