@@ -1913,11 +1913,17 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styleFix);
 
-    // 📺 RESPONSIVE FULL-SCREEN FIX (Phone Player Normal, TV Player Tailored)
+    // 📺 RESPONSIVE FULL-SCREEN FIX (Phone Controls Standard, TV Tailored)
     const fullscreenFix = document.createElement('style');
     fullscreenFix.innerHTML = `
-        /* 📱 PHONE STYLING: Native fullscreen player behavior on mobile */
+        /* 📱 PHONE STYLING: Force native video controls & full-screen button visible */
         @media (max-width: 768px) {
+            video::-webkit-media-controls-fullscreen-button {
+                display: inline-block !important;
+            }
+            video::-webkit-media-controls-enclosure {
+                display: flex !important;
+            }
             #native-video-player {
                 width: 100% !important;
                 height: 100% !important;
@@ -1925,7 +1931,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        /* 📺 TV STYLING: Applied only on larger TV displays or remotes */
+        /* 📺 TV STYLING: Hide full-screen button and auto-fit to TV screen */
         @media (min-width: 769px) {
             video::-webkit-media-controls-fullscreen-button {
                 display: none !important;
