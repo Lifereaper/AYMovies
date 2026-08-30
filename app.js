@@ -139,7 +139,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch(LOCAL_API_URL);
             const history = await response.json();
             if (history[trackingId]) {
-                videoElement.currentTime = history[trackingId].currentTime;
+                const savedTime = history[trackingId].currentTime;
+                const duration = videoElement.duration || history[trackingId].duration;
+                
+                // 🛑 EPISODE BUG FIX: Prevent jumping to the end! 
+                // If the saved time is within 3 minutes of the end, restart from 00:00
+                if (duration && savedTime > (duration - 180)) {
+                    videoElement.currentTime = 0;
+                } else {
+                    videoElement.currentTime = savedTime;
+                }
             }
         } catch (error) {
             console.error('Could not load local history:', error);
@@ -1241,11 +1250,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 nativePlayer.style.opacity = '0.3';
                 nativePlayer.pause();
                 
-                // --- EPISODE FIX: NUKE PLAYER STATE SO NEXT EPISODE STARTS AT 00:00 ---
-                nativePlayer.removeAttribute('src'); 
-                nativePlayer.load();                 
-                nativePlayer.currentTime = 0;        
-                // ----------------------------------------------------------------------
+                // 🛑 EPISODE BUG FIX: Force time back to 0 before loading new source
+                nativePlayer.removeAttribute('src');
+                nativePlayer.load();
+                nativePlayer.currentTime = 0;
             }
 
             try {
@@ -1307,24 +1315,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     const trackingId = isTV ? `${id}-S${season}E${episode}` : id.toString();
 
-                    nativePlayer.addEventListener('loadedmetadata', async function resumeHandler() {
-                        nativePlayer.removeEventListener('loadedmetadata', resumeHandler);
+                    // 🛑 EPISODE BUG FIX: Use .on to prevent duplicate listeners stacking up
+                    nativePlayer.onloadedmetadata = async function() {
                         await checkAndResumeLocalVideo(nativePlayer, trackingId);
-                    });
+                    };
                     startLocalProgressTracker(nativePlayer, trackingId);
 
-                    const hideBanner = () => {
+                    nativePlayer.onplaying = function() {
                         if (loadingBannerTimer) clearInterval(loadingBannerTimer);
                         const banner = document.getElementById('loading-earn-banner');
                         if (banner) {
                             banner.style.opacity = '0';
                             setTimeout(() => { if (banner) banner.style.display = 'none'; }, 500);
                         }
-                        nativePlayer.removeEventListener('playing', hideBanner);
                     };
-                    nativePlayer.addEventListener('playing', hideBanner);
 
-                    nativePlayer.addEventListener('ended', () => {
+                    nativePlayer.onended = function() {
                         if (currentTvState.isTV) {
                             let nextSeason = currentTvState.season;
                             let nextEpisode = currentTvState.episode + 1;
@@ -1347,10 +1353,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (hasNext) {
                                 showRewardToast("🍿 Up Next...", `Loading Season ${nextSeason}, Episode ${nextEpisode}`);
                                 
-                                // --- EPISODE FIX: KILL TRACKER SO IT DOESN'T CORRUPT NEXT EPISODE ---
+                                // 🛑 EPISODE BUG FIX: Kill the tracker so it stops saving the end time!
                                 if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval);
                                 nativePlayer.currentTime = 0;
-                                // --------------------------------------------------------------------
 
                                 setTimeout(() => {
                                     launchVideoStream(currentTvState.id, true, nextSeason, nextEpisode);
@@ -1381,7 +1386,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 renderPersonalizedRows();
                             }
                         }
-                    });
+                    };
 
                     let streamLoaded = false;
                     for (let i = 0; i < streamCandidates.length; i++) {
@@ -1495,6 +1500,11 @@ document.addEventListener("DOMContentLoaded", () => {
             nativePlayer.removeAttribute('src');
             nativePlayer.load();
             nativePlayer.style.opacity = '1';
+            
+            // Clean up to prevent duplicate listeners
+            nativePlayer.onloadedmetadata = null;
+            nativePlayer.onplaying = null;
+            nativePlayer.onended = null;
         }
 
         if (window.activeHlsInstance) {
