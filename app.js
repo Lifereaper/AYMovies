@@ -1,5 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged, 
+    signOut, 
+    sendPasswordResetEmail, 
+    deleteUser,
+    setPersistence,
+    browserLocalPersistence 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -15,6 +24,12 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
+
+// 🔒 Force Firebase to lock auth state to LOCAL device storage
+setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.error("Auth persistence error:", err);
+});
+
 const db = initializeFirestore(firebaseApp, {
     experimentalForceLongPolling: true
 });
@@ -711,15 +726,40 @@ document.addEventListener("DOMContentLoaded", () => {
     btnLogout.addEventListener('click', handleLogout);
     btnLogoutMobile.addEventListener('click', handleLogout);
 
+    // 👤 CLEAN AUTH STATE SWITCHER (Isolates Account Caches)
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            if (currentUserUid === user.uid) return;
-            currentUserUid = user.uid; window.currentUserEmail = user.email || "Registered User"; loginView.style.display = 'none';
+            if (currentUserUid !== user.uid) {
+                continueWatching = [];
+                alreadyWatched = [];
+                myList = [];
+                progressMap = {};
+                window.userTotalPoints = 0.00;
+                dataLoadedFromCloud = false;
+            }
+
+            currentUserUid = user.uid; 
+            window.currentUserEmail = user.email || "Registered User"; 
+            loginView.style.display = 'none';
+            
+            myDeviceId = 'app_' + user.uid.substring(0, 8) + '_' + Math.random().toString(36).substr(2, 5);
+            localStorage.setItem('ay_device_id', myDeviceId);
+
             loadCategoryView('home');
             fetchUserData().then(() => { renderPersonalizedRows(); });
         } else {
-            currentUserUid = null; window.currentUserEmail = null; continueWatching = []; alreadyWatched = []; myList = []; progressMap = {};
-            loginView.style.display = 'flex'; if (rotationIntervalId) clearInterval(rotationIntervalId);
+            currentUserUid = null; 
+            window.currentUserEmail = null; 
+            continueWatching = []; 
+            alreadyWatched = []; 
+            myList = []; 
+            progressMap = {};
+            dataLoadedFromCloud = false;
+            
+            localStorage.removeItem('ay_device_id');
+            
+            loginView.style.display = 'flex'; 
+            if (rotationIntervalId) clearInterval(rotationIntervalId);
         }
     });
 
@@ -1873,35 +1913,43 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styleFix);
 
-    // 📺 SAFER WEB-ONLY FULL-SCREEN FIX WITH AUTO-HIDE CONTROLS
+    // 📺 RESPONSIVE FULL-SCREEN FIX (Phone Player Normal, TV Player Tailored)
     const fullscreenFix = document.createElement('style');
     fullscreenFix.innerHTML = `
-        /* Hide the broken native Android fullscreen button */
-        video::-webkit-media-controls-fullscreen-button {
-            display: none !important;
-        }
-        
-        /* Shrink video height dynamically by 80px so the timeline controls aren't pushed off-screen */
-        #native-video-player {
-            width: 100% !important;
-            height: calc(100% - 80px) !important;
-            object-fit: contain !important;
-            margin: 0 auto !important;
-            display: block !important;
+        /* 📱 PHONE STYLING: Native fullscreen player behavior on mobile */
+        @media (max-width: 768px) {
+            #native-video-player {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: contain !important;
+            }
         }
 
-        /* 🧼 Smooth transition for hiding top controls during playback */
-        #close-modal-btn, #quality-select, #btn-toggle-mini-player, #episode-indicator-text {
-            transition: opacity 0.3s ease-in-out !important;
-        }
+        /* 📺 TV STYLING: Applied only on larger TV displays or remotes */
+        @media (min-width: 769px) {
+            video::-webkit-media-controls-fullscreen-button {
+                display: none !important;
+            }
+            
+            #native-video-player {
+                width: 100% !important;
+                height: calc(100% - 80px) !important;
+                object-fit: contain !important;
+                margin: 0 auto !important;
+                display: block !important;
+            }
 
-        /* Class applied to hide top controls */
-        .controls-hidden #close-modal-btn,
-        .controls-hidden #quality-select,
-        .controls-hidden #btn-toggle-mini-player,
-        .controls-hidden #episode-indicator-text {
-            opacity: 0 !important;
-            pointer-events: none !important;
+            #close-modal-btn, #quality-select, #btn-toggle-mini-player, #episode-indicator-text {
+                transition: opacity 0.3s ease-in-out !important;
+            }
+
+            .controls-hidden #close-modal-btn,
+            .controls-hidden #quality-select,
+            .controls-hidden #btn-toggle-mini-player,
+            .controls-hidden #episode-indicator-text {
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
         }
     `;
     document.head.appendChild(fullscreenFix);
@@ -1993,7 +2041,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
-        // 🛑 SEARCH FIX: If actively typing in input/textarea, let the native keyboard handle keys!
+        // 🛑 SEARCH FIX: If actively typing in input/textarea, let native keyboard handle keys
         if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             if (key === 'Enter' || keyCode === 13) {
                 const form = document.activeElement.closest('form');
