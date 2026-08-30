@@ -25,7 +25,7 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 
-// 🔒 Force Firebase to lock auth state to LOCAL device storage
+// Force Firebase to lock auth state to LOCAL device storage
 setPersistence(auth, browserLocalPersistence).catch((err) => {
     console.error("Auth persistence error:", err);
 });
@@ -127,7 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let localProgressTrackerInterval = null;
     let loadingBannerTimer = null;
     
-    // 🚀 ROUTED THROUGH STANDALONE PROXY WORKER
     const LOCAL_API_URL = "https://twilight-mud-4868.yalex6677.workers.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
@@ -726,7 +725,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnLogout.addEventListener('click', handleLogout);
     btnLogoutMobile.addEventListener('click', handleLogout);
 
-    // 👤 CLEAN AUTH STATE SWITCHER (Isolates Account Caches)
+    // CLEAN AUTH STATE SWITCHER
     onAuthStateChanged(auth, (user) => {
         if (user) {
             if (currentUserUid !== user.uid) {
@@ -1283,27 +1282,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 nativePlayer.pause();
             }
 
-            // ⏳ AUTO-HIDE TOP BUTTONS ON PLAYBACK
-            let controlHideTimeout = null;
-
-            function resetControlTimer() {
-                videoModal.classList.remove('controls-hidden');
-                if (controlHideTimeout) clearTimeout(controlHideTimeout);
-                
-                if (nativePlayer && !nativePlayer.paused) {
-                    controlHideTimeout = setTimeout(() => {
-                        videoModal.classList.add('controls-hidden');
-                    }, 3000);
-                }
-            }
-
-            if (nativePlayer) {
-                nativePlayer.addEventListener('pause', () => videoModal.classList.remove('controls-hidden'));
-                nativePlayer.addEventListener('playing', resetControlTimer);
-            }
-            window.addEventListener('mousemove', resetControlTimer);
-            window.addEventListener('keydown', resetControlTimer);
-
             try {
                 let imdbId = null;
                 try {
@@ -1535,7 +1513,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const banner = document.getElementById('loading-earn-banner');
         if (banner) banner.style.display = 'none';
 
-        videoModal.classList.remove('controls-hidden');
         videoModal.style.display = 'none';
         
         const qualitySelect = document.getElementById('quality-select');
@@ -1910,55 +1887,15 @@ document.addEventListener('DOMContentLoaded', () => {
             width: 0px !important; 
             background: transparent !important; 
         }
+
+        /* STANDARD MOBILE VIDEO PLAYER STYLING */
+        #native-video-player {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+        }
     `;
     document.head.appendChild(styleFix);
-
-    // 📺 RESPONSIVE FULL-SCREEN FIX (Phone Controls Standard, TV Tailored)
-    const fullscreenFix = document.createElement('style');
-    fullscreenFix.innerHTML = `
-        /* 📱 PHONE STYLING: Force native video controls & full-screen button visible */
-        @media (max-width: 768px) {
-            video::-webkit-media-controls-fullscreen-button {
-                display: inline-block !important;
-            }
-            video::-webkit-media-controls-enclosure {
-                display: flex !important;
-            }
-            #native-video-player {
-                width: 100% !important;
-                height: 100% !important;
-                object-fit: contain !important;
-            }
-        }
-
-        /* 📺 TV STYLING: Hide full-screen button and auto-fit to TV screen */
-        @media (min-width: 769px) {
-            video::-webkit-media-controls-fullscreen-button {
-                display: none !important;
-            }
-            
-            #native-video-player {
-                width: 100% !important;
-                height: calc(100% - 80px) !important;
-                object-fit: contain !important;
-                margin: 0 auto !important;
-                display: block !important;
-            }
-
-            #close-modal-btn, #quality-select, #btn-toggle-mini-player, #episode-indicator-text {
-                transition: opacity 0.3s ease-in-out !important;
-            }
-
-            .controls-hidden #close-modal-btn,
-            .controls-hidden #quality-select,
-            .controls-hidden #btn-toggle-mini-player,
-            .controls-hidden #episode-indicator-text {
-                opacity: 0 !important;
-                pointer-events: none !important;
-            }
-        }
-    `;
-    document.head.appendChild(fullscreenFix);
 
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
@@ -2047,7 +1984,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
-        // 🛑 SEARCH FIX: If actively typing in input/textarea, let native keyboard handle keys
+        // SEARCH FIX: If actively typing in input/textarea, let native keyboard handle keys
         if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             if (key === 'Enter' || keyCode === 13) {
                 const form = document.activeElement.closest('form');
