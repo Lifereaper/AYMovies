@@ -1,5 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged, 
+    signOut, 
+    sendPasswordResetEmail, 
+    deleteUser,
+    setPersistence,
+    browserLocalPersistence 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -15,6 +24,11 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
+
+setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.error("Auth persistence error:", err);
+});
+
 const db = initializeFirestore(firebaseApp, {
     experimentalForceLongPolling: true
 });
@@ -115,17 +129,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const LOCAL_API_URL = "https://twilight-mud-4868.yalex6677.workers.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
+    // 🛑 USER-ISOLATED TRACKER FIX
     function startLocalProgressTracker(videoElement, trackingId) {
         if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval);
         localProgressTrackerInterval = setInterval(() => {
-            if (!videoElement.paused && videoElement.currentTime > 0 && videoElement.duration) {
+            if (!videoElement.paused && videoElement.currentTime > 0 && videoElement.duration && currentUserUid) {
+                const userScopedId = `${currentUserUid}_${trackingId}`;
                 fetch(LOCAL_API_URL, { 
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        movieId: trackingId.toString(),
+                        movieId: userScopedId,
                         currentTime: videoElement.currentTime,
                         duration: videoElement.duration
                     })
@@ -134,16 +148,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 10000); 
     }
 
+    // 🛑 USER-ISOLATED RESUME FIX
     async function checkAndResumeLocalVideo(videoElement, trackingId) {
         try {
+            if (!currentUserUid) return;
+            const userScopedId = `${currentUserUid}_${trackingId}`;
             const response = await fetch(LOCAL_API_URL);
             const history = await response.json();
-            if (history[trackingId]) {
-                const savedTime = history[trackingId].currentTime;
-                const duration = videoElement.duration || history[trackingId].duration;
+            if (history[userScopedId]) {
+                const savedTime = history[userScopedId].currentTime;
+                const duration = videoElement.duration || history[userScopedId].duration;
                 
-                // 🛑 EPISODE BUG FIX: Prevent jumping to the end! 
-                // If the saved time is within 3 minutes of the end, restart from 00:00
                 if (duration && savedTime > (duration - 180)) {
                     videoElement.currentTime = 0;
                 } else {
@@ -155,8 +170,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // 🛑 USER-ISOLATED PROGRESS BARS FIX
     async function syncLocalProgressBars() {
         try {
+            if (!currentUserUid) return;
             const historyResponse = await fetch(LOCAL_API_URL);
             const watchHistory = await historyResponse.json();
 
@@ -169,7 +186,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     trackingId = `${id}-S${progressMap[id].lastSeason}E${progressMap[id].lastEpisode}`;
                 }
                 
-                const historyData = watchHistory[trackingId] || watchHistory[id];
+                const userScopedId = `${currentUserUid}_${trackingId}`;
+                const userScopedMovieId = `${currentUserUid}_${id}`;
+                const historyData = watchHistory[userScopedId] || watchHistory[userScopedMovieId];
 
                 if (historyData) {
                     const savedTime = historyData.currentTime;
@@ -195,6 +214,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     const fill = track.querySelector('.local-progress-fill');
                     fill.style.width = `${percentage}%`;
+                } else {
+                    // Remove progress bar if this user hasn't watched the title
+                    let track = card.querySelector('.local-progress-track');
+                    if (track) track.remove();
                 }
             });
         } catch (e) {}
@@ -1250,7 +1273,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 nativePlayer.style.opacity = '0.3';
                 nativePlayer.pause();
                 
-                // 🛑 EPISODE BUG FIX: Force time back to 0 before loading new source
                 nativePlayer.removeAttribute('src');
                 nativePlayer.load();
                 nativePlayer.currentTime = 0;
@@ -1315,7 +1337,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     const trackingId = isTV ? `${id}-S${season}E${episode}` : id.toString();
 
-                    // 🛑 EPISODE BUG FIX: Use .on to prevent duplicate listeners stacking up
                     nativePlayer.onloadedmetadata = async function() {
                         await checkAndResumeLocalVideo(nativePlayer, trackingId);
                     };
@@ -1353,7 +1374,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (hasNext) {
                                 showRewardToast("🍿 Up Next...", `Loading Season ${nextSeason}, Episode ${nextEpisode}`);
                                 
-                                // 🛑 EPISODE BUG FIX: Kill the tracker so it stops saving the end time!
                                 if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval);
                                 nativePlayer.currentTime = 0;
 
@@ -1501,7 +1521,6 @@ document.addEventListener("DOMContentLoaded", () => {
             nativePlayer.load();
             nativePlayer.style.opacity = '1';
             
-            // Clean up to prevent duplicate listeners
             nativePlayer.onloadedmetadata = null;
             nativePlayer.onplaying = null;
             nativePlayer.onended = null;
@@ -1854,7 +1873,6 @@ document.addEventListener('DOMContentLoaded', () => {
     styleFix.innerHTML = `
         .slider-arrow, .row-arrow { opacity: 0.8 !important; }
         
-        /* 🚫 KILL ALL WHITE BORDERS AND SCROLLBARS */
         body, html { 
             margin: 0 !important; 
             padding: 0 !important; 
@@ -1888,7 +1906,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let posY = window.innerHeight / 2;
     const speed = 15; 
 
-    // --- 🕒 REMOTE-ONLY FADE LOGIC ---
     let lastActivityTime = Date.now();
 
     setInterval(() => {
@@ -1902,7 +1919,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cursor.style.opacity = '1';
     }
 
-    // --- 🔄 CONTINUOUS HORIZONTAL HOVER SCROLL LOGIC ---
     let autoScrollInterval = null;
     let scrollState = { targetX: null, dx: 0 };
 
@@ -1955,14 +1971,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: true });
 
-    // ONLY the physical remote wakes the cursor
     document.addEventListener('keydown', (e) => {
         const key = e.key;
         const keyCode = e.keyCode || e.which;
         let moved = false;
 
-        // 🛑 THE SEARCH FIX: If you are actively typing in the search bar or login, 
-        // DO NOT intercept the remote! Let the TV keyboard work naturally.
         if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             if (key === 'Enter' || keyCode === 13) {
                 const form = document.activeElement.closest('form');
@@ -1971,10 +1984,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (submitBtn) submitBtn.click();
                 }
             }
-            return; // Exit the mouse engine so you can type!
+            return; 
         }
 
-        // Block Android TV from jumping objects while using the virtual mouse
         if ([37, 38, 39, 40].includes(keyCode)) {
             e.preventDefault(); e.stopPropagation(); 
         }
@@ -1995,7 +2007,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.style.display = 'block';
 
             if (target) {
-                // 1. VIDEO PLAYER CONTROLS
                 if (target.tagName === 'VIDEO') {
                     const rect = target.getBoundingClientRect();
                     const clickX = tipX - rect.left;
@@ -2013,21 +2024,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; 
                 }
 
-                // 2. QUALITY SELECT DROPDOWN
                 if (target.tagName === 'SELECT' || target.closest('select')) {
                     const selectBox = target.tagName === 'SELECT' ? target : target.closest('select');
                     selectBox.focus();
                     return;
                 }
 
-                // 3. 🔍 INPUT FOCUS FIX (Search & Login)
                 const inputParent = target.closest('input, textarea');
                 if (inputParent) {
                     inputParent.focus();
-                    return; // Stop here so the on-screen keyboard can pop up
+                    return; 
                 }
 
-                // 4. CLICK EVENT FOR BUTTONS, CARDS, MODALS
                 const clickEvent = new MouseEvent('click', {
                     view: window, bubbles: true, cancelable: true, clientX: tipX, clientY: tipY
                 });
@@ -2051,7 +2059,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cursor.style.left = posX + 'px'; cursor.style.top = posY + 'px';
 
-            // 🎯 VERTICAL SCROLL LOGIC
             let deltaY = 0;
             if (posY > window.innerHeight - 80) deltaY = speed * 2;
             if (posY < 80) deltaY = -speed * 2;
@@ -2065,7 +2072,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mobileMenu = document.getElementById('mobile-menu');
                 const searchDropdown = document.getElementById('search-dropdown');
 
-                // Strictly check explicit inline styles so we never falsely block the home screen!
                 if (detailsModal && detailsModal.style.display === 'block') {
                     detailsModal.scrollBy({ top: deltaY, behavior: 'auto' });
                     const inners = detailsModal.querySelectorAll('.details-content, .modal-content');
@@ -2091,7 +2097,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     scrolledModal = true;
                 }
 
-                // If NO modals are genuinely open, scroll the main TV browser window!
                 if (!scrolledModal) {
                     window.scrollBy({ top: deltaY, behavior: 'auto' });
                 }
