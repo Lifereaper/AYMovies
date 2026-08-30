@@ -1,5 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged, 
+    signOut, 
+    sendPasswordResetEmail, 
+    deleteUser,
+    setPersistence,
+    browserLocalPersistence 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -15,6 +24,12 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
+
+// Force Firebase to lock auth state to LOCAL device storage
+setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.error("Auth persistence error:", err);
+});
+
 const db = initializeFirestore(firebaseApp, {
     experimentalForceLongPolling: true
 });
@@ -382,7 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loginBtn: "Iniciar sesión", forgotPassword: "¿Olvidaste tu contraseña?", newToApp: "¿Nuevo en AYMovies?", signupNow: "Suscríbete ahora.",
             
             playBtn: "▶ Reproducir", trailerBtn: "🎬 Tráiler", myListAdd: "➕ Mi Lista", myListAdded: "✔️ En Mi Lista",
-            shareCommunityBtn: "👥 Compartir a la Comunidad", castLabel: "Reparto:", similarLabel: "Más títulos similares",
+            shareCommunityBtn: "👥 Compartir a la Comunidad", castLabel: "Reparto:", similarLabel: "Más titles similares",
             
             rewardsTitle: "💰 Billetera de Recompensas", balanceLabel: "Saldo disponible:", payoutHeader: "Solicitar Pago de DigiWallet",
             methodLabel: "Método de Pago", accountLabel: "Número / Cuenta de DigiWallet", amountLabel: "Monto (Mín. $5.00 BZD)",
@@ -1241,6 +1256,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 nativePlayer.style.display = 'block';
                 nativePlayer.style.opacity = '0.3';
                 nativePlayer.pause();
+                nativePlayer.currentTime = 0; // 🎯 FORCE RESET TO BEGINNING FOR NEW EPISODE
             }
 
             try {
@@ -1342,6 +1358,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (hasNext) {
                                 showRewardToast("🍿 Up Next...", `Loading Season ${nextSeason}, Episode ${nextEpisode}`);
                                 
+                                // 🛑 Stop tracking the old episode so it doesn't overwrite the new one
+                                if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval);
+                                if (nativePlayer) nativePlayer.currentTime = 0;
+
                                 setTimeout(() => {
                                     launchVideoStream(currentTvState.id, true, nextSeason, nextEpisode);
                                 }, 3000);
@@ -1851,7 +1871,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styleFix);
 
-    // 1. Create the custom Netflix-red cursor
     const cursor = document.createElement('div');
     cursor.id = 'tv-virtual-cursor';
     cursor.style.cssText = `
