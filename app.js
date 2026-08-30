@@ -1,14 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-    getAuth, 
-    signInWithEmailAndPassword, 
-    onAuthStateChanged, 
-    signOut, 
-    sendPasswordResetEmail, 
-    deleteUser,
-    setPersistence,
-    browserLocalPersistence 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -24,12 +15,6 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
-
-// Force Firebase to lock auth state to LOCAL device storage
-setPersistence(auth, browserLocalPersistence).catch((err) => {
-    console.error("Auth persistence error:", err);
-});
-
 const db = initializeFirestore(firebaseApp, {
     experimentalForceLongPolling: true
 });
@@ -127,7 +112,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let localProgressTrackerInterval = null;
     let loadingBannerTimer = null;
     
-    // 🚀 ROUTED THROUGH STANDALONE PROXY WORKER
     const LOCAL_API_URL = "https://twilight-mud-4868.yalex6677.workers.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
@@ -397,7 +381,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loginBtn: "Iniciar sesión", forgotPassword: "¿Olvidaste tu contraseña?", newToApp: "¿Nuevo en AYMovies?", signupNow: "Suscríbete ahora.",
             
             playBtn: "▶ Reproducir", trailerBtn: "🎬 Tráiler", myListAdd: "➕ Mi Lista", myListAdded: "✔️ En Mi Lista",
-            shareCommunityBtn: "👥 Compartir a la Comunidad", castLabel: "Reparto:", similarLabel: "Más titles similares",
+            shareCommunityBtn: "👥 Compartir a la Comunidad", castLabel: "Reparto:", similarLabel: "Más títulos similares",
             
             rewardsTitle: "💰 Billetera de Recompensas", balanceLabel: "Saldo disponible:", payoutHeader: "Solicitar Pago de DigiWallet",
             methodLabel: "Método de Pago", accountLabel: "Número / Cuenta de DigiWallet", amountLabel: "Monto (Mín. $5.00 BZD)",
@@ -1256,7 +1240,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 nativePlayer.style.display = 'block';
                 nativePlayer.style.opacity = '0.3';
                 nativePlayer.pause();
-                nativePlayer.currentTime = 0; // 🎯 FORCE RESET TO BEGINNING FOR NEW EPISODE
+                
+                // --- EPISODE FIX: NUKE PLAYER STATE SO NEXT EPISODE STARTS AT 00:00 ---
+                nativePlayer.removeAttribute('src'); 
+                nativePlayer.load();                 
+                nativePlayer.currentTime = 0;        
+                // ----------------------------------------------------------------------
             }
 
             try {
@@ -1358,9 +1347,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (hasNext) {
                                 showRewardToast("🍿 Up Next...", `Loading Season ${nextSeason}, Episode ${nextEpisode}`);
                                 
-                                // 🛑 Stop tracking the old episode so it doesn't overwrite the new one
+                                // --- EPISODE FIX: KILL TRACKER SO IT DOESN'T CORRUPT NEXT EPISODE ---
                                 if (localProgressTrackerInterval) clearInterval(localProgressTrackerInterval);
-                                if (nativePlayer) nativePlayer.currentTime = 0;
+                                nativePlayer.currentTime = 0;
+                                // --------------------------------------------------------------------
 
                                 setTimeout(() => {
                                     launchVideoStream(currentTvState.id, true, nextSeason, nextEpisode);
