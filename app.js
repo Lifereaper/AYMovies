@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let localProgressTrackerInterval = null;
     let loadingBannerTimer = null;
     
-    const LOCAL_API_URL = "https://twilight-mud-4868/api/progress";
+    const LOCAL_API_URL = "https://twilight-mud-4868.yalex6677.workers.dev/api/progress";
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwF2aEerT5-myiVMhB6iXd50_iF0m8-GAAAZ18vA5Livbu7V6UDU810WCwhHJ7wOc/exec";
 
     // 🛑 USER-ISOLATED TRACKER FIX
